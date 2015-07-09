@@ -1,3 +1,5 @@
+.. image:: https://secure.travis-ci.org/zmap/zschema.svg?branch=master
+
 ZSchema
 =======
 
