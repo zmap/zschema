@@ -4,8 +4,7 @@ import dateutil.parser
 
 from keys import *
 
-class DataValidationException(TypeError):
-    pass
+
 
 class Leaf(Keyable):
 
@@ -24,7 +23,8 @@ class Leaf(Keyable):
         return {"name":self.key_to_bq(name), "type":self.BQ_TYPE, "mode":mode}
 
     def to_string(self, name):
-        return "%s: %s" % (self.key_to_string(name), self.__class__.__name__.lower())
+        return "%s: %s" % (self.key_to_string(name), 
+                           self.__class__.__name__.lower())
         
     def print_indent_string(self, name, indent):
         val = self.key_to_string(name)
@@ -36,15 +36,16 @@ class Leaf(Keyable):
     def validate(self, name, value):
         if type(value) not in self.EXPECTED_CLASS:
             raise DataValidationException("class mismatch for %s: expected %s, %s has class %s",
-                    self.key_to_string(name), self.EXPECTED_CLASS, 
-                    str(value), value.__class__.__name__)
+                                          self.key_to_string(name), self.EXPECTED_CLASS, 
+                                          str(value), value.__class__.__name__)
         if hasattr(self, "_validate"):
-            self._validate(key_to_string(name), value)
+            self._validate(self.key_to_string(name), value)
             
-    def __init__(self, required=False, es_index=None, es_analyzer=None):
+    def __init__(self, required=False, es_index=None, es_analyzer=None, doc=None):
         self.required = required
         self.es_index = es_index
         self.es_analyzer = es_analyzer
+        self.doc = doc
 
 
 class AnalyzedString(Leaf):
@@ -163,7 +164,7 @@ class Binary(Leaf):
     def _validate(self, name, value):
         if not self._is_base64(value):
             raise DataValidationException("%s: the value %s is not valid Base64",
-                    name, value)
+                                          name, value)
 
     VALID = "03F87824"
     INVALID = "normal"
@@ -188,7 +189,7 @@ class DateTime(Leaf):
             dateutil.parser.parse(value)
         except Exception, e:
             raise DataValidationException("%s: %s is not valid timestamp",
-                    name, str(value))
+                                          name, str(value))
 
 
 VALID_LEAVES = [
@@ -218,7 +219,7 @@ class LeafUnitTests(unittest.TestCase):
             try:
                 leaf().validate(leaf.__name__, leaf.INVALID)
                 raise Exception("invalid value did not fail for %s",
-                        leaf.__name__)
+                                leaf.__name__)
             except DataValidationException:
                 continue
             

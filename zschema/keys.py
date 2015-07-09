@@ -1,14 +1,26 @@
 class Port(object):
     def __init__(self, port):
-        self.port = int(port)
+        self.port = str(port)
         
     def to_bigquery(self):
-        return "p%i" % self.port
+        return "p%s" % self.port
         
     def to_es(self):
-        return str(self.port)
+        return self.port
 
     to_string = to_es
+
+    def __eq__(self, other):
+        if type(other) == int:
+            return int(self.port).__eq__(other)
+        elif type(other) == str:
+            return self.port.__eq__(other)
+        else:
+            return self.port.__eq__(other.port)
+
+    def __hash__(self):
+        return self.port.__hash__()
+
 
 class Keyable(object):
 
@@ -57,4 +69,8 @@ class Keyable(object):
         elif hasattr(self, default) and getattr(self, default):
             d[name] = getattr(self, default)
         return d
+
+
+class DataValidationException(TypeError):
+    pass
 
