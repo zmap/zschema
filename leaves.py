@@ -7,29 +7,17 @@ from keys import *
 class DataValidationException(TypeError):
 	pass
 
-
-VALID_ES_INDEX_TYPES = [
-	"analyzed", # full-text
-	"not_analyzed", # searchable, not full-text,
-	"no", # field is not searchable
-]
-
-
-VALID_ES_ANALYZERS = [
-	"standard",   # The standard analyzer is the default analyzer that Elasticsearch uses.
-				  # It is the best general choice for analyzing text that may be in any language. 
-				  # It splits the text on word boundaries, as defined by the Unicode Consortium, 
-				  # and removes most punctuation.
-	"simple",     # The simple analyzer splits the text on anything that isn't a letter, 
-				  # and lowercases the terms. It would produce
-	"whitespace", # The whitespace analyzer splits the text on whitespace. It doesn't lowercase.
-]
-
-
 class Leaf(Keyable):
-		
-	def to_es(self, name):
-		pass
+
+	def to_es(self):
+        retv = {"type":self.ES_TYPE}
+        self.add_es_var(retv, "index", "es_index", "ES_INDEX")
+        if "index" in retv:
+            assert retv["index"] in self.VALID_ES_INDEXES
+        self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
+        if "analyzer" in retv:
+            assert retv["analyzer"] in self.VALID_ES_ANALYZERS
+        return retv
 		
 	def to_bigquery(self, name):
 		mode = "REQUIRED" if self.required else "NULLABLE"
@@ -53,14 +41,16 @@ class Leaf(Keyable):
 		if hasattr(self, "_validate"):
 			self._validate(key_to_string(name), value)
 			
-	def __init__(self, required=False):
+	def __init__(self, required=False, es_index=None, es_analyzer=None):
 		self.required = required
+        self.es_index = es_index
+        self.es_analyzer = es_analyzer
 
 
 class AnalyzedString(Leaf):
 	ES_TYPE = "string"
 	BQ_TYPE = "STRING"
-	ES_INDEX_TYPE = "analyzed"
+	ES_INDEX = "analyzed"
 	EXPECTED_CLASS = [str,]
 	
 	INVALID = 23
@@ -70,7 +60,7 @@ class AnalyzedString(Leaf):
 class String(Leaf):
 	ES_TYPE = "string"
 	BQ_TYPE = "STRING"
-	ES_INDEX_TYPE = "not_analyzed"
+	ES_INDEX = "not_analyzed"
 	EXPECTED_CLASS = [str,]
 
 	INVALID = 23
@@ -163,7 +153,7 @@ class Boolean(Leaf):
 class Binary(Leaf):
 	ES_TYPE = "binary"
 	BQ_TYPE = "STRING"
-	ES_INDEX_TYPE = "no"
+	ES_INDEX = "no"
 	EXPECTED_CLASS = [str,]
 	B64_REGEX = re.compile('[A-Fa-f0-9]+')
 	
@@ -182,7 +172,7 @@ class Binary(Leaf):
 class IndexedBinary(Binary):
 	ES_TYPE = "binary"
 	BQ_TYPE = "STRING"
-	ES_INDEX_TYPE = "not_analyzed"
+	ES_INDEX = "not_analyzed"
 
 
 class DateTime(Leaf):
