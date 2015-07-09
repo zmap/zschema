@@ -22,5 +22,5 @@ setup(
             'zschema = zschema.cli:main',
         ]
     }
-}
+)
 
