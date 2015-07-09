@@ -14,6 +14,7 @@ Currently, a schema is defined natively in Python. Example::
         "name":String(required=True),
         "addresses":ListOf(SubRecord({
             "street":String()
+            "zipcode":String()
         }),
         "area_code":Integer()
     })
