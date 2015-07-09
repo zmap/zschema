@@ -28,3 +28,5 @@ host = Record({
 
 #print heartbleed.to_bigquery("noname")
 print host.to_bigquery()
+print "\n\n"
+print host.to_es("ipv4")
