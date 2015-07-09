@@ -3,10 +3,9 @@ from keys import *
 
 class ListOf(Keyable):
 
-    def __init__(self, object_, max_items=10, doc=None):
+    def __init__(self, object_, max_items=10):
         self.object_ = object_
         self.max_items = max_items
-        self.doc = doc
 
     def print_indent_string(self, name, indent):
         tabs = "\t" * indent if indent else ""
@@ -27,6 +26,9 @@ class ListOf(Keyable):
                                           name, str(value))
         for item in value:
             self.object_.validate(name, item)
+
+    def to_json(self):
+        return {"type":"list", "list_of":self.object_.to_json()}
 
 
 class SubRecord(Keyable):
@@ -53,6 +55,10 @@ class SubRecord(Keyable):
     def to_es(self):
         p = {self.key_to_es(k): v.to_es() for k, v in self.definition.items()}
         return {"properties": p}
+
+    def to_json(self):
+        p = {self.key_to_es(k): v.to_es() for k, v in self.definition.items()}
+        return {"type":"subrecord", "subfields": p, "doc":self.doc, "required":self.required}
 
     def validate(self, name, value):
         if type(value) != dict:
@@ -98,4 +104,7 @@ class Record(SubRecord):
                                               subkey)
             self.definition[subkey].validate(subkey, subvalue)
 
+    def to_json(self):
+        d = {self.key_to_es(k): v.to_es() for k, v in self.definition.items()}
+        return json.dumps(d, indent=4)
 

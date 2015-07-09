@@ -8,6 +8,24 @@ from keys import *
 
 class Leaf(Keyable):
 
+    def __init__(self, required=False, es_index=None, es_analyzer=None, doc=None):
+        self.required = required
+        self.es_index = es_index
+        self.es_analyzer = es_analyzer
+        self.doc = doc
+
+    def to_json(self):
+        retv = {
+            "required":self.required,
+            "doc":self.doc,
+            "type":self.__class__.__name__,
+            "es_type":self.ES_TYPE,
+            "bq_type":self.BQ_TYPE
+        }
+        self.add_es_var(retv, "es_analyzer", "es_analyzer", "ES_ANALYZER")
+        self.add_es_var(retv, "es_index", "es_index", "ES_INDEX")
+        return retv
+
     def to_es(self):
         retv = {"type":self.ES_TYPE}
         self.add_es_var(retv, "index", "es_index", "ES_INDEX")
@@ -41,11 +59,6 @@ class Leaf(Keyable):
         if hasattr(self, "_validate"):
             self._validate(self.key_to_string(name), value)
             
-    def __init__(self, required=False, es_index=None, es_analyzer=None, doc=None):
-        self.required = required
-        self.es_index = es_index
-        self.es_analyzer = es_analyzer
-        self.doc = doc
 
 
 class AnalyzedString(Leaf):
