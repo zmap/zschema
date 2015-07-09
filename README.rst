@@ -28,13 +28,15 @@ zschema [command] [schema] [file]
 
 Commands:
 
-    - compile-es (compile to Elastic Search)
+    - elasticsearch (compile to Elastic Search)
 
-    - compile-bq (compile to Google BigQuery)
+    - bigquery (compile to Google BigQuery)
 
-    - document-text (compile documentation to plain text)
+    - json (compile documentation to JSON)
 
-    - document-html (compile documentation to HTML)
+    - text (compile documentation to plain text)
+
+    - html (compile documentation to HTML)
 
     - validate (validate JSON file (one document per line) against schema)
 
