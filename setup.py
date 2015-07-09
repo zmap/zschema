@@ -1,9 +1,8 @@
 from setuptools import setup
 
 setup(
-    name = "zson",
-    description = "A JSON serializer for Kombu (and therefore also Celery) that "
-                  "supports encoding objects by defining to_json and from_json methods.",
+    name = "zschema",
+    description = "A schema language for JSON documents that allows validation and compilation into various database engines",
     version = "0.0.1",
     license = "Apache License, Version 2.0",
     author = "Zakir Durumeric",
