@@ -13,7 +13,7 @@ Currently, a schema is defined natively in Python. Example::
     Record({
         "name":String(required=True),
         "addresses":ListOf(SubRecord({
-            "street":String()
+            "street":String(),
             "zipcode":String()
         }),
         "area_code":Integer()
