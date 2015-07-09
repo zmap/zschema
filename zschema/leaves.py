@@ -209,20 +209,4 @@ VALID_LEAVES = [
 ]
 
 
-class LeafUnitTests(unittest.TestCase):
-    def test_valid(self):
-        for leaf in VALID_LEAVES:
-            leaf().validate(leaf.__name__, leaf.VALID)
-
-    def test_invalid(self):
-        for leaf in VALID_LEAVES:
-            try:
-                leaf().validate(leaf.__name__, leaf.INVALID)
-                raise Exception("invalid value did not fail for %s",
-                                leaf.__name__)
-            except DataValidationException:
-                continue
-            
-
-if __name__ == "__main__":
-    unittest.main() 
+ 
