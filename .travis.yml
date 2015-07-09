@@ -4,4 +4,4 @@ python:
   - 2.7
 
 script:
-  - python -m unittest zschema.tests
+  - nosetests
