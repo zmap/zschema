@@ -15,7 +15,7 @@ setup(
 
     install_requires = [
         "python-dateutil"
-    ]
+    ],
 
     packages = [
         "zschema"
