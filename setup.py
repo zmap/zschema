@@ -13,6 +13,10 @@ setup(
 
     keywords = "python json schema bigquery elastic search",
 
+    install_requires = [
+        "python-dateutil"
+    ]
+
     packages = [
         "zschema"
     ],
