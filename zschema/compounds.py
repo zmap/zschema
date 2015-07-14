@@ -28,7 +28,7 @@ class ListOf(Keyable):
         for item in value:
             self.object_.validate(name, item)
 
-    def to_json(self):
+    def to_dict(self):
         return {"type":"list", "list_of":self.object_.to_json()}
 
 
@@ -88,8 +88,8 @@ class SubRecord(Keyable):
         p = {self.key_to_es(k): v.to_es() for k, v in self.definition.items()}
         return {"properties": p}
 
-    def to_json(self):
-        p = {self.key_to_es(k): v.to_es() for k, v in self.definition.items()}
+    def to_dict(self):
+        p = {self.key_to_es(k): v.to_dict() for k, v in self.definition.items()}
         return {"type":"subrecord", "subfields": p, "doc":self.doc, "required":self.required}
 
     def validate(self, name, value):
@@ -133,7 +133,10 @@ class Record(SubRecord):
                                               subkey)
             self.definition[subkey].validate(subkey, subvalue)
 
+    def to_dict(self):
+        return {self.key_to_es(k): v.to_es() for k, v in self.definition.items()}
+
     def to_json(self):
-        d = {self.key_to_es(k): v.to_es() for k, v in self.definition.items()}
-        return json.dumps(d, indent=4)
+        return json.dumps(self.to_dict(), indent=4)
+
 

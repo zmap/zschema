@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name = "zschema",
     description = "A schema language for JSON documents that allows validation and compilation into various database engines",
-    version = "0.0.7",
+    version = "0.0.8",
     license = "Apache License, Version 2.0",
     author = "Zakir Durumeric",
     author_email = "zakird@gmail.com",

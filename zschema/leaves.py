@@ -12,7 +12,7 @@ class Leaf(Keyable):
         self.es_analyzer = es_analyzer
         self.doc = doc
 
-    def to_json(self):
+    def to_dict(self):
         retv = {
             "required":self.required,
             "doc":self.doc,

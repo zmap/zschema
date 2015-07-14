@@ -196,7 +196,7 @@ class CompileAndValidationTests(unittest.TestCase):
                 "d":String(),
 
         })
-        self.assertEqual(a.merge(b).to_json(), valid.to_json())
+        self.assertEqual(a.merge(b).to_dict(), valid.to_dict())
 
     def test_merge_different_types(self):
         a = SubRecord({
@@ -244,7 +244,7 @@ class CompileAndValidationTests(unittest.TestCase):
                        "b":String()
                     })
             })
-        self.assertEquals(a.merge(b).to_json(), c.to_json())
+        self.assertEquals(a.merge(b).to_dict(), c.to_dict())
 
     def test_extends(self):
         host = Record({
@@ -279,4 +279,4 @@ class CompileAndValidationTests(unittest.TestCase):
                          }),
                   "error":String()
                 })
-        self.assertEqual(smtp_starttls.to_json(), valid.to_json())
+        self.assertEqual(smtp_starttls.to_dict(), valid.to_dict())
