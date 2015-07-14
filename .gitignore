@@ -1,0 +1,5 @@
+*.pyo
+*.pyc
+.*
+dist/*
+zschema.egg-info/*
