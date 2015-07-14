@@ -1,3 +1,4 @@
+import copy
 import json
 from keys import *
 
@@ -33,10 +34,41 @@ class ListOf(Keyable):
 
 class SubRecord(Keyable):
 
-    def __init__(self, definition, required=False, doc=None):
+    def __init__(self, definition, required=False, doc=None, extends=None):
         self.definition = definition
         self.required = required
         self.doc = doc
+        # merge
+        if extends:
+            extends = copy.deepcopy(extends)
+            self.definition = self.merge(extends).definition
+
+    def new(self):
+        return copy.deepcopy(self)
+
+    def merge(self, other):
+        doc = self.doc or other.doc
+        doc = self.required or other.required
+        newdef = {}
+        l_keys = set(self.definition.keys())
+        r_keys = set(other.definition.keys())
+        for key in (l_keys | r_keys):
+            l_value = self.definition.get(key, None)
+            r_value = other.definition.get(key, None)
+            if not l_value:
+                newdef[key] = r_value
+            elif not r_value:
+                newdef[key] = l_value
+            elif type(l_value) != type(r_value):
+                raise MergeConflictException("Unable to merge definitions. "
+                                "Differing types: %s vs %s" % (type(l_value),
+                                            type(r_value)))
+            elif l_value.__class__ == SubRecord:
+                newdef[key] = l_value.merge(r_value)
+            else:
+                raise MergeConflictException("Only subrecords can be merged.")
+        self.definition = newdef
+        return self
         
     def to_bigquery(self, name):
         return {
@@ -72,15 +104,12 @@ class SubRecord(Keyable):
 
 
 class Record(SubRecord):
-    def __init__(self, definition):
-        self.definition = definition
 
     def to_es(self, name):
         return json.dumps({name:SubRecord.to_es(self)}, indent=4)
         
     def to_bigquery(self):
-        retv = [s.to_bigquery(name) for (name, s) in self.definition.items()]
-        return json.dumps(retv, indent=4)
+        return [s.to_bigquery(name) for (name, s) in self.definition.items()]
     
     def to_html(self):
         pass

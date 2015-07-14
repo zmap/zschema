@@ -4,8 +4,6 @@ import dateutil.parser
 
 from keys import *
 
-
-
 class Leaf(Keyable):
 
     def __init__(self, required=False, es_index=None, es_analyzer=None, doc=None):
@@ -220,6 +218,3 @@ VALID_LEAVES = [
     Integer,
     IPv4Address
 ]
-
-
- 

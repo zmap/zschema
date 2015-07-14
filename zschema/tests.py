@@ -115,25 +115,25 @@ class CompileAndValidationTests(unittest.TestCase):
 
     def setUp(self):
         heartbleed = SubRecord({
-        	"heartbeat_support":Boolean(),
-        	"heartbleed_vulnerable":Boolean(),
-        	"timestamp":DateTime()
+            "heartbeat_support":Boolean(),
+            "heartbleed_vulnerable":Boolean(),
+            "timestamp":DateTime()
         })
         
         self.host = Record({
-        		"ipstr":IPv4Address(required=True),
-        		"ip":Long(),
-        		Port(443):SubRecord({
-        			"tls":String(),
-        			"heartbleed":heartbleed
-        		}),
-        		"tags":ListOf(String())
+                "ipstr":IPv4Address(required=True),
+                "ip":Long(),
+                Port(443):SubRecord({
+                    "tls":String(),
+                    "heartbleed":heartbleed
+                }),
+                "tags":ListOf(String())
         })
 
     def test_bigquery(self):
         global VALID_BIG_QUERY
         r = self.host.to_bigquery()
-        self.assertEqual(json.loads(r), VALID_BIG_QUERY)
+        self.assertEqual(r, VALID_BIG_QUERY)
 
     def test_elasticsearch(self):
         global VALID_ELASTIC_SEARCH
@@ -178,3 +178,105 @@ class CompileAndValidationTests(unittest.TestCase):
         except DataValidationException:
             pass
 
+    def test_merge_no_conflict(self):
+        a = SubRecord({
+                "a":String(),
+                "b":SubRecord({
+                    "c":String()
+                    })
+            })
+        b = SubRecord({
+                "d":String(),
+            })
+        valid = SubRecord({
+                "a":String(),
+                "b":SubRecord({
+                    "c":String()
+                    }),
+                "d":String(),
+
+        })
+        self.assertEqual(a.merge(b).to_json(), valid.to_json())
+
+    def test_merge_different_types(self):
+        a = SubRecord({
+                "a":String(),
+            })
+        b = SubRecord({
+                "a":SubRecord({})
+            })
+        try:
+            a.merge(b) 
+            raise Exception("validation did not fail")
+        except MergeConflictException:
+            pass
+
+    def test_merge_unmergable_types(self):
+        a = SubRecord({
+                "a":String(),
+            })
+        b = SubRecord({
+                "a":String(),
+            })
+        try:
+            a.merge(b) 
+            raise Exception("validation did not fail")
+        except MergeConflictException:
+            pass
+
+    def test_merge_recursive(self):
+        a = SubRecord({
+                "m":SubRecord({
+                       "a":String()
+                })
+            })
+        b = SubRecord({
+                "a":String(),
+                "m":SubRecord({
+                       "b":String()
+                 })
+
+            })
+        c = SubRecord({
+                "a":String(),
+                "m":SubRecord({
+                       "a":String(),
+                       "b":String()
+                    })
+            })
+        self.assertEquals(a.merge(b).to_json(), c.to_json())
+
+    def test_extends(self):
+        host = Record({
+                 "host":IPv4Address(required=True),
+                 "time":DateTime(required=True),
+                 "data":SubRecord({}),
+                 "error":String()
+               })
+        banner_grab = Record({
+                        "data":SubRecord({
+                                   "banner":String()
+                               })
+                      }, extends=host) 
+        tls_banner_grab = Record({
+                            "data":SubRecord({
+                                       "tls":SubRecord({})
+                                   })
+                          }, extends=banner_grab) 
+        smtp_starttls = Record({
+                            "data":SubRecord({
+                                       "ehlo":String()
+                                   })
+                        }, extends=tls_banner_grab)
+
+        valid = Record({
+                  "host":IPv4Address(required=True),
+                  "time":DateTime(required=True),
+                  "data":SubRecord({
+                            "banner":String(),
+                            "tls":SubRecord({}),
+                            "ehlo":String()
+                         }),
+                  "error":String()
+                })
+        self.assertEqual(smtp_starttls.to_json(), valid.to_json())

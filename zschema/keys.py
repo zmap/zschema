@@ -74,3 +74,5 @@ class Keyable(object):
 class DataValidationException(TypeError):
     pass
 
+class MergeConflictException(Exception):
+    pass
