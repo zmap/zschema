@@ -36,7 +36,10 @@ class Leaf(Keyable):
         
     def to_bigquery(self, name):
         mode = "REQUIRED" if self.required else "NULLABLE"
-        return {"name":self.key_to_bq(name), "type":self.BQ_TYPE, "mode":mode}
+        retv = {"name":self.key_to_bq(name), "type":self.BQ_TYPE, "mode":mode}
+        if self.doc:
+            retv["doc"] = self.doc
+        return retv
 
     def to_string(self, name):
         return "%s: %s" % (self.key_to_string(name), 
