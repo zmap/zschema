@@ -2,11 +2,17 @@ import copy
 import json
 from keys import *
 
+
+def _is_valid_object(name, object_):
+    if not isinstance(object_, Keyable):
+        raise Exception("Invalid schema. %s is not a Keyable." % name)
+
 class ListOf(Keyable):
 
     def __init__(self, object_, max_items=10):
         self.object_ = object_
         self.max_items = max_items
+        _is_valid_object("Anonymous ListOf", object_)
 
     def print_indent_string(self, name, indent):
         tabs = "\t" * indent if indent else ""
@@ -42,6 +48,8 @@ class SubRecord(Keyable):
         if extends:
             extends = copy.deepcopy(extends)
             self.definition = self.merge(extends).definition
+        for k, v in self.definition.items():
+            _is_valid_object(k, v)
 
     def new(self):
         return copy.deepcopy(self)
@@ -71,10 +79,11 @@ class SubRecord(Keyable):
         return self
         
     def to_bigquery(self, name):
+        #print self.definition.items()
         return {
             "name":self.key_to_bq(name),
             "type":"RECORD",
-            "fields":[v.to_bigquery(k) for (k,v) in self.definition.items()],
+            "fields":[v.to_bigquery(k) for (k,v) in self.definition.iteritems()],
             "mode":"REQUIRED" if self.required else "NULLABLE"
         }
 

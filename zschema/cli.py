@@ -9,9 +9,9 @@ from keys import *
 from compounds import *
 
 def usage():
-    print "USAGE: %s command schema [file]." % sys.argv[0].split("/")[-1]
-    print "Valid commands: bigquery, elasticsearch, json, text, html, validate."
-    print "schema should be defined as file.py:record"
+    sys.stderr.write("USAGE: %s command schema [file].\n" % sys.argv[0].split("/")[-1])
+    sys.stderr.write("Valid commands: bigquery, elasticsearch, json, text, html, validate.\n")
+    sys.stderr.write("schema should be defined as file.py:record\n")
     sys.exit(1)
 
 
@@ -35,7 +35,9 @@ def main():
     elif command == "text":
         print record.to_html()
     elif command == "validate":
-        assert os.path.exists(sys.argv[3])
+        if not os.path.exists(sys.argv[3]):
+            sys.stderr.write("Invalid test file. %s does not exist.\n" % sys.argv[3])
+            sys.exit(1)
         with open(sys.argv[3]) :
             for line in fd:
                 record.validate(json.loads(line.strip()))
