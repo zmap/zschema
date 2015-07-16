@@ -16,7 +16,7 @@ from zschema.leaves import (
 )
 from zschema.compounds import ListOf, SubRecord, Record
 
-__version__ = "0.0.10"
+__version__ = "0.0.14"
 
 __schemas = {}
 

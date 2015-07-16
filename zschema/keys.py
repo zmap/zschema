@@ -44,21 +44,21 @@ class Keyable(object):
 
     @staticmethod
     def key_to_bq(o):
-        if type(o) == str:
+        if type(o) in (str, unicode):
             return o
         else:
             return o.to_bigquery()
 
     @staticmethod
     def key_to_es(o):
-        if type(o) == str:
+        if type(o) in (str, unicode):
             return o
         else:
             return o.to_es()
             
     @staticmethod
     def key_to_string(o):
-        if type(o) == str:
+        if type(o) in (str, unicode):
             return o
         else:
             return o.to_string()

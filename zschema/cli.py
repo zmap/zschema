@@ -25,20 +25,20 @@ def main():
 
     command = sys.argv[1]
     if command == "bigquery":
-        print record.to_bigquery()
+        print json.dumps(record.to_bigquery())
     elif command == "elasticsearch":
-        print record.to_es(recname)
+        print json.dumps(record.to_es(recname))
     elif command == "json":
         print record.to_json()
     elif command == "html":
         print record.to_html()
     elif command == "text":
-        print record.to_html()
+        print record.to_text()
     elif command == "validate":
         if not os.path.exists(sys.argv[3]):
             sys.stderr.write("Invalid test file. %s does not exist.\n" % sys.argv[3])
             sys.exit(1)
-        with open(sys.argv[3]) :
+        with open(sys.argv[3]) as fd:
             for line in fd:
                 record.validate(json.loads(line.strip()))
     else:

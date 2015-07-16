@@ -58,7 +58,7 @@ class Leaf(Keyable):
                                           self.key_to_string(name), self.EXPECTED_CLASS, 
                                           str(value), value.__class__.__name__)
         if hasattr(self, "_validate"):
-            self._validate(self.key_to_string(name), value)
+            self._validate(str(name), value)
             
 
 
