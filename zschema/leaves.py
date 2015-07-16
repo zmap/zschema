@@ -53,13 +53,19 @@ class Leaf(Keyable):
         print val
         
     def validate(self, name, value):
+        if value is None:
+            if self.required:
+                raise DataValidationException("%s is a required field, but "
+                                              "recieved None" % name)
+            else:
+                return
         if type(value) not in self.EXPECTED_CLASS:
-            raise DataValidationException("class mismatch for %s: expected %s, %s has class %s",
-                                          self.key_to_string(name), self.EXPECTED_CLASS, 
-                                          str(value), value.__class__.__name__)
+            m = "class mismatch for %s: expected %s, %s has class %s" % (\
+                    self.key_to_string(name), self.EXPECTED_CLASS, 
+                    str(value), value.__class__.__name__)
+            raise DataValidationException(m)
         if hasattr(self, "_validate"):
             self._validate(str(name), value)
-            
 
 
 class AnalyzedString(Leaf):
@@ -93,8 +99,8 @@ class IPv4Address(Leaf):
     
     def _validate(self, name, value):
         if not self._is_ipv4_addr(value):
-            raise DataValidationException("%s: the value %s is not a valid IPv4 address",
-                    name, value)
+            m = "%s: the value %s is not a valid IPv4 address" % (name, value)
+            raise DataValidationException(m)
         
     INVALID = "my string"
     VALID = "141.212.120.0"
@@ -114,11 +120,11 @@ class Integer(Leaf):
         max_ = 2**self.BITS - 1
         min_ = -2**self.BITS + 1
         if value > max_:
-            raise DataValidationException("%s: %s is larger than max (%s)",
-                    name, str(value), str(max_))
+            raise DataValidationException("%s: %s is larger than max (%s)" % (\
+                    name, str(value), str(max_)))
         if value < min_:
-            raise DataValidationException("%s: %s is smaller than min (%s)",
-                    name, str(value), str(min_))
+            raise DataValidationException("%s: %s is smaller than min (%s)" % (\
+                    name, str(value), str(min_)))
 
 
 class Byte(Integer):
@@ -177,8 +183,8 @@ class Binary(Leaf):
     
     def _validate(self, name, value):
         if not self._is_base64(value):
-            raise DataValidationException("%s: the value %s is not valid Base64",
-                                          name, value)
+            m = "%s: the value %s is not valid Base64" % (name, value)
+            raise DataValidationException(m)
 
     VALID = "03F87824"
     INVALID = "normal"
@@ -202,8 +208,8 @@ class DateTime(Leaf):
         try:
             dateutil.parser.parse(value)
         except Exception, e:
-            raise DataValidationException("%s: %s is not valid timestamp",
-                                          name, str(value))
+            m = "%s: %s is not valid timestamp" % (name, str(value))
+            raise DataValidationException(m)
 
 
 VALID_LEAVES = [

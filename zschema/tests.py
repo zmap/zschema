@@ -280,3 +280,23 @@ class CompileAndValidationTests(unittest.TestCase):
                   "error":String()
                 })
         self.assertEqual(smtp_starttls.to_dict(), valid.to_dict())
+
+    def test_null_required(self):
+        test = {
+            "ipstr":None,
+        }
+        try:
+            self.host.validate(test)
+            raise Exception("validation did not fail")
+        except DataValidationException:
+            pass
+
+    def test_null_notrequired(self):
+        test = {
+            "ip":None,
+            "443":{
+                "tls":"None"
+            }
+        }
+        self.host.validate(test)
+
