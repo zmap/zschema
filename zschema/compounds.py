@@ -28,7 +28,7 @@ class ListOf(Keyable):
         return self.object_.to_es()
 
     def validate(self, name, value):
-        if type(v) != list:
+        if type(value) != list:
             raise DataValidationException("%s: %s is not a list",
                                           name, str(value))
         for item in value:

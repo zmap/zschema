@@ -66,7 +66,7 @@ class AnalyzedString(Leaf):
     ES_TYPE = "string"
     BQ_TYPE = "STRING"
     ES_INDEX = "analyzed"
-    EXPECTED_CLASS = [str,]
+    EXPECTED_CLASS = [str,unicode]
     
     INVALID = 23
     VALID = "asdf"
@@ -76,7 +76,7 @@ class String(Leaf):
     ES_TYPE = "string"
     BQ_TYPE = "STRING"
     ES_INDEX = "not_analyzed"
-    EXPECTED_CLASS = [str,]
+    EXPECTED_CLASS = [str,unicode]
 
     INVALID = 23
     VALID = "asdf"
@@ -85,7 +85,7 @@ class String(Leaf):
 class IPv4Address(Leaf):
     ES_TYPE = "ip"
     BQ_TYPE = "STRING"
-    EXPECTED_CLASS = [str,]
+    EXPECTED_CLASS = [str,unicode]
     IP_REGEX = re.compile('(\d{1,3}\.){3}\d{1,3}')
     
     def _is_ipv4_addr(self, ip):
@@ -169,8 +169,8 @@ class Binary(Leaf):
     ES_TYPE = "binary"
     BQ_TYPE = "STRING"
     ES_INDEX = "no"
-    EXPECTED_CLASS = [str,]
-    B64_REGEX = re.compile('[A-Fa-f0-9]+')
+    EXPECTED_CLASS = [str,unicode]
+    B64_REGEX = re.compile('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$')
     
     def _is_base64(self, data):
         return bool(self.B64_REGEX.match(data))
@@ -193,7 +193,7 @@ class IndexedBinary(Binary):
 class DateTime(Leaf):
     ES_TYPE = "datetime"
     BQ_TYPE = "TIMESTAMP"
-    EXPECTED_CLASS = [str, int]
+    EXPECTED_CLASS = [str, int, unicode]
     
     VALID = "Wed Jul  8 08:52:01 EDT 2015"
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
@@ -221,3 +221,4 @@ VALID_LEAVES = [
     Integer,
     IPv4Address
 ]
+
