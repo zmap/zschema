@@ -7,6 +7,7 @@ from imp import load_source
 from leaves import *
 from keys import *
 from compounds import *
+from registry import *
 
 def usage():
     sys.stderr.write("USAGE: %s command schema [file].\n" % sys.argv[0].split("/")[-1])
@@ -14,15 +15,13 @@ def usage():
     sys.stderr.write("schema should be defined as file.py:record\n")
     sys.exit(1)
 
-
 def main():
     if len(sys.argv) < 3:
         usage()
 
     path, recname = sys.argv[2].split(":")
     module = load_source("module", path)
-    record = getattr(module, recname)
-
+    record = get_schema(recname) 
     command = sys.argv[1]
     if command == "bigquery":
         print json.dumps(record.to_bigquery())

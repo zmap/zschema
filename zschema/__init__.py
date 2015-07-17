@@ -15,13 +15,9 @@ from zschema.leaves import (
     IPv4Address
 )
 from zschema.compounds import ListOf, SubRecord, Record
+from zschema.registry import register_schema, get_schema
+
 
 __version__ = "0.0.18"
 
-__schemas = {}
 
-def register_schema(name, schema):
-    __schemas[name] = schema
-
-def get_schema(name):
-    return __schemas[name]
