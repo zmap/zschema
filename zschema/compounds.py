@@ -40,9 +40,10 @@ class ListOf(Keyable):
 
 class SubRecord(Keyable):
 
-    def __init__(self, definition, required=False, doc=None, extends=None):
+    def __init__(self, definition, required=False, doc=None, extends=None, allow_unknown=True):
         self.definition = definition
         self.required = required
+        self.allow_unknown = allow_unknown
         self.doc = doc
         # merge
         if extends:
@@ -106,7 +107,7 @@ class SubRecord(Keyable):
             raise DataValidationException("%s: %s is not a dict",
                                           name, str(value))
         for subkey, subvalue in value.items():
-            if subkey not in self.definition:
+            if not self.allow_unknown and subkey not in self.definition:
                 raise DataValidationException("%s: %s is not a valid subkey", 
                                               name, subkey)
             self.definition[subkey].validate(subkey, subvalue)

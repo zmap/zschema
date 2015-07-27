@@ -152,7 +152,7 @@ class Long(Integer):
 
 class Float(Leaf):
     ES_TYPE = "float"
-    BQ_TYPE = "DOUBLE"
+    BQ_TYPE = "FLOAT"
     EXPECTED_CLASS = [float,]
     INVALID = "I'm a string!"
     VALID = 10.0
@@ -160,7 +160,8 @@ class Float(Leaf):
 
 class Double(Float):
     ES_TYPE = "double"
-    BQ_TYPE = "DOUBLE"
+    BQ_TYPE = "FLOAT"
+    EXPECTED_CLASS = [float,]
 
 
 class Boolean(Leaf):
