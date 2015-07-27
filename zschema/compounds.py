@@ -40,7 +40,7 @@ class ListOf(Keyable):
 
 class SubRecord(Keyable):
 
-    def __init__(self, definition, required=False, doc=None, extends=None, allow_unknown=True):
+    def __init__(self, definition, required=False, doc=None, extends=None, allow_unknown=False):
         self.definition = definition
         self.required = required
         self.allow_unknown = allow_unknown
@@ -110,6 +110,8 @@ class SubRecord(Keyable):
             if not self.allow_unknown and subkey not in self.definition:
                 raise DataValidationException("%s: %s is not a valid subkey", 
                                               name, subkey)
+            else:
+                continue
             self.definition[subkey].validate(subkey, subvalue)
 
 

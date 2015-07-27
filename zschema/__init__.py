@@ -18,6 +18,6 @@ from zschema.compounds import ListOf, SubRecord, Record
 from zschema.registry import register_schema, get_schema
 
 
-__version__ = "0.0.18"
+__version__ = "0.0.22"
 
 
