@@ -6,11 +6,13 @@ from keys import *
 
 class Leaf(Keyable):
 
-    def __init__(self, required=False, es_index=None, es_analyzer=None, doc=None):
+    def __init__(self, required=False, es_index=None, 
+            es_analyzer=None, doc=None, es_include_raw=False):
         self.required = required
         self.es_index = es_index
         self.es_analyzer = es_analyzer
         self.doc = doc
+        self.es_include_raw = es_include_raw
 
     def to_dict(self):
         retv = {
@@ -27,11 +29,11 @@ class Leaf(Keyable):
     def to_es(self):
         retv = {"type":self.ES_TYPE}
         self.add_es_var(retv, "index", "es_index", "ES_INDEX")
-        if "index" in retv:
-            assert retv["index"] in self.VALID_ES_INDEXES
         self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
-        if "analyzer" in retv:
-            assert retv["analyzer"] in self.VALID_ES_ANALYZERS
+        if self.es_include_raw:
+            retv["fields"] = {
+                    "raw":{"type":self.ES_TYPE, "index":"not_analyzed"}
+            }
         return retv
         
     def to_bigquery(self, name):
@@ -193,7 +195,6 @@ class Boolean(Leaf):
     INVALID = 0
     VALID = True
 
-
 class Binary(Leaf):
     ES_TYPE = "binary"
     BQ_TYPE = "STRING"
@@ -211,7 +212,7 @@ class Binary(Leaf):
 
     VALID = "03F87824"
     INVALID = "normal"
-    
+
 
 class IndexedBinary(Binary):
     ES_TYPE = "binary"
