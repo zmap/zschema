@@ -127,7 +127,7 @@ class SubRecord(Keyable):
 class Record(SubRecord):
 
     def to_es(self, name):
-        return json.dumps({name:SubRecord.to_es(self)}, indent=4)
+        return {name:SubRecord.to_es(self)}
         
     def to_bigquery(self):
         return [s.to_bigquery(name) for (name, s) in self.definition.items()]

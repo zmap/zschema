@@ -221,7 +221,7 @@ class IndexedBinary(Binary):
 
 
 class DateTime(Leaf):
-    ES_TYPE = "datetime"
+    ES_TYPE = "date"
     BQ_TYPE = "TIMESTAMP"
     EXPECTED_CLASS = [str, int, unicode]
     
