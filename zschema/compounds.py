@@ -36,7 +36,11 @@ class ListOf(Keyable):
 
     def to_dict(self):
         return {"type":"list", "list_of":self.object_.to_json()}
-
+    
+    def to_flat(self, parent, name):
+        retv = self.object_.to_flat(parent, name)
+        retv["mode"] = "repeated"
+        return retv
 
 class SubRecord(Keyable):
 
@@ -54,6 +58,11 @@ class SubRecord(Keyable):
 
     def new(self):
         return copy.deepcopy(self)
+
+    def to_flat(self, parent, name):
+        retv = self.object_.to_flat(parent, name)
+        retv["mode"] = "repeated"
+        return retv
 
     def merge(self, other):
         doc = self.doc or other.doc

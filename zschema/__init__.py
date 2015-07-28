@@ -3,6 +3,7 @@ from zschema.leaves import (
     DateTime,
     AnalyzedString,
     String,
+    EnglishString,
     Binary,
     IndexedBinary,
     Boolean,

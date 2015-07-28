@@ -44,6 +44,15 @@ class Leaf(Keyable):
     def to_string(self, name):
         return "%s: %s" % (self.key_to_string(name), 
                            self.__class__.__name__.lower())
+                           
+    def to_flat(self, parent, name):
+        full_name = ".".join([parent, name])
+        return {
+            "name":full_name,
+            "type":self.__class__.__name__,
+            "documentation":self.doc,
+            "mode":"required" if self.required else "optional"
+        }
         
     def print_indent_string(self, name, indent):
         val = self.key_to_string(name)
@@ -68,10 +77,23 @@ class Leaf(Keyable):
             self._validate(str(name), value)
 
 
+
+class EnglishString(Leaf):
+    ES_TYPE = "string"
+    BQ_TYPE = "STRING"
+    ES_INDEX = "analyzed"
+    ES_ANALYZER = "standard"
+    EXPECTED_CLASS = [str,unicode]
+    
+    INVALID = 23
+    VALID = "asdf"
+
+
 class AnalyzedString(Leaf):
     ES_TYPE = "string"
     BQ_TYPE = "STRING"
     ES_INDEX = "analyzed"
+    ES_ANALYZER = "simple"
     EXPECTED_CLASS = [str,unicode]
     
     INVALID = 23
