@@ -112,6 +112,10 @@ class String(Leaf):
     VALID = "asdf"
 
 
+class HTML(AnalyzedString):
+    ES_ANALYZER = "html"
+
+
 class IPv4Address(Leaf):
     ES_TYPE = "ip"
     BQ_TYPE = "STRING"
