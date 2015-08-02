@@ -13,12 +13,12 @@ from zschema.leaves import (
     Short,
     Byte,
     Integer,
-    IPv4Address
+    IPv4Address,
+    HTML
 )
 from zschema.compounds import ListOf, SubRecord, Record
 from zschema.registry import register_schema, get_schema
 
 
-__version__ = "0.0.22"
-
+__version__ = "0.0.27"
 

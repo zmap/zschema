@@ -11,7 +11,7 @@ from registry import *
 
 def usage():
     sys.stderr.write("USAGE: %s command schema [file].\n" % sys.argv[0].split("/")[-1])
-    sys.stderr.write("Valid commands: bigquery, elasticsearch, json, text, html, validate.\n")
+    sys.stderr.write("Valid commands: bigquery, elasticsearch, json, text, html, flat, validate.\n")
     sys.stderr.write("schema should be defined as file.py:record\n")
     sys.exit(1)
 
@@ -33,6 +33,13 @@ def main():
         print record.to_html()
     elif command == "text":
         print record.to_text()
+    elif command == "flat":
+        for r in record.to_flat():
+            print r
+    elif command == "zsearch-abbreviated-table":
+        for r in record.to_flat():
+            type_ = r.get("es_type", "")
+            print "<tr><td>%s</td><td>%s</td></tr>" % (r["name"], type_)
     elif command == "validate":
         if not os.path.exists(sys.argv[3]):
             sys.stderr.write("Invalid test file. %s does not exist.\n" % sys.argv[3])

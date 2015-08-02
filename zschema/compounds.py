@@ -38,9 +38,8 @@ class ListOf(Keyable):
         return {"type":"list", "list_of":self.object_.to_json()}
     
     def to_flat(self, parent, name):
-        retv = self.object_.to_flat(parent, name)
-        retv["mode"] = "repeated"
-        return retv
+        for rec in self.object_.to_flat(parent, name, repeated=True):
+            yield rec
 
 class SubRecord(Keyable):
 
@@ -59,10 +58,18 @@ class SubRecord(Keyable):
     def new(self):
         return copy.deepcopy(self)
 
-    def to_flat(self, parent, name):
-        retv = self.object_.to_flat(parent, name)
-        retv["mode"] = "repeated"
-        return retv
+    def to_flat(self, parent, name, repeated=False):
+        if repeated:
+            mode = "repeated"
+        elif self.required:
+            mode = "required"
+        else:
+            mode = "nullable"
+        this_name = ".".join([parent, self.key_to_es(name)]) if parent else self.key_to_es(name)
+        yield {"type":self.__class__.__name__, "name":this_name, "mode":mode}
+        for subname, doc in self.definition.iteritems():
+            for item in doc.to_flat(this_name, self.key_to_es(subname)):
+                yield item
 
     def merge(self, other):
         doc = self.doc or other.doc
@@ -161,3 +168,7 @@ class Record(SubRecord):
         return json.dumps(self.to_dict(), indent=4)
 
 
+    def to_flat(self):
+        for subname, doc in self.definition.iteritems():
+            for item in doc.to_flat(None, self.key_to_es(subname)):
+                yield item

@@ -47,14 +47,30 @@ class Leaf(Keyable):
         return "%s: %s" % (self.key_to_string(name), 
                            self.__class__.__name__.lower())
                            
-    def to_flat(self, parent, name):
-        full_name = ".".join([parent, name])
-        return {
+    def to_flat(self, parent, name, repeated=False):
+        if repeated:
+            mode = "repeated"
+        elif self.required:
+            mode = "required"
+        else:
+            mode = "nullable"
+        full_name = ".".join([parent, name]) if parent else name
+        yield {
             "name":full_name,
             "type":self.__class__.__name__,
+            "es_type": self.ES_TYPE,
             "documentation":self.doc,
-            "mode":"required" if self.required else "optional"
+            "mode":mode
         }
+        if self.es_include_raw:
+            yield {
+                "name":full_name + ".raw",
+                "type":self.__class__.__name__,
+                "documentation":self.doc,
+                "es_type": self.ES_TYPE,
+                "mode":mode
+            }
+
         
     def print_indent_string(self, name, indent):
         val = self.key_to_string(name)
@@ -171,7 +187,7 @@ class Short(Integer):
 
 class Long(Integer):
     ES_TYPE = "long"
-    BQ_TYPE = "DOUBLE"
+    BQ_TYPE = "INTEGER"
     EXPECTED_CLASS = [int,long]
     INVALID = 2l**68
     VALID = 10l
