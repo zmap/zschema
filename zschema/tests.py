@@ -38,7 +38,7 @@ VALID_ELASTIC_SEARCH = {
                                 "type": "boolean"
                             }, 
                             "timestamp": {
-                                "type": "datetime"
+                                "type": "date"
                             }
                         }
                     }
@@ -119,6 +119,7 @@ class CompileAndValidationTests(unittest.TestCase):
             "heartbleed_vulnerable":Boolean(),
             "timestamp":DateTime()
         })
+        self.maxDiff=10000
         
         self.host = Record({
                 "ipstr":IPv4Address(required=True),
@@ -138,7 +139,7 @@ class CompileAndValidationTests(unittest.TestCase):
     def test_elasticsearch(self):
         global VALID_ELASTIC_SEARCH
         r = self.host.to_es("host")
-        self.assertEqual(json.loads(r), VALID_ELASTIC_SEARCH)
+        self.assertEqual(r, VALID_ELASTIC_SEARCH)
 
     def test_validation_known_good(self):
         test = {
