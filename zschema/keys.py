@@ -41,6 +41,11 @@ class Keyable(object):
         "whitespace", # The whitespace analyzer splits the text on whitespace. It doesn't lowercase.
     ]
 
+    # create a map from name of type to class. We can use this
+    # in order to create the Python definition from JSON. We need
+    # this in the web interface. We define this in keyable because
+    _types_by_name = {}
+
 
     @staticmethod
     def key_to_bq(o):
@@ -70,9 +75,33 @@ class Keyable(object):
             d[name] = getattr(self, default)
         return d
 
+    @classmethod
+    def _populate_types_by_name(cls):
+        if cls._types_by_name:
+            return
+        def __iter_classes(kls):
+            try:
+                for klass in kls.__subclasses__():
+                    for klass2 in __iter_classes(klass):
+                        yield klass2
+            except TypeError:
+                try:
+                    for klass in kls.__subclasses__(kls):
+                        for klass2 in __iter_classes(klass):
+                            yield klass2
+                except:
+                    pass
+            yield kls
+        for klass in __iter_classes(Keyable):
+            Keyable._types_by_name[klass.__name__] = klass
+
+
+
 
 class DataValidationException(TypeError):
     pass
 
 class MergeConflictException(Exception):
     pass
+
+_zschema_types_by_name = {}

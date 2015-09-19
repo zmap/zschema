@@ -31,6 +31,8 @@ def main():
         print record.to_json()
     elif command == "html":
         print record.to_html()
+    elif command == "abbrev-html":
+        print record.to_abbrev_html()
     elif command == "text":
         print record.to_text()
     elif command == "flat":

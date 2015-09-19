@@ -2,7 +2,6 @@ import copy
 import json
 from keys import *
 
-
 def _is_valid_object(name, object_):
     if not isinstance(object_, Keyable):
         raise Exception("Invalid schema. %s is not a Keyable." % name)
@@ -172,3 +171,9 @@ class Record(SubRecord):
         for subname, doc in self.definition.iteritems():
             for item in doc.to_flat(None, self.key_to_es(subname)):
                 yield item
+
+    @classmethod
+    def from_json(cls, j):
+        return cls({(k, __encode(v)) for k, v in j.items()})
+    
+
