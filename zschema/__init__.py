@@ -22,7 +22,3 @@ from zschema.registry import register_schema, get_schema
 __version__ = "0.0.27"
 
 
-
-
-if not Keyable._types_by_name:
-

@@ -104,7 +104,7 @@ VALID_BIG_QUERY = [
         "mode": "REPEATED"
     }, 
     {
-        "type": "DOUBLE", 
+        "type": "INTEGER", 
         "name": "ip", 
         "mode": "NULLABLE"
     }
