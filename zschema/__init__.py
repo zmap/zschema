@@ -1,24 +1,7 @@
-from zschema.keys import Keyable, Port, DataValidationException, _zschema_types_by_name
-from zschema.leaves import (
-    DateTime,
-    AnalyzedString,
-    String,
-    EnglishString,
-    Binary,
-    IndexedBinary,
-    Boolean,
-    Double,
-    Float,
-    Long,
-    Short,
-    Byte,
-    Integer,
-    IPv4Address,
-    HTML
-)
-from zschema.compounds import ListOf, SubRecord, Record
-from zschema.registry import register_schema, get_schema
-
+__author__ = "ZMap Team"
+__email__ = "zmap-team@umich.edu"
+__copyright__ = "Copyright 2015 Regents of the Unversity of Michigan"
 __version__ = "0.0.27"
+__license__ = "Apache License, Version 2.0"
 
-
+__all__ = ["keys", "leaves", "compounds", "registry"]
