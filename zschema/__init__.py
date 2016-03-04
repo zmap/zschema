@@ -4,4 +4,7 @@ __copyright__ = "Copyright 2015 Regents of the Unversity of Michigan"
 __version__ = "0.0.27"
 __license__ = "Apache License, Version 2.0"
 
-__all__ = ["keys", "leaves", "compounds", "registry"]
+from keys import *
+from leaves import *
+from compounds import *
+from registry import *
