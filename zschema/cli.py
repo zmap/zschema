@@ -1,13 +1,13 @@
 import sys
 import os.path
 import json
+import zschema.registry
 
 from imp import load_source
 
 from leaves import *
 from keys import *
 from compounds import *
-from registry import *
 
 def usage():
     sys.stderr.write("USAGE: %s command schema [file].\n" % sys.argv[0].split("/")[-1])
@@ -18,10 +18,9 @@ def usage():
 def main():
     if len(sys.argv) < 3:
         usage()
-
     path, recname = sys.argv[2].split(":")
     module = load_source("module", path)
-    record = get_schema(recname) 
+    record = zschema.registry.get_schema(recname)
     command = sys.argv[1]
     if command == "bigquery":
         print json.dumps(record.to_bigquery())
@@ -51,7 +50,6 @@ def main():
                 record.validate(json.loads(line.strip()))
     else:
         usage()
-
 
 if __name__ == "__main__":
     main()

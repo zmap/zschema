@@ -6,7 +6,7 @@ from keys import *
 
 class Leaf(Keyable):
 
-    def __init__(self, required=False, es_index=None, 
+    def __init__(self, required=False, es_index=None,
             es_analyzer=None, doc=None, es_include_raw=False):
         self.required = required
         self.es_index = es_index
@@ -35,7 +35,7 @@ class Leaf(Keyable):
                     "raw":{"type":self.ES_TYPE, "index":"not_analyzed"}
             }
         return retv
-        
+
     def to_bigquery(self, name):
         mode = "REQUIRED" if self.required else "NULLABLE"
         retv = {"name":self.key_to_bq(name), "type":self.BQ_TYPE, "mode":mode}
@@ -44,9 +44,9 @@ class Leaf(Keyable):
         return retv
 
     def to_string(self, name):
-        return "%s: %s" % (self.key_to_string(name), 
+        return "%s: %s" % (self.key_to_string(name),
                            self.__class__.__name__.lower())
-                           
+
     def to_flat(self, parent, name, repeated=False):
         if repeated:
             mode = "repeated"
@@ -71,14 +71,14 @@ class Leaf(Keyable):
                 "mode":mode
             }
 
-        
+
     def print_indent_string(self, name, indent):
         val = self.key_to_string(name)
         if indent:
             tabs = "\t" * indent
             val = tabs + val
         print val
-        
+
     def validate(self, name, value):
         if value is None:
             if self.required:
@@ -88,7 +88,7 @@ class Leaf(Keyable):
                 return
         if type(value) not in self.EXPECTED_CLASS:
             m = "class mismatch for %s: expected %s, %s has class %s" % (\
-                    self.key_to_string(name), self.EXPECTED_CLASS, 
+                    self.key_to_string(name), self.EXPECTED_CLASS,
                     str(value), value.__class__.__name__)
             raise DataValidationException(m)
         if hasattr(self, "_validate"):
@@ -102,7 +102,7 @@ class EnglishString(Leaf):
     ES_INDEX = "analyzed"
     ES_ANALYZER = "standard"
     EXPECTED_CLASS = [str,unicode]
-    
+
     INVALID = 23
     VALID = "asdf"
 
@@ -113,7 +113,7 @@ class AnalyzedString(Leaf):
     ES_INDEX = "analyzed"
     ES_ANALYZER = "simple"
     EXPECTED_CLASS = [str,unicode]
-    
+
     INVALID = 23
     VALID = "asdf"
 
@@ -137,15 +137,15 @@ class IPv4Address(Leaf):
     BQ_TYPE = "STRING"
     EXPECTED_CLASS = [str,unicode]
     IP_REGEX = re.compile('(\d{1,3}\.){3}\d{1,3}')
-    
+
     def _is_ipv4_addr(self, ip):
         return bool(self.IP_REGEX.match(ip))
-    
+
     def _validate(self, name, value):
         if not self._is_ipv4_addr(value):
             m = "%s: the value %s is not a valid IPv4 address" % (name, value)
             raise DataValidationException(m)
-        
+
     INVALID = "my string"
     VALID = "141.212.120.0"
 
@@ -154,10 +154,10 @@ class Integer(Leaf):
     ES_TYPE = "integer"
     BQ_TYPE = "INTEGER"
     EXPECTED_CLASS = [int,]
-    
+
     INVALID = 8589934592
     VALID = 234234252
-    
+
     BITS = 32
 
     def _validate(self, name, value):
@@ -192,7 +192,7 @@ class Long(Integer):
     INVALID = 2l**68
     VALID = 10l
     BITS = 64
-    
+
 
 class Float(Leaf):
     ES_TYPE = "float"
@@ -200,7 +200,7 @@ class Float(Leaf):
     EXPECTED_CLASS = [float,]
     INVALID = "I'm a string!"
     VALID = 10.0
-    
+
 
 class Double(Float):
     ES_TYPE = "double"
@@ -221,10 +221,10 @@ class Binary(Leaf):
     ES_INDEX = "no"
     EXPECTED_CLASS = [str,unicode]
     B64_REGEX = re.compile('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$')
-    
+
     def _is_base64(self, data):
         return bool(self.B64_REGEX.match(data))
-    
+
     def _validate(self, name, value):
         if not self._is_base64(value):
             m = "%s: the value %s is not valid Base64" % (name, value)
@@ -244,10 +244,10 @@ class DateTime(Leaf):
     ES_TYPE = "date"
     BQ_TYPE = "TIMESTAMP"
     EXPECTED_CLASS = [str, int, unicode]
-    
+
     VALID = "Wed Jul  8 08:52:01 EDT 2015"
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
-    
+
     def _validate(self, name, value):
         try:
             dateutil.parser.parse(value)

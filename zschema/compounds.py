@@ -17,7 +17,7 @@ class ListOf(Keyable):
         tabs = "\t" * indent if indent else ""
         print tabs + name + ":%s:" % self.__class__.__name__,
         self.object_.print_indent_string(self.key_to_string(name), indent+1)
-        
+
     def to_bigquery(self, name):
         retv = self.object_.to_bigquery(name)
         retv["mode"] = "REPEATED"
@@ -35,7 +35,7 @@ class ListOf(Keyable):
 
     def to_dict(self):
         return {"type":"list", "list_of":self.object_.to_json()}
-    
+
     def to_flat(self, parent, name):
         for rec in self.object_.to_flat(parent, name, repeated=True):
             yield rec
@@ -93,7 +93,7 @@ class SubRecord(Keyable):
                 raise MergeConflictException("Only subrecords can be merged.")
         self.definition = newdef
         return self
-        
+
     def to_bigquery(self, name):
         #print self.definition.items()
         return {
@@ -123,7 +123,7 @@ class SubRecord(Keyable):
                                           name, str(value))
         for subkey, subvalue in value.items():
             if not self.allow_unknown and subkey not in self.definition:
-                raise DataValidationException("%s: %s is not a valid subkey", 
+                raise DataValidationException("%s: %s is not a valid subkey",
                                               name, subkey)
             else:
                 continue
@@ -134,20 +134,20 @@ class Record(SubRecord):
 
     def to_es(self, name):
         return {name:SubRecord.to_es(self)}
-        
+
     def to_bigquery(self):
         return [s.to_bigquery(name) for (name, s) in self.definition.items()]
-    
+
     def to_html(self):
         pass
-        
+
     def to_documented_html(self):
         pass
-        
+
     def print_indent_string(self):
         for name, field in self.definition.iteritems():
             field.print_indent_string(name, 0)
-        
+
     def to_dotted_text(self):
         pass
 
@@ -156,7 +156,7 @@ class Record(SubRecord):
             raise DataValidationException("record is not a dict", str(value))
         for subkey, subvalue in value.items():
             if subkey not in self.definition:
-                raise DataValidationException("%s is not a valid subkey of root", 
+                raise DataValidationException("%s is not a valid subkey of root",
                                               subkey)
             self.definition[subkey].validate(subkey, subvalue)
 
@@ -175,5 +175,5 @@ class Record(SubRecord):
     @classmethod
     def from_json(cls, j):
         return cls({(k, __encode(v)) for k, v in j.items()})
-    
+
 
