@@ -26,32 +26,32 @@ VALID_ELASTIC_SEARCH = {
             "443": {
                 "properties": {
                     "tls": {
-                        "index": "not_analyzed", 
+                        "index": "not_analyzed",
                         "type": "string"
-                    }, 
+                    },
                     "heartbleed": {
                         "properties": {
                             "heartbeat_support": {
                                 "type": "boolean"
-                            }, 
+                            },
                             "heartbleed_vulnerable": {
                                 "type": "boolean"
-                            }, 
+                            },
                             "timestamp": {
                                 "type": "date"
                             }
                         }
                     }
                 }
-            }, 
+            },
             "ipstr": {
                 "type": "ip"
-            }, 
+            },
             "ip": {
                 "type": "long"
-            }, 
+            },
             "tags": {
-                "index": "not_analyzed", 
+                "index": "not_analyzed",
                 "type": "string"
             }
         }
@@ -62,50 +62,50 @@ VALID_BIG_QUERY = [
     {
         "fields": [
             {
-                "type": "STRING", 
-                "name": "tls", 
+                "type": "STRING",
+                "name": "tls",
                 "mode": "NULLABLE"
-            }, 
+            },
             {
                 "fields": [
                     {
-                        "type": "BOOLEAN", 
-                        "name": "heartbeat_support", 
+                        "type": "BOOLEAN",
+                        "name": "heartbeat_support",
                         "mode": "NULLABLE"
-                    }, 
+                    },
                     {
-                        "type": "BOOLEAN", 
-                        "name": "heartbleed_vulnerable", 
+                        "type": "BOOLEAN",
+                        "name": "heartbleed_vulnerable",
                         "mode": "NULLABLE"
-                    }, 
+                    },
                     {
-                        "type": "TIMESTAMP", 
-                        "name": "timestamp", 
+                        "type": "TIMESTAMP",
+                        "name": "timestamp",
                         "mode": "NULLABLE"
                     }
-                ], 
-                "type": "RECORD", 
-                "name": "heartbleed", 
+                ],
+                "type": "RECORD",
+                "name": "heartbleed",
                 "mode": "NULLABLE"
             }
-        ], 
-        "type": "RECORD", 
-        "name": "p443", 
+        ],
+        "type": "RECORD",
+        "name": "p443",
         "mode": "NULLABLE"
-    }, 
+    },
     {
-        "type": "STRING", 
-        "name": "ipstr", 
+        "type": "STRING",
+        "name": "ipstr",
         "mode": "REQUIRED"
-    }, 
+    },
     {
-        "type": "STRING", 
-        "name": "tags", 
+        "type": "STRING",
+        "name": "tags",
         "mode": "REPEATED"
-    }, 
+    },
     {
-        "type": "INTEGER", 
-        "name": "ip", 
+        "type": "INTEGER",
+        "name": "ip",
         "mode": "NULLABLE"
     }
 ]
@@ -120,7 +120,7 @@ class CompileAndValidationTests(unittest.TestCase):
             "timestamp":DateTime()
         })
         self.maxDiff=10000
-        
+
         self.host = Record({
                 "ipstr":IPv4Address(required=True),
                 "ip":Long(),
@@ -207,7 +207,7 @@ class CompileAndValidationTests(unittest.TestCase):
                 "a":SubRecord({})
             })
         try:
-            a.merge(b) 
+            a.merge(b)
             raise Exception("validation did not fail")
         except MergeConflictException:
             pass
@@ -220,7 +220,7 @@ class CompileAndValidationTests(unittest.TestCase):
                 "a":String(),
             })
         try:
-            a.merge(b) 
+            a.merge(b)
             raise Exception("validation did not fail")
         except MergeConflictException:
             pass
@@ -258,12 +258,12 @@ class CompileAndValidationTests(unittest.TestCase):
                         "data":SubRecord({
                                    "banner":String()
                                })
-                      }, extends=host) 
+                      }, extends=host)
         tls_banner_grab = Record({
                             "data":SubRecord({
                                        "tls":SubRecord({})
                                    })
-                          }, extends=banner_grab) 
+                          }, extends=banner_grab)
         smtp_starttls = Record({
                             "data":SubRecord({
                                        "ehlo":String()
