@@ -1,3 +1,4 @@
+import sys
 import unittest
 import re
 import dateutil.parser
@@ -6,6 +7,8 @@ from keys import *
 
 class Leaf(Keyable):
 
+    DEPRECATED = False
+
     def __init__(self, required=False, es_index=None,
             es_analyzer=None, doc=None, es_include_raw=False):
         self.required = required
@@ -13,6 +16,10 @@ class Leaf(Keyable):
         self.es_analyzer = es_analyzer
         self.doc = doc
         self.es_include_raw = es_include_raw
+        if self.DEPRECATED:
+            e = "WARN: %s is deprecated and will be removed in a "\
+                    "future release\n" % self.__class__.__name__
+            sys.stderr.write(e)
 
     def to_dict(self):
         retv = {
@@ -71,7 +78,6 @@ class Leaf(Keyable):
                 "mode":mode
             }
 
-
     def print_indent_string(self, name, indent):
         val = self.key_to_string(name)
         if indent:
@@ -97,6 +103,7 @@ class Leaf(Keyable):
 
 
 class EnglishString(Leaf):
+
     ES_TYPE = "string"
     BQ_TYPE = "STRING"
     ES_INDEX = "analyzed"
@@ -108,6 +115,7 @@ class EnglishString(Leaf):
 
 
 class AnalyzedString(Leaf):
+
     ES_TYPE = "string"
     BQ_TYPE = "STRING"
     ES_INDEX = "analyzed"
@@ -119,6 +127,7 @@ class AnalyzedString(Leaf):
 
 
 class String(Leaf):
+
     ES_TYPE = "string"
     BQ_TYPE = "STRING"
     ES_INDEX = "not_analyzed"
@@ -129,10 +138,12 @@ class String(Leaf):
 
 
 class HTML(AnalyzedString):
+
     ES_ANALYZER = "html"
 
 
 class IPv4Address(Leaf):
+
     ES_TYPE = "ip"
     BQ_TYPE = "STRING"
     EXPECTED_CLASS = [str,unicode]
@@ -150,7 +161,8 @@ class IPv4Address(Leaf):
     VALID = "141.212.120.0"
 
 
-class Integer(Leaf):
+class Signed32BitInteger(Leaf):
+
     ES_TYPE = "integer"
     BQ_TYPE = "INTEGER"
     EXPECTED_CLASS = [int,]
@@ -171,21 +183,39 @@ class Integer(Leaf):
                     name, str(value), str(min_)))
 
 
-class Byte(Integer):
+class Integer(Signed32BitInteger):
+
+    DEPRECATED = True
+
+
+class Signed8BitInteger(Integer):
+
     ES_TYPE = "byte"
     BITS = 8
     INVALID = 2**8+5
     VALID = 34
 
 
-class Short(Integer):
+class Byte(Signed8BitInteger):
+
+    DEPRECATED = True
+
+
+class Signed16BitInteger(Integer):
+
     ES_TYPE = "short"
     BITS = 16
     INVALID = 2**16
     VALID = 0xFFFF
 
 
-class Long(Integer):
+class Short(Signed16BitInteger):
+
+    DEPRECATED = True
+
+
+class Signed64BitInteger(Integer):
+
     ES_TYPE = "long"
     BQ_TYPE = "INTEGER"
     EXPECTED_CLASS = [int,long]
@@ -194,7 +224,13 @@ class Long(Integer):
     BITS = 64
 
 
+class Long(Signed64BitInteger):
+
+    DEPRECATED = True
+
+
 class Float(Leaf):
+
     ES_TYPE = "float"
     BQ_TYPE = "FLOAT"
     EXPECTED_CLASS = [float,]
@@ -203,19 +239,23 @@ class Float(Leaf):
 
 
 class Double(Float):
+
     ES_TYPE = "double"
     BQ_TYPE = "FLOAT"
     EXPECTED_CLASS = [float,]
 
 
 class Boolean(Leaf):
+
     ES_TYPE = "boolean"
     BQ_TYPE = "BOOLEAN"
     EXPECTED_CLASS = [bool,]
     INVALID = 0
     VALID = True
 
+
 class Binary(Leaf):
+
     ES_TYPE = "binary"
     BQ_TYPE = "STRING"
     ES_INDEX = "no"
@@ -235,12 +275,14 @@ class Binary(Leaf):
 
 
 class IndexedBinary(Binary):
+
     ES_TYPE = "binary"
     BQ_TYPE = "STRING"
     ES_INDEX = "not_analyzed"
 
 
 class DateTime(Leaf):
+
     ES_TYPE = "date"
     BQ_TYPE = "TIMESTAMP"
     EXPECTED_CLASS = [str, int, unicode]
