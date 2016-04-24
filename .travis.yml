@@ -5,7 +5,7 @@ install:
   - python setup.py install
 script:
   - nosetests zschema
-notifcations:
+notifications:
   email:
     - zmap-devel@umich.edu
   slack:
