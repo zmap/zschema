@@ -1,10 +1,10 @@
 class Port(object):
     def __init__(self, port):
         self.port = str(port)
-        
+
     def to_bigquery(self):
         return "p%s" % self.port
-        
+
     def to_es(self):
         return self.port
 
@@ -29,14 +29,13 @@ class Keyable(object):
         "not_analyzed", # searchable, not full-text,
         "no", # field is not searchable
     ]
-    
-    
+
     VALID_ES_ANALYZERS = [
         "standard",   # The standard analyzer is the default analyzer that Elasticsearch uses.
-                      # It is the best general choice for analyzing text that may be in any language. 
-                      # It splits the text on word boundaries, as defined by the Unicode Consortium, 
+                      # It is the best general choice for analyzing text that may be in any language.
+                      # It splits the text on word boundaries, as defined by the Unicode Consortium,
                       # and removes most punctuation.
-        "simple",     # The simple analyzer splits the text on anything that isn't a letter, 
+        "simple",     # The simple analyzer splits the text on anything that isn't a letter,
                       # and lowercases the terms. It would produce
         "whitespace", # The whitespace analyzer splits the text on whitespace. It doesn't lowercase.
     ]
@@ -45,7 +44,6 @@ class Keyable(object):
     # in order to create the Python definition from JSON. We need
     # this in the web interface. We define this in keyable because
     _types_by_name = {}
-
 
     @staticmethod
     def key_to_bq(o):
@@ -60,7 +58,7 @@ class Keyable(object):
             return o
         else:
             return o.to_es()
-            
+
     @staticmethod
     def key_to_string(o):
         if type(o) in (str, unicode):
@@ -96,10 +94,9 @@ class Keyable(object):
             Keyable._types_by_name[klass.__name__] = klass
 
 
-
-
 class DataValidationException(TypeError):
     pass
+
 
 class MergeConflictException(Exception):
     pass
