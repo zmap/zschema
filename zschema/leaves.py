@@ -10,12 +10,15 @@ class Leaf(Keyable):
     DEPRECATED = False
 
     def __init__(self, required=False, es_index=None,
-            es_analyzer=None, doc=None, es_include_raw=False):
+            es_analyzer=None, doc=None, es_include_raw=False,
+            deprecated=False, ignore=False):
         self.required = required
         self.es_index = es_index
         self.es_analyzer = es_analyzer
         self.doc = doc
         self.es_include_raw = es_include_raw
+        self.deprecated = deprecated
+        self.ignore = ignore
         if self.DEPRECATED:
             e = "WARN: %s is deprecated and will be removed in a "\
                     "future release\n" % self.__class__.__name__
@@ -135,6 +138,24 @@ class String(Leaf):
 
     INVALID = 23
     VALID = "asdf"
+
+
+class Enum(Leaf):
+
+    ES_TYPE = "string"
+    BQ_TYPE = "STRING"
+    ES_INDEX = "not_analyzed"
+    EXPECTED_CLASS = [str,unicode]
+
+    def __init__(self, values, *args, **kwargs):
+        Leaf.__init__(self, *args, **kwargs)
+        self.values = values
+        self.values_s = set(values)
+
+    def _validate(self, name, value):
+        if value not in self.values_s
+            m = "%s: the value %s is not a valid enum option" % (name, value)
+            raise DataValidationException(m)
 
 
 class HTML(AnalyzedString):
@@ -311,6 +332,7 @@ VALID_LEAVES = [
     Short,
     Byte,
     Integer,
-    IPv4Address
+    IPv4Address,
+    Enum
 ]
 

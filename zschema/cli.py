@@ -40,10 +40,12 @@ def main():
     elif command == "censys-html":
         for r in record.to_flat():
             type_ = r.get("es_type", None)
+            len_ = r["name"].count(".")
+            style = 'style="padding-left: %ipx"' % (15 * len_ + 5)
             if not type_:
-                print '<tr class="record"><td>%s</td><td>%s</td></tr>' % (r["name"], type_)
+                print '<tr class="record"><td %s>%s</td><td>%s</td></tr>' % (style, r["name"], "")
             else:
-                print "<tr><td>%s</td><td>%s</td></tr>" % (r["name"], type_)
+                print "<tr><td %s>%s</td><td>%s</td></tr>" % (style, r["name"], type_)
     elif command == "validate":
         if not os.path.exists(sys.argv[3]):
             sys.stderr.write("Invalid test file. %s does not exist.\n" % sys.argv[3])
