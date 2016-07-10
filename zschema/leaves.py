@@ -153,7 +153,7 @@ class Enum(Leaf):
         self.values_s = set(values)
 
     def _validate(self, name, value):
-        if value not in self.values_s
+        if value not in self.values_s:
             m = "%s: the value %s is not a valid enum option" % (name, value)
             raise DataValidationException(m)
 
