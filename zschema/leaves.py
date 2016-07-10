@@ -147,7 +147,7 @@ class Enum(Leaf):
     ES_INDEX = "not_analyzed"
     EXPECTED_CLASS = [str,unicode]
 
-    def __init__(self, values=[], *args, **kwargs):
+    def __init__(self, values=[None,], *args, **kwargs):
         Leaf.__init__(self, *args, **kwargs)
         self.values = values
         self.values_s = set(values)
@@ -156,6 +156,10 @@ class Enum(Leaf):
         if value not in self.values_s:
             m = "%s: the value %s is not a valid enum option" % (name, value)
             raise DataValidationException(m)
+
+
+    INVALID = 23
+    VALID = None
 
 
 class HTML(AnalyzedString):
