@@ -140,6 +140,28 @@ class String(Leaf):
     VALID = "asdf"
 
 
+class HexString(Leaf):
+
+    ES_TYPE = "string"
+    BQ_TYPE = "STRING"
+    ES_INDEX = "not_analyzed"
+    EXPECTED_CLASS = [str,unicode]
+
+    INVALID = "asdfasdfa"
+    VALID = "003a929e3e0bd48a1e7567714a1e0e9d4597fe9087b4ad39deb83ab10c5a0278"
+
+
+    HEX_REGEX = re.compile('(?:[A-Fa-f0-9][A-Fa-f0-9])+')
+
+    def _is_hex(self, s):
+        return bool(self.HEX_REGEX.match(s))
+
+    def _validate(self, name, value):
+        if not self._is_hex(value):
+            m = "%s: the value %s is not hex" % (name, value)
+            raise DataValidationException(m)
+
+
 class Enum(Leaf):
 
     ES_TYPE = "string"
@@ -337,6 +359,7 @@ VALID_LEAVES = [
     Byte,
     Integer,
     IPv4Address,
-    Enum
+    Enum,
+    HexString
 ]
 
