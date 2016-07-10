@@ -147,7 +147,7 @@ class Enum(Leaf):
     ES_INDEX = "not_analyzed"
     EXPECTED_CLASS = [str,unicode]
 
-    def __init__(self, values, *args, **kwargs):
+    def __init__(self, values=[], *args, **kwargs):
         Leaf.__init__(self, *args, **kwargs)
         self.values = values
         self.values_s = set(values)
