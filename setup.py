@@ -20,7 +20,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'zschema = zschema.cli:main',
+            'zschema = zschema.__main__:main',
         ]
     }
 )
