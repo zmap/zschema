@@ -345,6 +345,27 @@ class DateTime(Leaf):
             raise DataValidationException(m)
 
 
+class OID(String):
+
+    VALID = "1.3.6.1.4.868.2.4.1"
+    INVALID = "hello"
+
+    OID_REGEX = re.compile("[[0-9]+\\.]*")
+
+    def _is_oid(self, data):
+        return bool(self.OID_REGEX.match(data))
+
+    def _validate(self, name, value):
+        if not self._is_oid(value):
+            m = "%s: the value %s is not a valid oid" % (name, value)
+            raise DataValidationException(m)
+
+
+class FQDN(AnalyzedString):
+    pass
+
+
+
 VALID_LEAVES = [
     DateTime,
     AnalyzedString,
