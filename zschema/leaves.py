@@ -398,7 +398,7 @@ class StringContainingFQDN(AnalyzedString):
     ES_ANALYZER="standard_w_fqdn"
 
 
-class EmailAddress(AnalyzedString):
+class EmailAddress(StringContainingFQDN):
 
     INCLUDE_RAW = True
 
