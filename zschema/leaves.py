@@ -133,6 +133,24 @@ class AnalyzedString(Leaf):
     VALID = "asdf"
 
 
+class WhitespaceAnalyzedString(AnalyzedString):
+    """
+    curl -XPUT 'localhost:9200/YOUR-INDEX-HERE/_settings' -d '{
+      "analysis" : {
+        "analyzer":{
+          "lower_whitespace":{
+            "type":"custom",
+            "tokenizer":"whitespace",
+            "filter":["lowercase"]
+          }
+        }
+      }
+    }'
+    """
+    ES_ANALYZER="lower_whitespace"
+
+
+
 class String(Leaf):
 
     ES_TYPE = "string"
@@ -250,6 +268,8 @@ class Signed32BitInteger(Leaf):
                     name, str(value), str(min_)))
 
 
+
+
 class Integer(Signed32BitInteger):
 
     DEPRECATED = True
@@ -261,6 +281,8 @@ class Signed8BitInteger(Integer):
     BITS = 8
     INVALID = 2**8+5
     VALID = 34
+
+
 
 
 class Byte(Signed8BitInteger):
@@ -276,6 +298,14 @@ class Signed16BitInteger(Integer):
     VALID = 0xFFFF
 
 
+class Unsigned8BitInteger(Signed16BitInteger):
+    pass
+
+
+class Unsigned16BitInteger(Signed32BitInteger):
+    pass
+
+
 class Short(Signed16BitInteger):
 
     DEPRECATED = True
@@ -289,6 +319,10 @@ class Signed64BitInteger(Integer):
     INVALID = 2l**68
     VALID = 10l
     BITS = 64
+
+
+class Unsigned32BitInteger(Signed64BitInteger):
+    pass
 
 
 class Long(Signed64BitInteger):
@@ -381,24 +415,9 @@ class OID(String):
             raise DataValidationException(m)
 
 
-class StringContainingFQDN(AnalyzedString):
-    """
-    curl -XPUT 'localhost:9200/YOUR-INDEX-HERE/_settings' -d '{
-      "analysis" : {
-        "analyzer":{
-          "standard_w_fqdn":{
-            "type":"custom",
-            "tokenizer":"uax_url_email",
-            "filter":["standard", "lowercase", "stop"]
-          }
-        }
-      }
-    }'
-    """
-    ES_ANALYZER="standard_w_fqdn"
 
 
-class EmailAddress(StringContainingFQDN):
+class EmailAddress(WhitespaceAnalyzedString):
 
     INCLUDE_RAW = True
 
