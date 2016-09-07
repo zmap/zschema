@@ -109,6 +109,17 @@ class Leaf(Keyable):
 
 
 
+class String(Leaf):
+
+    ES_TYPE = "string"
+    BQ_TYPE = "STRING"
+    ES_INDEX = "not_analyzed"
+    EXPECTED_CLASS = [str,unicode]
+
+    INVALID = 23
+    VALID = "asdf"
+
+
 class EnglishString(Leaf):
 
     ES_TYPE = "string"
@@ -148,18 +159,6 @@ class WhitespaceAnalyzedString(AnalyzedString):
     }'
     """
     ES_ANALYZER="lower_whitespace"
-
-
-
-class String(Leaf):
-
-    ES_TYPE = "string"
-    BQ_TYPE = "STRING"
-    ES_INDEX = "not_analyzed"
-    EXPECTED_CLASS = [str,unicode]
-
-    INVALID = 23
-    VALID = "asdf"
 
 
 class HexString(Leaf):
@@ -246,6 +245,7 @@ class IPv4Address(Leaf):
 class IPAddress(IPv4Address):
     pass
 
+
 class Signed32BitInteger(Leaf):
 
     ES_TYPE = "integer"
@@ -268,8 +268,6 @@ class Signed32BitInteger(Leaf):
                     name, str(value), str(min_)))
 
 
-
-
 class Integer(Signed32BitInteger):
 
     DEPRECATED = True
@@ -281,8 +279,6 @@ class Signed8BitInteger(Integer):
     BITS = 8
     INVALID = 2**8+5
     VALID = 34
-
-
 
 
 class Byte(Signed8BitInteger):
