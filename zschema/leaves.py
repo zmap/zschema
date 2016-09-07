@@ -8,15 +8,19 @@ from keys import *
 class Leaf(Keyable):
 
     DEPRECATED = False
+    INCLUDE_RAW = False
 
     def __init__(self, required=False, es_index=None,
-            es_analyzer=None, doc=None, es_include_raw=False,
+            es_analyzer=None, doc=None, es_include_raw=None,
             deprecated=False, ignore=False):
         self.required = required
         self.es_index = es_index
         self.es_analyzer = es_analyzer
         self.doc = doc
-        self.es_include_raw = es_include_raw
+        if es_include_raw is not None:
+            self.es_include_raw = es_include_raw
+        else:
+            self.es_include_raw = self.INCLUDE_RAW
         self.deprecated = deprecated
         self.ignore = ignore
         if self.DEPRECATED:
@@ -167,7 +171,11 @@ class Enum(Leaf):
     ES_TYPE = "string"
     BQ_TYPE = "STRING"
     ES_INDEX = "not_analyzed"
+
     EXPECTED_CLASS = [str,unicode]
+
+    INVALID = 23
+    VALID = None
 
     def __init__(self, values=[None,], *args, **kwargs):
         Leaf.__init__(self, *args, **kwargs)
@@ -180,12 +188,21 @@ class Enum(Leaf):
             raise DataValidationException(m)
 
 
-    INVALID = 23
-    VALID = None
-
-
 class HTML(AnalyzedString):
 
+    """
+    curl -XPUT 'localhost:9200/ipv4/_settings' -d '{
+      "analysis" : {
+        "analyzer":{
+          "html":{
+            "type":"custom",
+            "tokenizer":"standard",
+            "char_filter":[ "html_strip"]
+          }
+        }
+      }
+    }'
+    """
     ES_ANALYZER = "html"
 
 
@@ -207,6 +224,9 @@ class IPv4Address(Leaf):
     INVALID = "my string"
     VALID = "141.212.120.0"
 
+
+class IPAddress(IPv4Address):
+    pass
 
 class Signed32BitInteger(Leaf):
 
@@ -361,9 +381,70 @@ class OID(String):
             raise DataValidationException(m)
 
 
-class FQDN(AnalyzedString):
+class StringContainingFQDN(AnalyzedString):
+    """
+    curl -XPUT 'localhost:9200/YOUR-INDEX-HERE/_settings' -d '{
+      "analysis" : {
+        "analyzer":{
+          "standard_w_fqdn":{
+            "type":"custom",
+            "tokenizer":"uax_url_email",
+            "filter":["standard", "lowercase", "stop"]
+          }
+        }
+      }
+    }'
+    """
+    ES_ANALYZER="standard_w_fqdn"
+
+
+class EmailAddress(AnalyzedString):
+
+    INCLUDE_RAW = True
+
+
+class URL(AnalyzedString):
+
+    # This depends on https://github.com/jlinn/elasticsearch-analysis-url being installed
+
+    """
+    curl -XPUT 'localhost:9200/YOUR-INDEX-HERE/_settings' -d '{
+      "analysis" : {
+        "filter":{
+          "url":{
+            "type":"url",
+            "part":null,
+            "url_decode":true,
+            "allow_malformed":true,
+            "tokenize_malformed":true
+          }
+        }
+      }
+    }'
+    curl -XPUT 'localhost:9200/YOUR-INDEX-HERE/_settings' -d '{
+      "analysis" : {
+        "analyzer":{
+          "url":{
+            "type":"custom",
+            "tokenizer":"whitespace",
+            "char_filter":["url"]
+          }
+        }
+      }
+    }'
+
+    """
+
+    ES_ANALYZER = "URL"
+    INCLUDE_RAW = True
+
+
+class FQDN(URL):
     pass
 
+
+class URI(URL):
+    pass
 
 
 VALID_LEAVES = [
@@ -380,7 +461,13 @@ VALID_LEAVES = [
     Byte,
     Integer,
     IPv4Address,
+    IPAddress,
     Enum,
-    HexString
+    HexString,
+    OID,
+    FQDN,
+    URL,
+    URI,
+    EmailAddress,
 ]
 
