@@ -90,7 +90,7 @@ class SubRecord(Keyable):
             elif l_value.__class__ == SubRecord:
                 newdef[key] = l_value.merge(r_value)
             else:
-                raise MergeConflictException("Only subrecords can be merged.")
+                raise MergeConflictException("Only subrecords can be merged. (%s)", key)
         self.definition = newdef
         return self
 

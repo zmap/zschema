@@ -292,6 +292,7 @@ class Signed16BitInteger(Integer):
     BITS = 16
     INVALID = 2**16
     VALID = 0xFFFF
+    DEPRECATED = False
 
 
 class Unsigned8BitInteger(Signed16BitInteger):
@@ -315,6 +316,7 @@ class Signed64BitInteger(Integer):
     INVALID = 2l**68
     VALID = 10l
     BITS = 64
+    DEPRECATED = False
 
 
 class Unsigned32BitInteger(Signed64BitInteger):
