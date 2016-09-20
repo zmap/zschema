@@ -444,7 +444,7 @@ class URL(AnalyzedString):
           "url":{
             "type":"custom",
             "tokenizer":"whitespace",
-            "char_filter":["url"]
+            "filter":["url"]
           }
         }
       }
