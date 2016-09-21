@@ -375,7 +375,7 @@ class Binary(Leaf):
 
 class IndexedBinary(Binary):
 
-    ES_TYPE = "binary"
+    ES_TYPE = "string"
     BQ_TYPE = "STRING"
     ES_INDEX = "not_analyzed"
 
