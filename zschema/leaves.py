@@ -10,9 +10,18 @@ class Leaf(Keyable):
     DEPRECATED = False
     INCLUDE_RAW = False
 
-    def __init__(self, required=False, es_index=None,
-            es_analyzer=None, doc=None, es_include_raw=None,
-            deprecated=False, ignore=False):
+    def __init__(self,
+            required=False,
+            es_index=None,
+            es_analyzer=None,
+            doc=None,
+            es_include_raw=None,
+            deprecated=False,
+            ignore=False,
+            autocomplete_include=True,
+            autocomplete_category=None,
+            autocomplete_icon=None,
+            exclude=None):
         self.required = required
         self.es_index = es_index
         self.es_analyzer = es_analyzer
@@ -27,6 +36,11 @@ class Leaf(Keyable):
             e = "WARN: %s is deprecated and will be removed in a "\
                     "future release\n" % self.__class__.__name__
             sys.stderr.write(e)
+        self.autocomplete_category = autocomplete_category
+        self.autocomplete_category = autocomplete_category
+        self.autocomplete_icon = autocomplete_icon
+        self._exclude = set(exclude) if exclude else set([])
+
 
     def to_dict(self):
         retv = {
@@ -38,12 +52,17 @@ class Leaf(Keyable):
         }
         self.add_es_var(retv, "es_analyzer", "es_analyzer", "ES_ANALYZER")
         self.add_es_var(retv, "es_index", "es_index", "ES_INDEX")
+        self.add_es_var(retv, "es_search_analyzer", "es_search_analyzer",
+                "ES_SEARCH_ANALYZER")
         return retv
 
     def to_es(self):
         retv = {"type":self.ES_TYPE}
         self.add_es_var(retv, "index", "es_index", "ES_INDEX")
         self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
+        self.add_es_var(retv, "search_analyzer", "es_search_analyzer",
+                "ES_SEARCH_ANALYZER")
+
         if self.es_include_raw:
             retv["fields"] = {
                     "raw":{"type":self.ES_TYPE, "index":"not_analyzed"}
@@ -84,6 +103,9 @@ class Leaf(Keyable):
                 "es_type": self.ES_TYPE,
                 "mode":mode
             }
+
+    def to_autocomplete(self, parent, name, repated=False):
+        pass
 
     def print_indent_string(self, name, indent):
         val = self.key_to_string(name)
@@ -172,6 +194,7 @@ class HexString(Leaf):
     VALID = "003a929e3e0bd48a1e7567714a1e0e9d4597fe9087b4ad39deb83ab10c5a0278"
 
 
+    ES_SEARCH_ANALYZER = "lower_whitespace"
     HEX_REGEX = re.compile('(?:[A-Fa-f0-9][A-Fa-f0-9])+')
 
     def _is_hex(self, s):
@@ -453,6 +476,7 @@ class URL(AnalyzedString):
     """
 
     ES_ANALYZER = "URL"
+    ES_SEARCH_ANALYZER = "whitespace"
     INCLUDE_RAW = True
 
 

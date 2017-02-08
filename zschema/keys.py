@@ -66,6 +66,14 @@ class Keyable(object):
         else:
             return o.to_string()
 
+    @property
+    def exclude_bigquery(self):
+        return "bigquery" in self._exclude
+
+    @property
+    def exclude_elasticsearch(self):
+        return "elasticsearch" in self._exclude
+
     def add_es_var(self, d, name, instance, default):
         if hasattr(self, instance) and getattr(self, instance):
             d[name] = getattr(self, instance)

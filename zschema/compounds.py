@@ -13,6 +13,14 @@ class ListOf(Keyable):
         self.max_items = max_items
         _is_valid_object("Anonymous ListOf", object_)
 
+    @property
+    def exclude_bigquery(self):
+        return self.object_.exclude_bigquery
+
+    @property
+    def exclude_elasticsearch(self):
+        return self.object_.exclude_elasticsearch
+
     def print_indent_string(self, name, indent):
         tabs = "\t" * indent if indent else ""
         print tabs + name + ":%s:" % self.__class__.__name__,
@@ -40,13 +48,21 @@ class ListOf(Keyable):
         for rec in self.object_.to_flat(parent, name, repeated=True):
             yield rec
 
+
 class SubRecord(Keyable):
 
-    def __init__(self, definition, required=False, doc=None, extends=None, allow_unknown=False):
+    def __init__(self,
+            definition,
+            required=False,
+            doc=None,
+            extends=None,
+            allow_unknown=False,
+            exclude=None):
         self.definition = definition
         self.required = required
         self.allow_unknown = allow_unknown
         self.doc = doc
+        self._exclude = set(exclude) if exclude else set([])
         # merge
         if extends:
             extends = copy.deepcopy(extends)
@@ -95,11 +111,12 @@ class SubRecord(Keyable):
         return self
 
     def to_bigquery(self, name):
-        #print self.definition.items()
+        fields = [v.to_bigquery(k) for (k,v) in self.definition.iteritems() if \
+                not v.exclude_bigquery]
         return {
             "name":self.key_to_bq(name),
             "type":"RECORD",
-            "fields":[v.to_bigquery(k) for (k,v) in self.definition.iteritems()],
+            "fields":fields,
             "mode":"REQUIRED" if self.required else "NULLABLE"
         }
 
@@ -110,7 +127,8 @@ class SubRecord(Keyable):
             value.print_indent_string(name, indent+1)
 
     def to_es(self):
-        p = {self.key_to_es(k): v.to_es() for k, v in self.definition.items()}
+        p = {self.key_to_es(k): v.to_es() for k, v in self.definition.items() \
+                if not v.exclude_elasticsearch}
         return {"properties": p}
 
     def to_dict(self):
@@ -136,7 +154,8 @@ class Record(SubRecord):
         return {name:SubRecord.to_es(self)}
 
     def to_bigquery(self):
-        return [s.to_bigquery(name) for (name, s) in self.definition.items()]
+        return [s.to_bigquery(name) for (name, s) in self.definition.items() \
+                if not s.exclude_bigquery]
 
     def to_html(self):
         pass
@@ -165,7 +184,6 @@ class Record(SubRecord):
 
     def to_json(self):
         return json.dumps(self.to_dict(), indent=4)
-
 
     def to_flat(self):
         for subname, doc in self.definition.iteritems():
