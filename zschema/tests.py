@@ -288,16 +288,59 @@ class CompileAndValidationTests(unittest.TestCase):
         }
         try:
             self.host.validate(test)
-            raise Exception("validation did not fail")
+            self.fail("validation did not fail")
         except DataValidationException:
             pass
 
-    def test_null_notrequired(self):
+    def test_missing_nonrequired(self):
         test = {
+            "ipstr": "1.2.3.4"
+        }
+        self.host.validate(test)
+
+    def test_null_notrequired_leaf(self):
+        test = {
+            "ipstr": "1.2.3.4",
             "ip":None,
             "443":{
-                "tls":"None"
+                "tls":"string",
             }
         }
         self.host.validate(test)
 
+    def test_missing_required(self):
+        # ipstr is not set
+        test = {
+            "443":{
+                "tls":"string",
+            }
+        }
+        try:
+            self.host.validate(test)
+            self.fail("ipstr is missing")
+        except DataValidationException:
+            pass
+
+    def test_null_subkey(self):
+        test = {
+            "ipstr": "1.2.3.4",
+            "443": {
+                "heartbleed": None,
+            }
+        }
+        try:
+            self.host.validate(test)
+            self.fail("heartbleed is null")
+        except DataValidationException:
+            pass
+
+    def test_null_port(self):
+        test = {
+            "ipstr": "1.2.3.4",
+            "443": None,
+        }
+        try:
+            self.host.validate(test)
+            self.fail("443 is null")
+        except DataValidationException:
+            pass
