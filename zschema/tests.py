@@ -1,6 +1,7 @@
 import json
 import pprint
 
+from zschema import registry
 from zschema.leaves import *
 from zschema.compounds import *
 
@@ -301,3 +302,44 @@ class CompileAndValidationTests(unittest.TestCase):
         }
         self.host.validate(test)
 
+
+class RegistryTests(unittest.TestCase):
+
+    def setUp(self):
+        self.host = Record({
+                "ipstr":IPv4Address(required=True),
+                "ip":Unsigned32BitInteger(),
+        })
+        self.domain = Record({
+                "domain":String(required=True),
+        })
+
+    def test_get_registered(self):
+        try:
+            registry.get_schema("host")
+            self.fail("missing schema should throw")
+        except KeyError:
+            pass
+        all_schemas = registry.all_schemas()
+        self.assertEqual(0, len(all_schemas))
+
+        registry.register_schema("host", self.host)
+        try:
+            host_schema = registry.get_schema("host")
+        except KeyError:
+            self.fail("registered schema should not throw")
+        all_schemas = registry.all_schemas()
+        self.assertEqual(1, len(all_schemas))
+        all_schemas['domain'] = self.domain
+
+        all_schemas = registry.all_schemas()
+        self.assertEqual(1, len(all_schemas))
+
+        registry.register_schema("domain", self.domain)
+        self.assertEqual(1, len(all_schemas))
+        try:
+            domain_schema = registry.get_schema("domain")
+        except KeyError:
+            self.fail("registered schema should not throw")
+        all_schemas = registry.all_schemas()
+        self.assertEqual(2, len(all_schemas))
