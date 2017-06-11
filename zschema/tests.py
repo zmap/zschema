@@ -343,3 +343,7 @@ class RegistryTests(unittest.TestCase):
             self.fail("registered schema should not throw")
         all_schemas = registry.all_schemas()
         self.assertEqual(2, len(all_schemas))
+
+
+class NestedListOfTests(unittest.TestCase):
+    pass

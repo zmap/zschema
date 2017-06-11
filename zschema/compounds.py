@@ -6,6 +6,8 @@ def _is_valid_object(name, object_):
     if not isinstance(object_, Keyable):
         raise Exception("Invalid schema. %s is not a Keyable." % name)
 
+
+
 class ListOf(Keyable):
 
     def __init__(self, object_, max_items=10):
@@ -146,6 +148,21 @@ class SubRecord(Keyable):
             else:
                 continue
             self.definition[subkey].validate(subkey, subvalue)
+
+
+class NestedListOf(ListOf):
+
+    def __init__(self, object_, subrecord_name, max_items=10):
+        ListOf.__init__(self, object_, max_items)
+        self.subrecord_name = subrecord_name
+
+    def to_bigquery(self, name):
+        subr = SubRecord({
+            self.subrecord_name:ListOf(self.object_)
+        })
+        retv = subr.to_bigquery(self.key_to_bq(name))
+        retv["mode"] = "REPEATED"
+        return retv
 
 
 class Record(SubRecord):

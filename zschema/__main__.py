@@ -13,6 +13,7 @@ def usage():
     sys.stderr.write("USAGE: %s command schema [file].\n" % sys.argv[0].split("/")[-1])
     sys.stderr.write("Valid commands: bigquery, elasticsearch, json, text, html, censys-html, flat, validate.\n")
     sys.stderr.write("schema should be defined as file.py:record\n")
+    sys.stderr.write("VERSION: %s\n" % zschema.__version__)
     sys.exit(1)
 
 def main():

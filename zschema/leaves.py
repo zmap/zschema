@@ -21,7 +21,8 @@ class Leaf(Keyable):
             autocomplete_include=True,
             autocomplete_category=None,
             autocomplete_icon=None,
-            exclude=None):
+            exclude=None,
+            metadata=None):
         self.required = required
         self.es_index = es_index
         self.es_analyzer = es_analyzer
@@ -40,7 +41,7 @@ class Leaf(Keyable):
         self.autocomplete_category = autocomplete_category
         self.autocomplete_icon = autocomplete_icon
         self._exclude = set(exclude) if exclude else set([])
-
+        self.metadata = metadata if metadata else {}
 
     def to_dict(self):
         retv = {
@@ -48,7 +49,8 @@ class Leaf(Keyable):
             "doc":self.doc,
             "type":self.__class__.__name__,
             "es_type":self.ES_TYPE,
-            "bq_type":self.BQ_TYPE
+            "bq_type":self.BQ_TYPE,
+            "metadata":metadata
         }
         self.add_es_var(retv, "es_analyzer", "es_analyzer", "ES_ANALYZER")
         self.add_es_var(retv, "es_index", "es_index", "ES_INDEX")
@@ -65,7 +67,7 @@ class Leaf(Keyable):
 
         if self.es_include_raw:
             retv["fields"] = {
-                    "raw":{"type":self.ES_TYPE, "index":"not_analyzed"}
+                    "raw":{"type":"keyword"}
             }
         return retv
 
@@ -133,9 +135,8 @@ class Leaf(Keyable):
 
 class String(Leaf):
 
-    ES_TYPE = "string"
+    ES_TYPE = "keyword"
     BQ_TYPE = "STRING"
-    ES_INDEX = "not_analyzed"
     EXPECTED_CLASS = [str,unicode]
 
     INVALID = 23
@@ -144,9 +145,8 @@ class String(Leaf):
 
 class EnglishString(Leaf):
 
-    ES_TYPE = "string"
+    ES_TYPE = "text"
     BQ_TYPE = "STRING"
-    ES_INDEX = "analyzed"
     ES_ANALYZER = "standard"
     EXPECTED_CLASS = [str,unicode]
 
@@ -156,9 +156,8 @@ class EnglishString(Leaf):
 
 class AnalyzedString(Leaf):
 
-    ES_TYPE = "string"
+    ES_TYPE = "text"
     BQ_TYPE = "STRING"
-    ES_INDEX = "analyzed"
     ES_ANALYZER = "simple"
     EXPECTED_CLASS = [str,unicode]
 
@@ -185,16 +184,14 @@ class WhitespaceAnalyzedString(AnalyzedString):
 
 class HexString(Leaf):
 
-    ES_TYPE = "string"
+    ES_TYPE = "keyword"
     BQ_TYPE = "STRING"
-    ES_INDEX = "not_analyzed"
     EXPECTED_CLASS = [str,unicode]
 
     INVALID = "asdfasdfa"
     VALID = "003a929e3e0bd48a1e7567714a1e0e9d4597fe9087b4ad39deb83ab10c5a0278"
 
-
-    ES_SEARCH_ANALYZER = "lower_whitespace"
+    #ES_SEARCH_ANALYZER = "lower_whitespace"
     HEX_REGEX = re.compile('(?:[A-Fa-f0-9][A-Fa-f0-9])+')
 
     def _is_hex(self, s):
@@ -208,9 +205,8 @@ class HexString(Leaf):
 
 class Enum(Leaf):
 
-    ES_TYPE = "string"
+    ES_TYPE = "keyword"
     BQ_TYPE = "STRING"
-    ES_INDEX = "not_analyzed"
 
     EXPECTED_CLASS = [str,unicode]
 
@@ -246,8 +242,7 @@ class HTML(AnalyzedString):
     ES_ANALYZER = "html"
 
 
-class IPv4Address(Leaf):
-
+class IPAddress(Leaf):
     ES_TYPE = "ip"
     BQ_TYPE = "STRING"
     EXPECTED_CLASS = [str,unicode]
@@ -265,7 +260,7 @@ class IPv4Address(Leaf):
     VALID = "141.212.120.0"
 
 
-class IPAddress(IPv4Address):
+class IPv4Address(IPAddress):
     pass
 
 
@@ -434,8 +429,6 @@ class OID(String):
         if not self._is_oid(value):
             m = "%s: the value %s is not a valid oid" % (name, value)
             raise DataValidationException(m)
-
-
 
 
 class EmailAddress(WhitespaceAnalyzedString):
