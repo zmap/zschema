@@ -13,7 +13,7 @@ class Port(object):
     def __eq__(self, other):
         if type(other) == int:
             return int(self.port).__eq__(other)
-        elif type(other) == str:
+        elif type(other) in {str, unicode}:
             return self.port.__eq__(other)
         else:
             return self.port.__eq__(other.port)

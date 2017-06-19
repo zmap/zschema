@@ -192,8 +192,11 @@ class Record(SubRecord):
             raise DataValidationException("record is not a dict", str(value))
         for subkey, subvalue in value.items():
             if subkey not in self.definition:
-                raise DataValidationException("%s is not a valid subkey of root",
-                                              subkey)
+                port = Port(subkey)
+                if port not in self.definition:
+                    raise DataValidationException("%s is not a valid subkey of root",
+                                                  subkey)
+                subkey = port
             self.definition[subkey].validate(subkey, subvalue)
 
     def to_dict(self):
@@ -210,5 +213,3 @@ class Record(SubRecord):
     @classmethod
     def from_json(cls, j):
         return cls({(k, __encode(v)) for k, v in j.items()})
-
-
