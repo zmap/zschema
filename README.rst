@@ -46,4 +46,4 @@ The schema file can be defined on the command line as module:var.
 Running Tests
 =============
 
-Tests can be run with `nose <http://nose.readthedocs.io/en/latest/>`_. Install in your virtual environment with ``pip install nose``, then run ``nosetests .`` in the project directory.
+Tests are run with `nose <http://nose.readthedocs.io/en/latest/>`_. Run them via ``python setup.py test``.

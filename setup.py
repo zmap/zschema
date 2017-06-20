@@ -22,6 +22,8 @@ setup(
         'console_scripts': [
             'zschema = zschema.__main__:main',
         ]
-    }
-)
+    },
 
+    tests_require = [ 'nose' ],
+    test_suite = 'nose.collector'
+)
