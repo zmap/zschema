@@ -42,3 +42,8 @@ Commands:
     - validate (validate JSON file (one document per line) against schema)
 
 The schema file can be defined on the command line as module:var.
+
+Running Tests
+=============
+
+Tests are run with `nose <http://nose.readthedocs.io/en/latest/>`_. Run them via ``python setup.py test``.

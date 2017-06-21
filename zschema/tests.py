@@ -1,9 +1,17 @@
 import json
+import os
 import pprint
 
 from zschema import registry
 from zschema.leaves import *
 from zschema.compounds import *
+
+def json_fixture(name):
+    filename = name + ".json"
+    fixture_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fixtures', filename)
+    with open(fixture_path) as fixture_file:
+        fixture = json.load(fixture_file)
+    return fixture
 
 class LeafUnitTests(unittest.TestCase):
 
@@ -301,6 +309,19 @@ class CompileAndValidationTests(unittest.TestCase):
             }
         }
         self.host.validate(test)
+
+    def test_parses_ipv4_records(self):
+        ipv4_host_ssh = Record({
+            Port(22):SubRecord({
+                "ssh":SubRecord({
+                    "banner": SubRecord({
+                        "comment":String(),
+                        "timestamp":DateTime()
+                    })
+                })
+            })
+        })
+        ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
 
 
 class RegistryTests(unittest.TestCase):
