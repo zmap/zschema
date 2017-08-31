@@ -25,27 +25,42 @@ Record({
 
 
 Command Line Interface
-======================
+----------------------
 
 zschema [command] [schema] [file]
 
 Commands:
 
-    - elasticsearch (compile to Elastic Search)
+ * elasticsearch (compile to Elastic Search)
 
-    - bigquery (compile to Google BigQuery)
+ * bigquery (compile to Google BigQuery)
 
-    - json (compile documentation to JSON)
+ * json (compile documentation to JSON)
 
-    - text (compile documentation to plain text)
+ * text (compile documentation to plain text)
 
-    - html (compile documentation to HTML)
+ * html (compile documentation to HTML)
 
-    - validate (validate JSON file (one document per line) against schema)
+ * validate (validate JSON file (one document per line) against schema)
 
 The schema file can be defined on the command line as module:var.
 
 Running Tests
-=============
+-------------
 
 Tests are run with `nose <http://nose.readthedocs.io/en/latest/>`_. Run them via ``python setup.py test``.
+
+
+License and Copyright
+---------------------
+
+ZMap Copyright 2017 Regents of the University of Michigan
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See LICENSE for the specific
+language governing permissions and limitations under the License.
