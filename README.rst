@@ -10,16 +10,18 @@ maintain a single database schema for both MongoDB and ElasticSearch.
 Properties can also be documented inline and documentation compiled to HTML
 or a console-friendly text document.
 
-Currently, a schema is defined natively in Python. Example::
+Schemas are defined in native Python code. Example:
 
-    Record({
-        "name":String(required=True),
-        "addresses":ListOf(SubRecord({
-            "street":String(),
-            "zipcode":String()
-        }),
-        "area_code":Integer()
-    })
+```python
+Record({
+    "name":String(required=True),
+    "addresses":ListOf(SubRecord({
+        "street":String(),
+        "zipcode":String()
+    }),
+    "area_code":Integer()
+})
+```
 
 
 Command Line Interface
