@@ -1,4 +1,4 @@
-.. image:: https://secure.travis-ci.org/zmap/zschema.svg?branch=master
+[![Build Status](https://travis-ci.org/zmap/zschema.svg?branch=master)](https://travis-ci.org/zmap/zschema)
 
 ZSchema
 =======
