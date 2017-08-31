@@ -1,11 +1,11 @@
 import copy
 import json
+
 from keys import *
 
 def _is_valid_object(name, object_):
     if not isinstance(object_, Keyable):
         raise Exception("Invalid schema. %s is not a Keyable." % name)
-
 
 
 class ListOf(Keyable):

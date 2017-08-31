@@ -50,7 +50,7 @@ class Leaf(Keyable):
             "type":self.__class__.__name__,
             "es_type":self.ES_TYPE,
             "bq_type":self.BQ_TYPE,
-            "metadata":metadata
+            "metadata":self.metadata
         }
         self.add_es_var(retv, "es_analyzer", "es_analyzer", "ES_ANALYZER")
         self.add_es_var(retv, "es_index", "es_index", "ES_INDEX")
