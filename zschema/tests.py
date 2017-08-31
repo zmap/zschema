@@ -35,8 +35,7 @@ VALID_ELASTIC_SEARCH = {
             "443": {
                 "properties": {
                     "tls": {
-                        "index": "not_analyzed",
-                        "type": "string"
+                        "type": "keyword"
                     },
                     "heartbleed": {
                         "properties": {
@@ -60,8 +59,7 @@ VALID_ELASTIC_SEARCH = {
                 "type": "long"
             },
             "tags": {
-                "index": "not_analyzed",
-                "type": "string"
+                "type": "keyword"
             }
         }
     }
