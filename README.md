@@ -27,7 +27,7 @@ Record({
 Command Line Interface
 ----------------------
 
-zschema [command] [schema] [file]
+`zschema [command] [schema] [file]`
 
 Commands:
 
