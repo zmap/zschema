@@ -22,7 +22,8 @@ class Leaf(Keyable):
             autocomplete_category=None,
             autocomplete_icon=None,
             exclude=None,
-            metadata=None):
+            metadata=None,
+            units=None):
         self.required = required
         self.es_index = es_index
         self.es_analyzer = es_analyzer
@@ -42,6 +43,7 @@ class Leaf(Keyable):
         self.autocomplete_icon = autocomplete_icon
         self._exclude = set(exclude) if exclude else set([])
         self.metadata = metadata if metadata else {}
+        self.units = units
 
     def to_dict(self):
         retv = {
@@ -52,6 +54,8 @@ class Leaf(Keyable):
             "bq_type":self.BQ_TYPE,
             "metadata":self.metadata
         }
+        if self.units is not None:
+            retv["units"] = self.units
         self.add_es_var(retv, "es_analyzer", "es_analyzer", "ES_ANALYZER")
         self.add_es_var(retv, "es_index", "es_index", "ES_INDEX")
         self.add_es_var(retv, "es_search_analyzer", "es_search_analyzer",
