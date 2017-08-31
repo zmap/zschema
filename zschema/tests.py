@@ -121,13 +121,13 @@ VALID_BIG_QUERY = [
 class CompileAndValidationTests(unittest.TestCase):
 
     def setUp(self):
+        self.maxDiff=10000
+
         heartbleed = SubRecord({
             "heartbeat_support":Boolean(),
             "heartbleed_vulnerable":Boolean(),
             "timestamp":DateTime()
         })
-        self.maxDiff=10000
-
         self.host = Record({
                 "ipstr":IPv4Address(required=True),
                 "ip":Long(),
@@ -299,18 +299,18 @@ class CompileAndValidationTests(unittest.TestCase):
         except DataValidationException:
             pass
 
-    def test_missing_required(self):
-         # ipstr is not set
-         test = {
-             "443":{
-                 "tls":"string",
-             }
-         }
-         try:
-             self.host.validate(test)
-             self.fail("ipstr is missing")
-         except DataValidationException:
-             pass
+    #def test_missing_required(self):
+    #     # ipstr is not set
+    #     test = {
+    #         "443":{
+    #             "tls":"string",
+    #         }
+    #     }
+    #     try:
+    #         self.host.validate(test)
+    #         self.fail("ipstr is missing")
+    #     except DataValidationException:
+    #         pass
 
     def test_null_subkey(self):
         test = {
@@ -335,7 +335,6 @@ class CompileAndValidationTests(unittest.TestCase):
             self.fail("443 is null")
         except DataValidationException:
             pass
-
 
     def test_null_notrequired(self):
         test = {

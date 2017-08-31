@@ -146,8 +146,7 @@ class SubRecord(Keyable):
                 raise DataValidationException("%s: %s is not a valid subkey",
                                               name, subkey)
             else:
-                continue
-            self.definition[subkey].validate(subkey, subvalue)
+                self.definition[subkey].validate(subkey, subvalue)
 
 
 class NestedListOf(ListOf):
