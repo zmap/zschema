@@ -76,6 +76,8 @@ class Leaf(Keyable):
         return retv
 
     def to_bigquery(self, name):
+        if not self._check_valid_name(name):
+            raise Exception("Invalid field name: %s" % name)
         mode = "REQUIRED" if self.required else "NULLABLE"
         retv = {"name":self.key_to_bq(name), "type":self.BQ_TYPE, "mode":mode}
         if self.doc:
@@ -87,6 +89,8 @@ class Leaf(Keyable):
                            self.__class__.__name__.lower())
 
     def to_flat(self, parent, name, repeated=False):
+        if not self._check_valid_name(name):
+            raise Exception("Invalid field name: %s" % name)
         if repeated:
             mode = "repeated"
         elif self.required:
@@ -121,6 +125,8 @@ class Leaf(Keyable):
         print val
 
     def validate(self, name, value):
+        if not self._check_valid_name(name):
+            raise Exception("Invalid field name: %s" % name)
         if value is None:
             if self.required:
                 raise DataValidationException("%s is a required field, but "

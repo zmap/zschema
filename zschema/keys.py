@@ -46,6 +46,12 @@ class Keyable(object):
     _types_by_name = {}
 
     @staticmethod
+    def _check_valid_name(name):
+        if "-" in name:
+            return False
+        return True
+
+    @staticmethod
     def key_to_bq(o):
         if type(o) in (str, unicode):
             return o
@@ -55,6 +61,8 @@ class Keyable(object):
     @staticmethod
     def key_to_es(o):
         if type(o) in (str, unicode):
+            if not Keyable._check_valid_name(o):
+                raise Exception("invalid key name: %s" % o)
             return o
         else:
             return o.to_es()
@@ -62,6 +70,8 @@ class Keyable(object):
     @staticmethod
     def key_to_string(o):
         if type(o) in (str, unicode):
+            if not Keyable._check_valid_name(o):
+                raise Exception("invalid key name: %s" % o)
             return o
         else:
             return o.to_string()
