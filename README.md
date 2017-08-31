@@ -48,7 +48,7 @@ The schema file can be defined on the command line as module:var.
 Running Tests
 -------------
 
-Tests are run with (nose)[http://nose.readthedocs.io/en/latest/>]. Run them via `python setup.py test`.
+Tests are run with [nose](http://nose.readthedocs.io/en/latest/). Run them via `python setup.py test`.
 
 
 License and Copyright
