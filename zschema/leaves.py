@@ -428,18 +428,18 @@ class DateTime(Leaf):
         super(DateTime, self).__init__(*args, **kwargs)
 
         if self.min_value:
-            self._min_value_dt = dateutil.parser.parse(self.min_value)
+            self._min_value_dt = dateutil.parser.parse(self.min_value, ignoretz=True)
         else:
-            self._min_value_dt = dateutil.parser.parse(self.MIN_VALUE)
+            self._min_value_dt = dateutil.parser.parse(self.MIN_VALUE, ignoretz=True)
 
         if self.max_value:
-            self._max_value_dt = dateutil.parser.parse(self.max_value)
+            self._max_value_dt = dateutil.parser.parse(self.max_value, ignoretz=True)
         else:
-            self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE)
+            self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE, ignoretz=True)
 
     def _validate(self, name, value):
         try:
-            dt = dateutil.parser.parse(value)
+            dt = dateutil.parser.parse(value, ignoretz=True)
         except Exception, e:
             m = "%s: %s is not valid timestamp" % (name, str(value))
             raise DataValidationException(m)
