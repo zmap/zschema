@@ -86,7 +86,7 @@ VALID_BIG_QUERY = [
                         "mode": "NULLABLE"
                     },
                     {
-                        "type": "TIMESTAMP",
+                        "type": "DATETIME",
                         "name": "timestamp",
                         "mode": "NULLABLE"
                     }

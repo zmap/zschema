@@ -23,7 +23,9 @@ class Leaf(Keyable):
             autocomplete_icon=None,
             exclude=None,
             metadata=None,
-            units=None):
+            units=None,
+            min_value=None,
+            max_value=None):
         self.required = required
         self.es_index = es_index
         self.es_analyzer = es_analyzer
@@ -44,6 +46,8 @@ class Leaf(Keyable):
         self._exclude = set(exclude) if exclude else set([])
         self.metadata = metadata if metadata else {}
         self.units = units
+        self.min_value = min_value
+        self.max_value = max_value
 
     def to_dict(self):
         retv = {
@@ -411,17 +415,41 @@ class IndexedBinary(Binary):
 class DateTime(Leaf):
 
     ES_TYPE = "date"
-    BQ_TYPE = "TIMESTAMP"
+    BQ_TYPE = "DATETIME"
     EXPECTED_CLASS = [str, int, unicode]
 
     VALID = "Wed Jul  8 08:52:01 EDT 2015"
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
 
+    MIN_VALUE = "1582-01-01 00:00:00.000000 EDT"
+    MAX_VALUE = "9999-12-31 00:00:00.000000 EDT"
+
+    def __init__(self, *args, **kwargs):
+        super(DateTime, self).__init__(*args, **kwargs)
+
+        if self.min_value:
+            self._min_value_dt = dateutil.parser.parse(self.min_value)
+        else:
+            self._min_value_dt = dateutil.parser.parse(self.MIN_VALUE)
+
+        if self.max_value:
+            self._max_value_dt = dateutil.parser.parse(self.max_value)
+        else:
+            self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE)
+
     def _validate(self, name, value):
         try:
-            dateutil.parser.parse(value)
+            dt = dateutil.parser.parse(value)
         except Exception, e:
             m = "%s: %s is not valid timestamp" % (name, str(value))
+            raise DataValidationException(m)
+        if dt > self._max_value_dt:
+            m = "%s: %s is larger than allowed maximum (%s)" % (name,
+                    str(value), str(self._max_value_dt))
+            raise DataValidationException(m)
+        if dt < self._min_value_dt:
+            m = "%s: %s is larger than allowed minimum (%s)" % (name,
+                    str(value), str(self._min_value_dt))
             raise DataValidationException(m)
 
 
