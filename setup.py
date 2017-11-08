@@ -1,21 +1,30 @@
+# -*- coding: utf-8 -*-
+
 from setuptools import setup
-import zschema
+
+import os.path
+
+base_dir = os.path.dirname(__file__)
+
+about = dict()
+with open(os.path.join(base_dir, "zschema", "__init__.py")) as f:
+    exec(f.read(), about)
 
 setup(
     name = "zschema",
     description = "A schema language for JSON documents that allows validation and compilation into various database engines",
-    version = zschema.__version__,
-    license = zschema.__license__,
-    author = zschema.__author__,
-    author_email = zschema.__email__,
-    keywords = "python json schema bigquery elastic search",
+    version = about["__version__"],
+    license = about["__license__"],
+    author = about["__author__"],
+    author_email = about["__email__"],
+    keywords = "python json schema bigquery elasticsearch",
 
     install_requires = [
-        "python-dateutil"
+        "python-dateutil",
     ],
 
     packages = [
-        "zschema"
+        "zschema",
     ],
 
     entry_points={
