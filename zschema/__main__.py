@@ -37,7 +37,7 @@ def main():
         print record.to_text()
     elif command == "flat":
         for r in record.to_flat():
-            print r
+            print json.dumps(r)
     elif command == "censys-html":
         for r in record.to_flat():
             type_ = r.get("es_type", None)
@@ -59,4 +59,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
