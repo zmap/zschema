@@ -453,6 +453,12 @@ class DateTime(Leaf):
             raise DataValidationException(m)
 
 
+class Timestamp(DateTime):
+
+    BQ_TYPE = "TIMESTAMP"
+    DEPRECATED = True
+
+
 class OID(String):
 
     VALID = "1.3.6.1.4.868.2.4.1"
