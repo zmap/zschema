@@ -21,6 +21,14 @@ class Port(object):
     def __hash__(self):
         return self.port.__hash__()
 
+    def __cmp__(self, other):
+        if type(other) == int:
+            return cmp(int(self.port), other)
+        elif type(other) in (str, unicode):
+            return cmp(self.port, str(other))
+        else:
+            return cmp(int(self.port), int(other.port))
+
 
 class Keyable(object):
 

@@ -69,7 +69,7 @@ class SubRecord(Keyable):
         if extends:
             extends = copy.deepcopy(extends)
             self.definition = self.merge(extends).definition
-        for k, v in self.definition.items():
+        for k, v in sorted(self.definition.iteritems()):
             _is_valid_object(k, v)
 
     def new(self):
@@ -84,7 +84,7 @@ class SubRecord(Keyable):
             mode = "nullable"
         this_name = ".".join([parent, self.key_to_es(name)]) if parent else self.key_to_es(name)
         yield {"type":self.__class__.__name__, "name":this_name, "mode":mode}
-        for subname, doc in self.definition.iteritems():
+        for subname, doc in sorted(self.definition.iteritems()):
             for item in doc.to_flat(this_name, self.key_to_es(subname)):
                 yield item
 
@@ -113,7 +113,7 @@ class SubRecord(Keyable):
         return self
 
     def to_bigquery(self, name):
-        fields = [v.to_bigquery(k) for (k,v) in self.definition.iteritems() if \
+        fields = [v.to_bigquery(k) for (k,v) in sorted(self.definition.iteritems()) if \
                 not v.exclude_bigquery]
         return {
             "name":self.key_to_bq(name),
@@ -125,23 +125,24 @@ class SubRecord(Keyable):
     def print_indent_string(self, name, indent):
         tabs = "\t" * indent if indent else ""
         print tabs + self.key_to_string(name) + ":subrecord:"
-        for name, value in self.definition.iteritems():
+        for name, value in sorted(self.definition.iteritems()):
             value.print_indent_string(name, indent+1)
 
     def to_es(self):
-        p = {self.key_to_es(k): v.to_es() for k, v in self.definition.items() \
+        p = {self.key_to_es(k): v.to_es() for k, v in sorted(self.definition.iteritems()) \
                 if not v.exclude_elasticsearch}
         return {"properties": p}
 
     def to_dict(self):
-        p = {self.key_to_es(k): v.to_dict() for k, v in self.definition.items()}
+        source = sorted(self.definition.iteritems())
+        p = {self.key_to_es(k): v.to_dict() for k, v in source}
         return {"type":"subrecord", "subfields": p, "doc":self.doc, "required":self.required}
 
     def validate(self, name, value):
         if type(value) != dict:
             raise DataValidationException("%s: %s is not a dict",
                                           name, str(value))
-        for subkey, subvalue in value.items():
+        for subkey, subvalue in sorted(value.iteritems()):
             if not self.allow_unknown and subkey not in self.definition:
                 raise DataValidationException("%s: %s is not a valid subkey",
                                               name, subkey)
@@ -170,7 +171,8 @@ class Record(SubRecord):
         return {name:SubRecord.to_es(self)}
 
     def to_bigquery(self):
-        return [s.to_bigquery(name) for (name, s) in self.definition.items() \
+        source = sorted(self.definition.iteritems())
+        return [s.to_bigquery(name) for (name, s) in source \
                 if not s.exclude_bigquery]
 
     def to_html(self):
@@ -180,7 +182,7 @@ class Record(SubRecord):
         pass
 
     def print_indent_string(self):
-        for name, field in self.definition.iteritems():
+        for name, field in sorted(self.definition.iteritems()):
             field.print_indent_string(name, 0)
 
     def to_dotted_text(self):
@@ -189,25 +191,26 @@ class Record(SubRecord):
     def validate(self, value):
         if type(value) != dict:
             raise DataValidationException("record is not a dict", str(value))
-        for subkey, subvalue in value.items():
+        for subkey, subvalue in sorted(value.iteritems()):
             if subkey not in self.definition:
                 raise DataValidationException("%s is not a valid subkey of root",
                                               subkey)
             self.definition[subkey].validate(subkey, subvalue)
 
     def to_dict(self):
-        return {self.key_to_es(k): v.to_es() for k, v in self.definition.items()}
+        source = sorted(self.definition.iteritems())
+        return {self.key_to_es(k): v.to_es() for k, v in source}
 
     def to_json(self):
         return json.dumps(self.to_dict(), indent=4)
 
     def to_flat(self):
-        for subname, doc in self.definition.iteritems():
+        for subname, doc in sorted(self.definition.iteritems()):
             for item in doc.to_flat(None, self.key_to_es(subname)):
                 yield item
 
     @classmethod
     def from_json(cls, j):
-        return cls({(k, __encode(v)) for k, v in j.items()})
+        return cls({(k, __encode(v)) for k, v in sorted(j.iteritems())})
 
 

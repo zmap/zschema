@@ -456,7 +456,6 @@ class DateTime(Leaf):
 class Timestamp(DateTime):
 
     BQ_TYPE = "TIMESTAMP"
-    DEPRECATED = True
 
 
 class OID(String):
