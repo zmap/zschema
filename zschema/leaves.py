@@ -66,7 +66,7 @@ class Leaf(Keyable):
                 "ES_SEARCH_ANALYZER")
         return retv
 
-    def to_es(self):
+    def to_es(self, annotated=False):
         retv = {"type":self.ES_TYPE}
         self.add_es_var(retv, "index", "es_index", "ES_INDEX")
         self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
@@ -77,6 +77,8 @@ class Leaf(Keyable):
             retv["fields"] = {
                     "raw":{"type":"keyword"}
             }
+        if annotated and self.doc:
+            retv["doc"] = self.doc
         return retv
 
     def to_bigquery(self, name):

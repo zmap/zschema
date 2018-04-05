@@ -33,8 +33,8 @@ class ListOf(Keyable):
         retv["mode"] = "REPEATED"
         return retv
 
-    def to_es(self):
-        return self.object_.to_es()
+    def to_es(self, annotated=False):
+        return self.object_.to_es(annotated=annotated)
 
     def validate(self, name, value):
         if type(value) != list:
@@ -128,10 +128,14 @@ class SubRecord(Keyable):
         for name, value in sorted(self.definition.iteritems()):
             value.print_indent_string(name, indent+1)
 
-    def to_es(self):
-        p = {self.key_to_es(k): v.to_es() for k, v in sorted(self.definition.iteritems()) \
+    def to_es(self, annotated=False):
+        p = {self.key_to_es(k): v.to_es(annotated=annotated) \
+                for k, v in sorted(self.definition.iteritems()) \
                 if not v.exclude_elasticsearch}
-        return {"properties": p}
+        retv = {"properties": p}
+        if annotated and self.doc:
+            retv["doc"] = self.doc
+        return retv
 
     def to_dict(self):
         source = sorted(self.definition.iteritems())
@@ -167,8 +171,8 @@ class NestedListOf(ListOf):
 
 class Record(SubRecord):
 
-    def to_es(self, name):
-        return {name:SubRecord.to_es(self)}
+    def to_es(self, name, annotated=False):
+        return {name:SubRecord.to_es(self, annotated=annotated)}
 
     def to_bigquery(self):
         source = sorted(self.definition.iteritems())
