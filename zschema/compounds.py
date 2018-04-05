@@ -28,8 +28,8 @@ class ListOf(Keyable):
         print tabs + name + ":%s:" % self.__class__.__name__,
         self.object_.print_indent_string(self.key_to_string(name), indent+1)
 
-    def to_bigquery(self, name):
-        retv = self.object_.to_bigquery(name)
+    def to_bigquery(self, name, annotated=False):
+        retv = self.object_.to_bigquery(name, annotated=annotated)
         retv["mode"] = "REPEATED"
         return retv
 
@@ -112,15 +112,20 @@ class SubRecord(Keyable):
         self.definition = newdef
         return self
 
-    def to_bigquery(self, name):
-        fields = [v.to_bigquery(k) for (k,v) in sorted(self.definition.iteritems()) if \
-                not v.exclude_bigquery]
-        return {
+    def to_bigquery(self, name, annotated=False):
+        fields = [v.to_bigquery(k, annotated=annotated) \
+                for (k,v) in sorted(self.definition.iteritems()) \
+                if not v.exclude_bigquery
+                ]
+        retv = {
             "name":self.key_to_bq(name),
             "type":"RECORD",
             "fields":fields,
             "mode":"REQUIRED" if self.required else "NULLABLE"
         }
+        if annotated and self.doc:
+            retv["doc"] = self.doc
+        return retv
 
     def print_indent_string(self, name, indent):
         tabs = "\t" * indent if indent else ""
@@ -160,11 +165,11 @@ class NestedListOf(ListOf):
         ListOf.__init__(self, object_, max_items)
         self.subrecord_name = subrecord_name
 
-    def to_bigquery(self, name):
+    def to_bigquery(self, name, annotated=False):
         subr = SubRecord({
             self.subrecord_name:ListOf(self.object_)
         })
-        retv = subr.to_bigquery(self.key_to_bq(name))
+        retv = subr.to_bigquery(self.key_to_bq(name), annotated=annotated)
         retv["mode"] = "REPEATED"
         return retv
 
@@ -174,10 +179,12 @@ class Record(SubRecord):
     def to_es(self, name, annotated=False):
         return {name:SubRecord.to_es(self, annotated=annotated)}
 
-    def to_bigquery(self):
+    def to_bigquery(self, annotated=False):
         source = sorted(self.definition.iteritems())
-        return [s.to_bigquery(name) for (name, s) in source \
-                if not s.exclude_bigquery]
+        return [s.to_bigquery(name, annotated=annotated) \
+                for (name, s) in source \
+                if not s.exclude_bigquery
+                ]
 
     def print_indent_string(self):
         for name, field in sorted(self.definition.iteritems()):

@@ -11,7 +11,7 @@ from compounds import *
 
 def usage():
     sys.stderr.write("USAGE: %s command schema [file].\n" % sys.argv[0].split("/")[-1])
-    sys.stderr.write("Valid commands: bigquery, elasticsearch, es-annotated, json, flat, validate.\n")
+    sys.stderr.write("Valid commands: bigquery, elasticsearch, es-annotated, bq-annotated, json, flat, validate.\n")
     sys.stderr.write("Schema should be passed as file.py:record\n")
     sys.stderr.write("The optional 'file' argument is used only as the test file for the 'validate' command.\n")
     sys.stderr.write("VERSION: %s\n" % zschema.__version__)
@@ -30,6 +30,8 @@ def main():
         print json.dumps(record.to_es(recname))
     elif command == "es-annotated":
         print json.dumps(record.to_es(recname, annotated=True))
+    elif command == "bq-annotated":
+        print json.dumps(record.to_bigquery(annotated=True))
     elif command == "json":
         print record.to_json()
     elif command == "flat":

@@ -83,13 +83,15 @@ class Leaf(Keyable):
             retv["detail_type"] = self.__class__.__name__
         return retv
 
-    def to_bigquery(self, name):
+    def to_bigquery(self, name, annotated=False):
         if not self._check_valid_name(name):
             raise Exception("Invalid field name: %s" % name)
         mode = "REQUIRED" if self.required else "NULLABLE"
         retv = {"name":self.key_to_bq(name), "type":self.BQ_TYPE, "mode":mode}
         if self.doc:
             retv["doc"] = self.doc
+        if annotated:
+            retv["detail_type"] = self.__class__.__name__
         return retv
 
     def to_string(self, name):
