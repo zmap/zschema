@@ -77,8 +77,10 @@ class Leaf(Keyable):
             retv["fields"] = {
                     "raw":{"type":"keyword"}
             }
-        if annotated and self.doc:
-            retv["doc"] = self.doc
+        if annotated:
+            if self.doc:
+                retv["doc"] = self.doc
+            retv["detail_type"] = self.__class__.__name__
         return retv
 
     def to_bigquery(self, name):
