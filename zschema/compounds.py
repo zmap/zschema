@@ -175,18 +175,9 @@ class Record(SubRecord):
         return [s.to_bigquery(name) for (name, s) in source \
                 if not s.exclude_bigquery]
 
-    def to_html(self):
-        pass
-
-    def to_documented_html(self):
-        pass
-
     def print_indent_string(self):
         for name, field in sorted(self.definition.iteritems()):
             field.print_indent_string(name, 0)
-
-    def to_dotted_text(self):
-        pass
 
     def validate(self, value):
         if type(value) != dict:
@@ -212,5 +203,3 @@ class Record(SubRecord):
     @classmethod
     def from_json(cls, j):
         return cls({(k, __encode(v)) for k, v in sorted(j.iteritems())})
-
-
