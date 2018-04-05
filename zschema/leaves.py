@@ -81,6 +81,9 @@ class Leaf(Keyable):
             if self.doc:
                 retv["doc"] = self.doc
             retv["detail_type"] = self.__class__.__name__
+            if hasattr(self, "values_s") and len(self.values_s):
+                # gotta clean this up but for now...
+                retv["values"] = list(self.values_s)
         return retv
 
     def to_bigquery(self, name, annotated=False):
@@ -92,6 +95,9 @@ class Leaf(Keyable):
             retv["doc"] = self.doc
         if annotated:
             retv["detail_type"] = self.__class__.__name__
+            if hasattr(self, "values_s") and len(self.values_s):
+                # gotta clean this up but for now...
+                retv["values"] = list(self.values_s)
         return retv
 
     def to_string(self, name):
