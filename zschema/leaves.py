@@ -137,9 +137,6 @@ class Leaf(Keyable):
                 "mode":mode
             }
 
-    def to_autocomplete(self, parent, name, repated=False):
-        pass
-
     def print_indent_string(self, name, indent):
         val = self.key_to_string(name)
         if indent:
