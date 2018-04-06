@@ -15,6 +15,7 @@ class Leaf(Keyable):
             es_index=None,
             es_analyzer=None,
             doc=None,
+            examples=None,
             es_include_raw=None,
             deprecated=False,
             ignore=False,
@@ -30,6 +31,7 @@ class Leaf(Keyable):
         self.es_index = es_index
         self.es_analyzer = es_analyzer
         self.doc = doc
+        self.examples = examples if examples else []
         if es_include_raw is not None:
             self.es_include_raw = es_include_raw
         else:
@@ -56,7 +58,8 @@ class Leaf(Keyable):
             "type":self.__class__.__name__,
             "es_type":self.ES_TYPE,
             "bq_type":self.BQ_TYPE,
-            "metadata":self.metadata
+            "metadata":self.metadata,
+            "examples": self.examples,
         }
         if self.units is not None:
             retv["units"] = self.units
@@ -84,6 +87,8 @@ class Leaf(Keyable):
             if hasattr(self, "values_s") and len(self.values_s):
                 # gotta clean this up but for now...
                 retv["values"] = list(self.values_s)
+            else:
+                retv["examples"] = self.examples
         return retv
 
     def to_bigquery(self, name, annotated=False):
@@ -98,6 +103,8 @@ class Leaf(Keyable):
             if hasattr(self, "values_s") and len(self.values_s):
                 # gotta clean this up but for now...
                 retv["values"] = list(self.values_s)
+            else:
+                retv["examples"] = self.examples
         return retv
 
     def to_string(self, name):
