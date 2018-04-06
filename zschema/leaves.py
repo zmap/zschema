@@ -19,9 +19,7 @@ class Leaf(Keyable):
             es_include_raw=None,
             deprecated=False,
             ignore=False,
-            autocomplete_include=True,
-            autocomplete_category=None,
-            autocomplete_icon=None,
+            category=None,
             exclude=None,
             metadata=None,
             units=None,
@@ -42,9 +40,7 @@ class Leaf(Keyable):
             e = "WARN: %s is deprecated and will be removed in a "\
                     "future release\n" % self.__class__.__name__
             sys.stderr.write(e)
-        self.autocomplete_category = autocomplete_category
-        self.autocomplete_category = autocomplete_category
-        self.autocomplete_icon = autocomplete_icon
+        self.category = category
         self._exclude = set(exclude) if exclude else set([])
         self.metadata = metadata if metadata else {}
         self.units = units
@@ -69,7 +65,7 @@ class Leaf(Keyable):
                 "ES_SEARCH_ANALYZER")
         return retv
 
-    def to_es(self, annotated=False):
+    def to_es(self, annotated=False, parent_category=None):
         retv = {"type":self.ES_TYPE}
         self.add_es_var(retv, "index", "es_index", "ES_INDEX")
         self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
@@ -81,9 +77,15 @@ class Leaf(Keyable):
                     "raw":{"type":"keyword"}
             }
         if annotated:
+            retv["detail_type"] = self.__class__.__name__
+            category = self.category if self.category else parent_category
+            retv["category"] = category
             if self.doc:
                 retv["doc"] = self.doc
-            retv["detail_type"] = self.__class__.__name__
+            if self.min_value:
+                retv["min_value"] = self.min_value
+            if self.max_value:
+                retv["max_value"] = self.max_value
             if hasattr(self, "values_s") and len(self.values_s):
                 # gotta clean this up but for now...
                 retv["values"] = list(self.values_s)
@@ -91,7 +93,7 @@ class Leaf(Keyable):
                 retv["examples"] = self.examples
         return retv
 
-    def to_bigquery(self, name, annotated=False):
+    def to_bigquery(self, name, annotated=False, parent_category=None):
         if not self._check_valid_name(name):
             raise Exception("Invalid field name: %s" % name)
         mode = "REQUIRED" if self.required else "NULLABLE"
@@ -100,6 +102,12 @@ class Leaf(Keyable):
             retv["doc"] = self.doc
         if annotated:
             retv["detail_type"] = self.__class__.__name__
+            category = self.category if self.category else parent_category
+            retv["category"] = category
+            if self.min_value:
+                retv["min_value"] = self.min_value
+            if self.max_value:
+                retv["max_value"] = self.max_value
             if hasattr(self, "values_s") and len(self.values_s):
                 # gotta clean this up but for now...
                 retv["values"] = list(self.values_s)

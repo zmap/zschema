@@ -10,9 +10,10 @@ def _is_valid_object(name, object_):
 
 class ListOf(Keyable):
 
-    def __init__(self, object_, max_items=10):
+    def __init__(self, object_, max_items=10, category=None):
         self.object_ = object_
         self.max_items = max_items
+        self.category = category
         _is_valid_object("Anonymous ListOf", object_)
 
     @property
@@ -28,13 +29,20 @@ class ListOf(Keyable):
         print tabs + name + ":%s:" % self.__class__.__name__,
         self.object_.print_indent_string(self.key_to_string(name), indent+1)
 
-    def to_bigquery(self, name, annotated=False):
+    def to_bigquery(self, name, annotated=False, parent_category=None):
         retv = self.object_.to_bigquery(name, annotated=annotated)
         retv["mode"] = "REPEATED"
+        if annotated:
+            category = self.category if self.category else parent_category
+            retv["category"] = category
         return retv
 
-    def to_es(self, annotated=False):
-        return self.object_.to_es(annotated=annotated)
+    def to_es(self, annotated=False, parent_category=None):
+        retv = self.object_.to_es(annotated=annotated)
+        if annotated:
+            category = self.category if self.category else parent_category
+            retv["category"] = category
+        return retv
 
     def validate(self, name, value):
         if type(value) != list:
@@ -59,11 +67,13 @@ class SubRecord(Keyable):
             doc=None,
             extends=None,
             allow_unknown=False,
-            exclude=None):
+            exclude=None,
+            category=None):
         self.definition = definition
         self.required = required
         self.allow_unknown = allow_unknown
         self.doc = doc
+        self.category = category
         self._exclude = set(exclude) if exclude else set([])
         # merge
         if extends:
@@ -112,8 +122,9 @@ class SubRecord(Keyable):
         self.definition = newdef
         return self
 
-    def to_bigquery(self, name, annotated=False):
-        fields = [v.to_bigquery(k, annotated=annotated) \
+    def to_bigquery(self, name, annotated=False, parent_category=None):
+        category = self.category if self.category else parent_category
+        fields = [v.to_bigquery(k, annotated=annotated, parent_category=category) \
                 for (k,v) in sorted(self.definition.iteritems()) \
                 if not v.exclude_bigquery
                 ]
@@ -133,8 +144,9 @@ class SubRecord(Keyable):
         for name, value in sorted(self.definition.iteritems()):
             value.print_indent_string(name, indent+1)
 
-    def to_es(self, annotated=False):
-        p = {self.key_to_es(k): v.to_es(annotated=annotated) \
+    def to_es(self, annotated=False, parent_category=None):
+        category = self.category if self.category else parent_category
+        p = {self.key_to_es(k): v.to_es(annotated=annotated, parent_category=category) \
                 for k, v in sorted(self.definition.iteritems()) \
                 if not v.exclude_elasticsearch}
         retv = {"properties": p}
@@ -161,27 +173,32 @@ class SubRecord(Keyable):
 
 class NestedListOf(ListOf):
 
-    def __init__(self, object_, subrecord_name, max_items=10):
-        ListOf.__init__(self, object_, max_items)
+    def __init__(self, object_, subrecord_name, max_items=10, category=None):
+        ListOf.__init__(self, object_, max_items, category=category)
         self.subrecord_name = subrecord_name
 
-    def to_bigquery(self, name, annotated=False):
+    def to_bigquery(self, name, annotated=False, parent_category=None):
         subr = SubRecord({
             self.subrecord_name:ListOf(self.object_)
         })
         retv = subr.to_bigquery(self.key_to_bq(name), annotated=annotated)
         retv["mode"] = "REPEATED"
+        if annotated:
+            category = self.category if self.category else parent_category
+            retv["category"] = category
         return retv
 
 
 class Record(SubRecord):
 
-    def to_es(self, name, annotated=False):
-        return {name:SubRecord.to_es(self, annotated=annotated)}
+    def to_es(self, name, annotated=False, parent_category=None):
+        category = self.category if self.category else parent_category
+        return {name:SubRecord.to_es(self, annotated=annotated, parent_category=category)}
 
-    def to_bigquery(self, annotated=False):
+    def to_bigquery(self, annotated=False, parent_category=None):
+        category = self.category if self.category else parent_category
         source = sorted(self.definition.iteritems())
-        return [s.to_bigquery(name, annotated=annotated) \
+        return [s.to_bigquery(name, annotated=annotated, parent_category=category) \
                 for (name, s) in source \
                 if not s.exclude_bigquery
                 ]
