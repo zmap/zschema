@@ -114,11 +114,31 @@ VALID_BIG_QUERY = [
         "type": "INTEGER",
         "name": "ip",
         "mode": "NULLABLE"
-    }
+    },
 ]
 
 
 class CompileAndValidationTests(unittest.TestCase):
+
+    def assertBigQuerySchemaEqual(self, a, b):
+        """
+        Assert that the given BigQuery schemas are equivalent.
+
+        BigQuery schemas consist of lists whose order doesn't matter, dicts,
+        and privimites.
+        """
+        if type(a) is not type(b):
+            return False
+        if hasattr(a, '__len__') and hasattr(b, '__len__'):
+            self.assertEquals(len(a), len(b))
+        elif isinstance(a, list):    
+            for x, y in zip(sorted(a), sorted(b)):
+                self.assertBigQuerySchemaEqual(x, y)
+        elif isinstance(a, dict):
+            for k in a:
+                self.assertBigQuerySchemaEqual(a[k], b[k])
+        else:
+            return self.assertEquals(a, b)
 
     def setUp(self):
         self.maxDiff=10000
@@ -141,7 +161,7 @@ class CompileAndValidationTests(unittest.TestCase):
     def test_bigquery(self):
         global VALID_BIG_QUERY
         r = self.host.to_bigquery()
-        self.assertEqual(r, VALID_BIG_QUERY)
+        self.assertBigQuerySchemaEqual(r, VALID_BIG_QUERY)
 
     def test_elasticsearch(self):
         global VALID_ELASTIC_SEARCH
