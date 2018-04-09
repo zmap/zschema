@@ -136,7 +136,8 @@ class CompileAndValidationTests(unittest.TestCase):
             return
         else:
             self.assertEquals(type(a), type(b))
-            if isinstance(a, collections.Iterable) and isinstance(a, collections.Iterable):
+            if isinstance(a, collections.Sized) \
+                    and isinstance(a, collections.Sized):
                 self.assertEquals(len(a), len(b))
             if isinstance(a, list):
                 for x, y in itertools.izip(sorted(a), sorted(b)):
