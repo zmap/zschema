@@ -1,3 +1,5 @@
+import collections
+import itertools
 import json
 import os
 import pprint
@@ -127,17 +129,24 @@ class CompileAndValidationTests(unittest.TestCase):
         BigQuery schemas consist of lists whose order doesn't matter, dicts,
         and privimites.
         """
-        self.assertEquals(type(a), type(b))
-        if hasattr(a, '__len__') and hasattr(b, '__len__'):
-            self.assertEquals(len(a), len(b))
-        if isinstance(a, list):    
-            for x, y in zip(sorted(a), sorted(b)):
-                self.assertBigQuerySchemaEqual(x, y)
-        elif isinstance(a, dict):
-            for k in a:
-                self.assertBigQuerySchemaEqual(a[k], b[k])
+        # allow python to have the first pass at deciding whether two objects
+        # are equal. If they aren't, apply less strict logic (e.g., allow lists
+        # of differing orders to be equal).
+        if a == b:
+            return
         else:
-            self.assertEquals(a, b)
+            self.assertEquals(type(a), type(b))
+            if isinstance(a, collections.Iterable) and isinstance(a, collections.Iterable):
+                self.assertEquals(len(a), len(b))
+            if isinstance(a, list):
+                for x, y in itertools.izip(sorted(a), sorted(b)):
+                    self.assertBigQuerySchemaEqual(x, y)
+            elif isinstance(a, dict):
+                for k in a:
+                    self.assertIn(k, b)
+                    self.assertBigQuerySchemaEqual(a[k], b[k])
+            else:
+                self.assertEquals(a, b)
 
     def setUp(self):
         self.maxDiff=10000
