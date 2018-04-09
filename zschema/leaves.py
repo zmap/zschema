@@ -65,32 +65,35 @@ class Leaf(Keyable):
                 "ES_SEARCH_ANALYZER")
         return retv
 
-    def to_es(self, annotated=False, parent_category=None):
+    def to_es(self):
         retv = {"type":self.ES_TYPE}
         self.add_es_var(retv, "index", "es_index", "ES_INDEX")
         self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
         self.add_es_var(retv, "search_analyzer", "es_search_analyzer",
                 "ES_SEARCH_ANALYZER")
-
         if self.es_include_raw:
             retv["fields"] = {
                     "raw":{"type":"keyword"}
             }
-        if annotated:
-            retv["detail_type"] = self.__class__.__name__
-            category = self.category if self.category else parent_category
-            retv["category"] = category
-            if self.doc:
-                retv["doc"] = self.doc
-            if self.min_value:
-                retv["min_value"] = self.min_value
-            if self.max_value:
-                retv["max_value"] = self.max_value
-            if hasattr(self, "values_s") and len(self.values_s):
-                # gotta clean this up but for now...
-                retv["values"] = list(self.values_s)
-            else:
-                retv["examples"] = self.examples
+        return retv
+
+    def _docs_common(self, parent_category):
+        retv = {
+            "detail_type": self.__class__.__name__,
+            "category": self.category if self.category else parent_category,
+            "doc": self.doc,
+            "required": self.required,
+        }
+        if hasattr(self, "values_s") and len(self.values_s):
+            retv["values"] = list(self.values_s)
+        else:
+            retv["examples"] = self.examples
+        return retv
+
+    def docs_es(self, parent_category=None):
+        retv = self._docs_common(parent_category)
+        self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
+        retv["type"] = self.ES_TYPE
         return retv
 
     def to_bigquery(self, name, annotated=False, parent_category=None):

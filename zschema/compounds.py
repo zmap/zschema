@@ -37,11 +37,13 @@ class ListOf(Keyable):
             retv["category"] = category
         return retv
 
-    def to_es(self, annotated=False, parent_category=None):
-        retv = self.object_.to_es(annotated=annotated)
-        if annotated:
-            category = self.category if self.category else parent_category
-            retv["category"] = category
+    def to_es(self):
+        return self.object_.to_es()
+
+    def docs_es(self, parent_category=None):
+        retv = self.object_.docs_es()
+        category = self.category if self.category else parent_category
+        retv["category"] = category
         return retv
 
     def validate(self, name, value):
@@ -144,14 +146,27 @@ class SubRecord(Keyable):
         for name, value in sorted(self.definition.iteritems()):
             value.print_indent_string(name, indent+1)
 
-    def to_es(self, annotated=False, parent_category=None):
-        category = self.category if self.category else parent_category
-        p = {self.key_to_es(k): v.to_es(annotated=annotated, parent_category=category) \
+    def to_es(self):
+        p = {self.key_to_es(k): v.to_es() \
                 for k, v in sorted(self.definition.iteritems()) \
                 if not v.exclude_elasticsearch}
-        retv = {"properties": p}
-        if annotated and self.doc:
-            retv["doc"] = self.doc
+        return {"properties": p}
+
+    def _docs_common(self, parent_category):
+        category = self.category if self.category else parent_category
+        retv = {
+            "category": category,
+            "doc": self.doc,
+            "type": self.__class__.__name__,
+            "required": self.required,
+        }
+        return retv
+
+    def docs_es(self, parent_category=None):
+        retv = self._docs_common(parent_category=parent_category)
+        retv["fields"] = { self.key_to_es(k): v.docs_es() \
+                           for k, v in sorted(self.definition.iteritems()) \
+                           if not v.exclude_elasticsearch }
         return retv
 
     def to_dict(self):
@@ -191,9 +206,11 @@ class NestedListOf(ListOf):
 
 class Record(SubRecord):
 
-    def to_es(self, name, annotated=False, parent_category=None):
-        category = self.category if self.category else parent_category
-        return {name:SubRecord.to_es(self, annotated=annotated, parent_category=category)}
+    def to_es(self, name):
+        return {name:SubRecord.to_es(self)}
+
+    def docs_es(self, name, parent_category=None):
+        return {name: SubRecord.docs_es(self, parent_category=parent_category)}
 
     def to_bigquery(self, annotated=False, parent_category=None):
         category = self.category if self.category else parent_category
