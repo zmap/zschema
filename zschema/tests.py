@@ -127,8 +127,7 @@ class CompileAndValidationTests(unittest.TestCase):
         BigQuery schemas consist of lists whose order doesn't matter, dicts,
         and privimites.
         """
-        if type(a) is not type(b):
-            return False
+        self.assertEquals(type(a), type(b))
         if hasattr(a, '__len__') and hasattr(b, '__len__'):
             self.assertEquals(len(a), len(b))
         if isinstance(a, list):    
@@ -138,7 +137,7 @@ class CompileAndValidationTests(unittest.TestCase):
             for k in a:
                 self.assertBigQuerySchemaEqual(a[k], b[k])
         else:
-            return self.assertEquals(a, b)
+            self.assertEquals(a, b)
 
     def setUp(self):
         self.maxDiff=10000
