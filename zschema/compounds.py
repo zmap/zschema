@@ -29,12 +29,16 @@ class ListOf(Keyable):
         print tabs + name + ":%s:" % self.__class__.__name__,
         self.object_.print_indent_string(self.key_to_string(name), indent+1)
 
-    def to_bigquery(self, name, annotated=False, parent_category=None):
-        retv = self.object_.to_bigquery(name, annotated=annotated)
+    def to_bigquery(self, name):
+        retv = self.object_.to_bigquery(name)
         retv["mode"] = "REPEATED"
-        if annotated:
-            category = self.category if self.category else parent_category
-            retv["category"] = category
+        return retv
+
+    def docs_bq(self, parent_category=None):
+        retv = self.object_.docs_bq()
+        category = self.category if self.category else parent_category
+        retv["category"] = category
+        retv["repeated"] = True
         return retv
 
     def to_es(self):
@@ -124,9 +128,8 @@ class SubRecord(Keyable):
         self.definition = newdef
         return self
 
-    def to_bigquery(self, name, annotated=False, parent_category=None):
-        category = self.category if self.category else parent_category
-        fields = [v.to_bigquery(k, annotated=annotated, parent_category=category) \
+    def to_bigquery(self, name):
+        fields = [v.to_bigquery(k) \
                 for (k,v) in sorted(self.definition.iteritems()) \
                 if not v.exclude_bigquery
                 ]
@@ -136,8 +139,14 @@ class SubRecord(Keyable):
             "fields":fields,
             "mode":"REQUIRED" if self.required else "NULLABLE"
         }
-        if annotated and self.doc:
-            retv["doc"] = self.doc
+        return retv
+
+    def docs_bq(self, parent_category=None):
+        retv = self._docs_common(parent_category=parent_category)
+        fields = { self.key_to_bq(k): v.docs_bq() \
+                   for (k,v) in sorted(self.definition.iteritems()) \
+                   if not v.exclude_bigquery }
+        retv["fields"] = fields
         return retv
 
     def print_indent_string(self, name, indent):
@@ -192,15 +201,21 @@ class NestedListOf(ListOf):
         ListOf.__init__(self, object_, max_items, category=category)
         self.subrecord_name = subrecord_name
 
-    def to_bigquery(self, name, annotated=False, parent_category=None):
+    def to_bigquery(self, name):
         subr = SubRecord({
             self.subrecord_name:ListOf(self.object_)
         })
-        retv = subr.to_bigquery(self.key_to_bq(name), annotated=annotated)
+        retv = subr.to_bigquery(self.key_to_bq(name))
         retv["mode"] = "REPEATED"
-        if annotated:
-            category = self.category if self.category else parent_category
-            retv["category"] = category
+        return retv
+
+    def docs_bq(self, parent_category=None):
+        subr = SubRecord({
+            self.subrecord_name: ListOf(self.object_)
+        })
+        category = self.category if self.category else parent_category
+        retv = subr.docs_bq(parent_category=category)
+        retv["repeated"] = True
         return retv
 
 
@@ -210,15 +225,19 @@ class Record(SubRecord):
         return {name:SubRecord.to_es(self)}
 
     def docs_es(self, name, parent_category=None):
-        return {name: SubRecord.docs_es(self, parent_category=parent_category)}
-
-    def to_bigquery(self, annotated=False, parent_category=None):
         category = self.category if self.category else parent_category
+        return {name: SubRecord.docs_es(self, parent_category=category)}
+
+    def to_bigquery(self):
         source = sorted(self.definition.iteritems())
-        return [s.to_bigquery(name, annotated=annotated, parent_category=category) \
+        return [s.to_bigquery(name) \
                 for (name, s) in source \
                 if not s.exclude_bigquery
                 ]
+
+    def docs_bq(self, name, parent_category=None):
+        category = self.category if self.category else parent_category
+        return {name: SubRecord.docs_bq(self, parent_category=category)}
 
     def print_indent_string(self):
         for name, field in sorted(self.definition.iteritems()):

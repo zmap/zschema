@@ -28,10 +28,10 @@ def main():
         print json.dumps(record.to_bigquery())
     elif command == "elasticsearch":
         print json.dumps(record.to_es(recname))
-    elif command == "bq-annotated":
-        print json.dumps(record.to_bigquery(annotated=True))
     elif command == "docs-es":
         print json.dumps(record.docs_es(recname))
+    elif command == "docs-bq":
+        print json.dumps(record.docs_bq(recname))
     elif command == "json":
         print record.to_json()
     elif command == "flat":
