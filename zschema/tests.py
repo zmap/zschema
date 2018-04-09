@@ -131,7 +131,7 @@ class CompileAndValidationTests(unittest.TestCase):
             return False
         if hasattr(a, '__len__') and hasattr(b, '__len__'):
             self.assertEquals(len(a), len(b))
-        elif isinstance(a, list):    
+        if isinstance(a, list):    
             for x, y in zip(sorted(a), sorted(b)):
                 self.assertBigQuerySchemaEqual(x, y)
         elif isinstance(a, dict):
