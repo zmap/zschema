@@ -17,10 +17,14 @@ class LeafUnitTests(unittest.TestCase):
 
     def test_valid(self):
         for leaf in VALID_LEAVES:
+            if leaf.DEPRECATED:
+                continue
             leaf().validate(leaf.__name__, leaf.VALID)
 
     def test_invalid(self):
         for leaf in VALID_LEAVES:
+            if leaf.DEPRECATED:
+                continue
             try:
                 leaf().validate(leaf.__name__, leaf.INVALID)
                 raise Exception("invalid value did not fail for %s",
@@ -130,7 +134,7 @@ class CompileAndValidationTests(unittest.TestCase):
         self.assertEquals(type(a), type(b))
         if hasattr(a, '__len__') and hasattr(b, '__len__'):
             self.assertEquals(len(a), len(b))
-        if isinstance(a, list):    
+        if isinstance(a, list):
             for x, y in zip(sorted(a), sorted(b)):
                 self.assertBigQuerySchemaEqual(x, y)
         elif isinstance(a, dict):
@@ -149,7 +153,7 @@ class CompileAndValidationTests(unittest.TestCase):
         })
         self.host = Record({
                 "ipstr":IPv4Address(required=True),
-                "ip":Long(),
+                "ip":Unsigned32BitInteger(),
                 Port(443):SubRecord({
                     "tls":String(),
                     "heartbleed":heartbleed
