@@ -10,10 +10,11 @@ def _is_valid_object(name, object_):
 
 class ListOf(Keyable):
 
-    def __init__(self, object_, max_items=10, category=None):
+    def __init__(self, object_, max_items=10, doc=None, category=None):
         self.object_ = object_
         self.max_items = max_items
         self.category = category
+        self.doc = doc
         _is_valid_object("Anonymous ListOf", object_)
 
     @property
@@ -39,6 +40,8 @@ class ListOf(Keyable):
         category = self.category or parent_category
         retv["category"] = category
         retv["repeated"] = True
+        if self.doc:
+            retv["doc"] = self.doc
         return retv
 
     def to_es(self):
@@ -48,6 +51,8 @@ class ListOf(Keyable):
         retv = self.object_.docs_es()
         category = self.category or parent_category
         retv["category"] = category
+        if self.doc:
+            retv["doc"] = self.doc
         return retv
 
     def validate(self, name, value):
@@ -197,8 +202,8 @@ class SubRecord(Keyable):
 
 class NestedListOf(ListOf):
 
-    def __init__(self, object_, subrecord_name, max_items=10, category=None):
-        ListOf.__init__(self, object_, max_items, category=category)
+    def __init__(self, object_, subrecord_name, max_items=10, doc=None, category=None):
+        ListOf.__init__(self, object_, max_items, doc=doc, category=category)
         self.subrecord_name = subrecord_name
 
     def to_bigquery(self, name):
@@ -207,6 +212,8 @@ class NestedListOf(ListOf):
         })
         retv = subr.to_bigquery(self.key_to_bq(name))
         retv["mode"] = "REPEATED"
+        if self.doc:
+            retv["doc"] = self.doc
         return retv
 
     def docs_bq(self, parent_category=None):
@@ -216,6 +223,8 @@ class NestedListOf(ListOf):
         category = self.category or parent_category
         retv = subr.docs_bq(parent_category=category)
         retv["repeated"] = True
+        if self.doc:
+            retv["doc"] = self.doc
         return retv
 
 
