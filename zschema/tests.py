@@ -67,6 +67,178 @@ VALID_ELASTIC_SEARCH = {
     }
 }
 
+VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
+    "host": {
+        "category": None,
+        "doc": None,
+        "fields": {
+            "443": {
+                "category": "heartbleed",
+                "doc": None,
+                "fields": {
+                    "heartbleed": {
+                        "category": None,
+                        "doc": None,
+                        "fields": {
+                            "heartbeat_support": {
+                                "category": None,
+                                "detail_type": "Boolean",
+                                "doc": None,
+                                "examples": [],
+                                "required": False,
+                                "type": "boolean"
+                            },
+                            "heartbleed_vulnerable": {
+                                "category": "Vulnerabilities",
+                                "detail_type": "Boolean",
+                                "doc": None,
+                                "examples": [],
+                                "required": False,
+                                "type": "boolean"
+                            },
+                            "timestamp": {
+                                "category": None,
+                                "detail_type": "DateTime",
+                                "doc": None,
+                                "examples": [],
+                                "required": False,
+                                "type": "date"
+                            }
+                        },
+                        "required": False,
+                        "type": "SubRecord"
+                    },
+                    "tls": {
+                        "category": None,
+                        "detail_type": "String",
+                        "doc": None,
+                        "examples": [],
+                        "required": False,
+                        "type": "keyword"
+                    }
+                },
+                "required": False,
+                "type": "SubRecord"
+            },
+            "ip": {
+                "category": None,
+                "detail_type": "Long",
+                "doc": "The IP Address of the host",
+                "examples": [],
+                "required": False,
+                "type": "long"
+            },
+            "ipstr": {
+                "category": None,
+                "detail_type": "IPv4Address",
+                "doc": None,
+                "examples": [
+                    "8.8.8.8"
+                ],
+                "required": True,
+                "type": "ip"
+            },
+            "tags": {
+                "category": None,
+                "detail_type": "String",
+                "doc": None,
+                "examples": [],
+                "repeated": True,
+                "required": False,
+                "type": "keyword"
+            }
+        },
+        "required": False,
+        "type": "Record"
+    }
+}
+
+VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
+    "host": {
+        "category": None,
+        "doc": None,
+        "fields": {
+            "ip": {
+                "category": None,
+                "detail_type": "Long",
+                "doc": "The IP Address of the host",
+                "examples": [],
+                "required": False,
+                "type": "INTEGER"
+            },
+            "ipstr": {
+                "category": None,
+                "detail_type": "IPv4Address",
+                "doc": None,
+                "examples": [
+                    "8.8.8.8"
+                ],
+                "required": True,
+                "type": "STRING"
+            },
+            "p443": {
+                "category": "heartbleed",
+                "doc": None,
+                "fields": {
+                    "heartbleed": {
+                        "category": None,
+                        "doc": None,
+                        "fields": {
+                            "heartbeat_support": {
+                                "category": None,
+                                "detail_type": "Boolean",
+                                "doc": None,
+                                "examples": [],
+                                "required": False,
+                                "type": "BOOLEAN"
+                            },
+                            "heartbleed_vulnerable": {
+                                "category": "Vulnerabilities",
+                                "detail_type": "Boolean",
+                                "doc": None,
+                                "examples": [],
+                                "required": False,
+                                "type": "BOOLEAN"
+                            },
+                            "timestamp": {
+                                "category": None,
+                                "detail_type": "DateTime",
+                                "doc": None,
+                                "examples": [],
+                                "required": False,
+                                "type": "DATETIME"
+                            }
+                        },
+                        "required": False,
+                        "type": "SubRecord"
+                    },
+                    "tls": {
+                        "category": None,
+                        "detail_type": "String",
+                        "doc": None,
+                        "examples": [],
+                        "required": False,
+                        "type": "STRING"
+                    }
+                },
+                "required": False,
+                "type": "SubRecord"
+            },
+            "tags": {
+                "category": None,
+                "detail_type": "String",
+                "doc": None,
+                "examples": [],
+                "repeated": True,
+                "required": False,
+                "type": "STRING"
+            }
+        },
+        "required": False,
+        "type": "Record"
+    }
+}
+
 VALID_BIG_QUERY = [
     {
         "fields": [
@@ -177,6 +349,15 @@ class CompileAndValidationTests(unittest.TestCase):
         global VALID_ELASTIC_SEARCH
         r = self.host.to_es("host")
         self.assertEqual(r, VALID_ELASTIC_SEARCH)
+
+    def test_docs_output(self):
+        global VALID_DOCS_OUTPUT_FOR_ES_FIELDS
+        r = self.host.docs_es("host")
+        self.assertEqual(r, VALID_DOCS_OUTPUT_FOR_ES_FIELDS)
+
+        global VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS
+        r = self.host.docs_bq("host")
+        self.assertEqual(r, VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS)
 
     def test_validation_known_good(self):
         test = {
