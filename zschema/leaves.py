@@ -15,12 +15,11 @@ class Leaf(Keyable):
             es_index=None,
             es_analyzer=None,
             doc=None,
+            examples=None,
             es_include_raw=None,
             deprecated=False,
             ignore=False,
-            autocomplete_include=True,
-            autocomplete_category=None,
-            autocomplete_icon=None,
+            category=None,
             exclude=None,
             metadata=None,
             units=None,
@@ -30,6 +29,7 @@ class Leaf(Keyable):
         self.es_index = es_index
         self.es_analyzer = es_analyzer
         self.doc = doc
+        self.examples = examples if examples else []
         if es_include_raw is not None:
             self.es_include_raw = es_include_raw
         else:
@@ -40,9 +40,7 @@ class Leaf(Keyable):
             e = "WARN: %s is deprecated and will be removed in a "\
                     "future release\n" % self.__class__.__name__
             sys.stderr.write(e)
-        self.autocomplete_category = autocomplete_category
-        self.autocomplete_category = autocomplete_category
-        self.autocomplete_icon = autocomplete_icon
+        self.category = category
         self._exclude = set(exclude) if exclude else set([])
         self.metadata = metadata if metadata else {}
         self.units = units
@@ -56,7 +54,8 @@ class Leaf(Keyable):
             "type":self.__class__.__name__,
             "es_type":self.ES_TYPE,
             "bq_type":self.BQ_TYPE,
-            "metadata":self.metadata
+            "metadata":self.metadata,
+            "examples": self.examples,
         }
         if self.units is not None:
             retv["units"] = self.units
@@ -72,11 +71,34 @@ class Leaf(Keyable):
         self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
         self.add_es_var(retv, "search_analyzer", "es_search_analyzer",
                 "ES_SEARCH_ANALYZER")
-
         if self.es_include_raw:
             retv["fields"] = {
                     "raw":{"type":"keyword"}
             }
+        return retv
+
+    def _docs_common(self, parent_category):
+        retv = {
+            "detail_type": self.__class__.__name__,
+            "category": self.category or parent_category,
+            "doc": self.doc,
+            "required": self.required,
+        }
+        if hasattr(self, "values_s") and len(self.values_s):
+            retv["values"] = list(self.values_s)
+        else:
+            retv["examples"] = self.examples
+        return retv
+
+    def docs_es(self, parent_category=None):
+        retv = self._docs_common(parent_category)
+        self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
+        retv["type"] = self.ES_TYPE
+        return retv
+
+    def docs_bq(self, parent_category=None):
+        retv = self._docs_common(parent_category)
+        retv["type"] = self.BQ_TYPE
         return retv
 
     def to_bigquery(self, name):
@@ -117,9 +139,6 @@ class Leaf(Keyable):
                 "es_type": self.ES_TYPE,
                 "mode":mode
             }
-
-    def to_autocomplete(self, parent, name, repated=False):
-        pass
 
     def print_indent_string(self, name, indent):
         val = self.key_to_string(name)
