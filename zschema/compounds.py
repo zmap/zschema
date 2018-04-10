@@ -94,8 +94,8 @@ class SubRecord(Keyable):
         for k, v in sorted(self.definition.iteritems()):
             _is_valid_object(k, v)
 
-    def new(self):
-        return copy.deepcopy(self)
+    def new(self, **kwargs):
+        return SubRecord({}, extends=self, **kwargs)
 
     def to_flat(self, parent, name, repeated=False):
         if repeated:
