@@ -36,7 +36,7 @@ class ListOf(Keyable):
 
     def docs_bq(self, parent_category=None):
         retv = self.object_.docs_bq()
-        category = self.category if self.category else parent_category
+        category = self.category or parent_category
         retv["category"] = category
         retv["repeated"] = True
         return retv
@@ -46,7 +46,7 @@ class ListOf(Keyable):
 
     def docs_es(self, parent_category=None):
         retv = self.object_.docs_es()
-        category = self.category if self.category else parent_category
+        category = self.category or parent_category
         retv["category"] = category
         return retv
 
@@ -162,7 +162,7 @@ class SubRecord(Keyable):
         return {"properties": p}
 
     def _docs_common(self, parent_category):
-        category = self.category if self.category else parent_category
+        category = self.category or parent_category
         retv = {
             "category": category,
             "doc": self.doc,
@@ -213,7 +213,7 @@ class NestedListOf(ListOf):
         subr = SubRecord({
             self.subrecord_name: ListOf(self.object_)
         })
-        category = self.category if self.category else parent_category
+        category = self.category or parent_category
         retv = subr.docs_bq(parent_category=category)
         retv["repeated"] = True
         return retv
@@ -225,7 +225,7 @@ class Record(SubRecord):
         return {name:SubRecord.to_es(self)}
 
     def docs_es(self, name, parent_category=None):
-        category = self.category if self.category else parent_category
+        category = self.category or parent_category
         return {name: SubRecord.docs_es(self, parent_category=category)}
 
     def to_bigquery(self):
@@ -236,7 +236,7 @@ class Record(SubRecord):
                 ]
 
     def docs_bq(self, name, parent_category=None):
-        category = self.category if self.category else parent_category
+        category = self.category or parent_category
         return {name: SubRecord.docs_bq(self, parent_category=category)}
 
     def print_indent_string(self):

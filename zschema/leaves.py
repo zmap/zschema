@@ -80,7 +80,7 @@ class Leaf(Keyable):
     def _docs_common(self, parent_category):
         retv = {
             "detail_type": self.__class__.__name__,
-            "category": self.category if self.category else parent_category,
+            "category": self.category or parent_category,
             "doc": self.doc,
             "required": self.required,
         }
