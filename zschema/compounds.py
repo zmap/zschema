@@ -51,6 +51,7 @@ class ListOf(Keyable):
         retv = self.object_.docs_es()
         category = self.category or parent_category
         retv["category"] = category
+        retv["repeated"] = True
         if self.doc:
             retv["doc"] = self.doc
         return retv
