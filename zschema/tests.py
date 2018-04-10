@@ -115,6 +115,7 @@ VALID_BIG_QUERY = [
     {
         "type": "INTEGER",
         "name": "ip",
+        "doc": "The IP Address of the host",
         "mode": "NULLABLE"
     },
 ]
@@ -154,16 +155,16 @@ class CompileAndValidationTests(unittest.TestCase):
 
         heartbleed = SubRecord({
             "heartbeat_support":Boolean(),
-            "heartbleed_vulnerable":Boolean(),
+            "heartbleed_vulnerable":Boolean(category="Vulnerabilities"),
             "timestamp":DateTime()
         })
         self.host = Record({
-                "ipstr":IPv4Address(required=True),
-                "ip":Long(),
+                "ipstr":IPv4Address(required=True, examples=["8.8.8.8"]),
+                "ip":Long(doc="The IP Address of the host"),
                 Port(443):SubRecord({
                     "tls":String(),
                     "heartbleed":heartbleed
-                }),
+                }, category="heartbleed"),
                 "tags":ListOf(String())
         })
 
