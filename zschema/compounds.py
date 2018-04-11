@@ -85,12 +85,7 @@ class SubRecord(Keyable):
             allow_unknown=False,
             exclude=None,
             category=None):
-        self.definition = definition
-        #self.replace_set("definition", definition)
-        #print definition
-        #print self.definition
-        #if not self.definition:
-        #    raise Exception("SubRecord has no defined definition")
+        self.replace_set("definition", definition)
         self.replace_set("required", required)
         self.replace_set("allow_unknown", allow_unknown)
         self.replace_set("doc", doc)
