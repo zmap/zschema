@@ -36,8 +36,8 @@ class ListOf(Keyable):
         return retv
 
     def docs_bq(self, parent_category=None):
-        retv = self.object_.docs_bq()
         category = self.category or parent_category
+        retv = self.object_.docs_bq(parent_category=category)
         retv["category"] = category
         retv["repeated"] = True
         if self.doc:
@@ -48,8 +48,8 @@ class ListOf(Keyable):
         return self.object_.to_es()
 
     def docs_es(self, parent_category=None):
-        retv = self.object_.docs_es()
         category = self.category or parent_category
+        retv = self.object_.docs_es(parent_category=category)
         retv["category"] = category
         retv["repeated"] = True
         if self.doc:
@@ -154,8 +154,9 @@ class SubRecord(Keyable):
         return retv
 
     def docs_bq(self, parent_category=None):
-        retv = self._docs_common(parent_category=parent_category)
-        fields = { self.key_to_bq(k): v.docs_bq() \
+        category = self.category or parent_category
+        retv = self._docs_common(category)
+        fields = { self.key_to_bq(k): v.docs_bq(parent_category=category) \
                    for (k,v) in sorted(self.definition.iteritems()) \
                    if not v.exclude_bigquery }
         retv["fields"] = fields
@@ -173,8 +174,7 @@ class SubRecord(Keyable):
                 if not v.exclude_elasticsearch}
         return {"properties": p}
 
-    def _docs_common(self, parent_category):
-        category = self.category or parent_category
+    def _docs_common(self, category):
         retv = {
             "category": category,
             "doc": self.doc,
@@ -184,8 +184,9 @@ class SubRecord(Keyable):
         return retv
 
     def docs_es(self, parent_category=None):
-        retv = self._docs_common(parent_category=parent_category)
-        retv["fields"] = { self.key_to_es(k): v.docs_es() \
+        category = self.category or parent_category
+        retv = self._docs_common(category)
+        retv["fields"] = { self.key_to_es(k): v.docs_es(parent_category=category) \
                            for k, v in sorted(self.definition.iteritems()) \
                            if not v.exclude_elasticsearch }
         return retv
