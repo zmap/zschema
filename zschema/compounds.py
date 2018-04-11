@@ -96,6 +96,9 @@ class SubRecord(Keyable):
             self._exclude = set(exclude) if exclude else set([])
         if not hasattr(self, "_exclude"):
             self._exclude = set([])
+        if extends:
+            extends = copy.deepcopy(extends)
+            self.definition = self.merge(extends).definition
         # safety check
         for k, v in sorted(self.definition.iteritems()):
             _is_valid_object(k, v)
