@@ -122,7 +122,7 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
             },
             "ip": {
                 "category": None,
-                "detail_type": "Long",
+                "detail_type": "Unsigned32BitInteger",
                 "doc": "The IP Address of the host",
                 "examples": [],
                 "required": False,
@@ -160,7 +160,7 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
         "fields": {
             "ip": {
                 "category": None,
-                "detail_type": "Long",
+                "detail_type": "Unsigned32BitInteger",
                 "doc": "The IP Address of the host",
                 "examples": [],
                 "required": False,
@@ -332,7 +332,7 @@ class CompileAndValidationTests(unittest.TestCase):
         })
         self.host = Record({
                 "ipstr":IPv4Address(required=True, examples=["8.8.8.8"]),
-                "ip":Long(doc="The IP Address of the host"),
+                "ip":Unsigned32BitInteger(doc="The IP Address of the host"),
                 Port(443):SubRecord({
                     "tls":String(),
                     "heartbleed":heartbleed

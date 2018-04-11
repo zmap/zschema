@@ -319,12 +319,7 @@ class Signed32BitInteger(Leaf):
                     name, str(value), str(min_)))
 
 
-class Integer(Signed32BitInteger):
-
-    DEPRECATED = True
-
-
-class Signed8BitInteger(Integer):
+class Signed8BitInteger(Leaf):
 
     ES_TYPE = "byte"
     BITS = 8
@@ -332,18 +327,12 @@ class Signed8BitInteger(Integer):
     VALID = 34
 
 
-class Byte(Signed8BitInteger):
-
-    DEPRECATED = True
-
-
-class Signed16BitInteger(Integer):
+class Signed16BitInteger(Leaf):
 
     ES_TYPE = "short"
     BITS = 16
     INVALID = 2**16
     VALID = 0xFFFF
-    DEPRECATED = False
 
 
 class Unsigned8BitInteger(Signed16BitInteger):
@@ -354,12 +343,7 @@ class Unsigned16BitInteger(Signed32BitInteger):
     pass
 
 
-class Short(Signed16BitInteger):
-
-    DEPRECATED = True
-
-
-class Signed64BitInteger(Integer):
+class Signed64BitInteger(Leaf):
 
     ES_TYPE = "long"
     BQ_TYPE = "INTEGER"
@@ -367,7 +351,6 @@ class Signed64BitInteger(Integer):
     INVALID = 2l**68
     VALID = 10l
     BITS = 64
-    DEPRECATED = False
 
 
 class Unsigned32BitInteger(Signed64BitInteger):
@@ -552,10 +535,6 @@ VALID_LEAVES = [
     Boolean,
     Double,
     Float,
-    Long,
-    Short,
-    Byte,
-    Integer,
     IPv4Address,
     IPAddress,
     Enum,
