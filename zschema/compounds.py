@@ -94,8 +94,14 @@ class SubRecord(Keyable):
         for k, v in sorted(self.definition.iteritems()):
             _is_valid_object(k, v)
 
-    def new(self):
-        return copy.deepcopy(self)
+    def new(self, **kwargs):
+        # Get a new "instance" of the type represented by the SubRecord, e.g.:
+        # Certificate = SubRecord({...}, doc="A parsed certificate.")
+        # OtherType = SubRecord({
+        #   "ca": Certificate.new(doc="The CA certificate."),
+        #   "host": Certificate.new(doc="The host certificate.", required=True)
+        # })
+        return SubRecord({}, extends=self, **kwargs)
 
     def to_flat(self, parent, name, repeated=False):
         if repeated:
