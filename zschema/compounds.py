@@ -225,8 +225,6 @@ def SubRecordType(definition,
     return type("SubRecord", (SubRecord,), attrs)
 
 
-
-
 class NestedListOf(ListOf):
 
     def __init__(self, object_, subrecord_name, max_items=10, doc=None, category=None):
