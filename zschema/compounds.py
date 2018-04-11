@@ -73,6 +73,10 @@ class ListOf(Keyable):
 
 class SubRecord(Keyable):
 
+    def replace_set(self, k, v):
+        if not hasattr(self, k) or v is not None:
+            setattr(self, k, v)
+
     def __init__(self,
             definition=None,
             required=False,
@@ -81,29 +85,24 @@ class SubRecord(Keyable):
             allow_unknown=False,
             exclude=None,
             category=None):
-        if definition:
-            self.definition = definition
-        if not self.definition:
-            raise Exception("SubRecord type has no defined definition")
-        if required is not None:
-            self.required = required
-        if allow_unknown is not None:
-            self.allow_unknown = allow_unknown
-        if doc is not None:
-            self.doc = doc
-        if category is not None:
-            self.category = category
-        if exclude is not None:
-            self._exclude = set(exclude) if exclude else set([])
-        if not hasattr(self, "_exclude"):
-            self._exclude = set([])
-        if extends:
+        self.definition = definition
+        #self.replace_set("definition", definition)
+        #print definition
+        #print self.definition
+        #if not self.definition:
+        #    raise Exception("SubRecord has no defined definition")
+        self.replace_set("required", required)
+        self.replace_set("allow_unknown", allow_unknown)
+        self.replace_set("doc", doc)
+        self.replace_set("category", category)
+        self.replace_set("_exclude", set(exclude) if exclude else set([]))
+        if extends is not None:
             extends = copy.deepcopy(extends)
             self.definition = self.merge(extends).definition
         # safety check
-        for k, v in sorted(self.definition.iteritems()):
-            _is_valid_object(k, v)
-
+        if self.definition:
+            for k, v in sorted(self.definition.iteritems()):
+                _is_valid_object(k, v)
 
     def to_flat(self, parent, name, repeated=False):
         if repeated:
@@ -218,6 +217,7 @@ def SubRecordType(definition,
     attrs = {
         "definition":definition,
         "required":required,
+        "doc":doc,
         "allow_unknown":allow_unknown,
         "_exclude":exclude if exclude else set([]),
         "category":category

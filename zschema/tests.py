@@ -615,10 +615,10 @@ class RegistryTests(unittest.TestCase):
 class SubRecordTests(unittest.TestCase):
 
     def test_subrecord_child_types_can_override_parent_attributes(self):
-        Certificate = SubRecord({}, doc="A parsed certificate.")
+        Certificate = SubRecordType({}, doc="A parsed certificate.")
         OtherType = SubRecord({
-            "ca": Certificate.new(doc="The CA certificate."),
-            "host": Certificate.new(doc="The host certificate."),
+            "ca": Certificate(doc="The CA certificate."),
+            "host": Certificate(doc="The host certificate."),
         })
         self.assertEqual("A parsed certificate." , Certificate.doc)
         self.assertEqual("The CA certificate.", OtherType.definition["ca"].doc)
