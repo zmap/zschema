@@ -74,34 +74,32 @@ class ListOf(Keyable):
 class SubRecord(Keyable):
 
     def __init__(self,
-            definition,
+            definition=None,
             required=False,
             doc=None,
-            extends=None,
             allow_unknown=False,
             exclude=None,
             category=None):
-        self.definition = definition
-        self.required = required
-        self.allow_unknown = allow_unknown
-        self.doc = doc
-        self.category = category
-        self._exclude = set(exclude) if exclude else set([])
-        # merge
-        if extends:
-            extends = copy.deepcopy(extends)
-            self.definition = self.merge(extends).definition
+        if definition:
+            self.definition = definition
+        if not self.definition:
+            raise Exception("SubRecord type has no defined definition")
+        if required is not None:
+            self.required = required
+        if allow_unknown is not None:
+            self.allow_unknown = allow_unknown
+        if doc is not None:
+            self.doc = doc
+        if category is not None:
+            self.category = category
+        if exclude is not None:
+            self._exclude = set(exclude) if exclude else set([])
+        if not hasattr(self, "_exclude"):
+            self._exclude = set([])
+        # safety check
         for k, v in sorted(self.definition.iteritems()):
             _is_valid_object(k, v)
 
-    def new(self, **kwargs):
-        # Get a new "instance" of the type represented by the SubRecord, e.g.:
-        # Certificate = SubRecord({...}, doc="A parsed certificate.")
-        # OtherType = SubRecord({
-        #   "ca": Certificate.new(doc="The CA certificate."),
-        #   "host": Certificate.new(doc="The host certificate.", required=True)
-        # })
-        return SubRecord({}, extends=self, **kwargs)
 
     def to_flat(self, parent, name, repeated=False):
         if repeated:
@@ -205,6 +203,24 @@ class SubRecord(Keyable):
                                               name, subkey)
             else:
                 self.definition[subkey].validate(subkey, subvalue)
+
+
+def SubRecordType(definition,
+        required=False,
+        doc=None,
+        allow_unknown=False,
+        exclude=None,
+        category=None):
+    attrs = {
+        "definition":definition,
+        "required":required,
+        "allow_unknown":allow_unknown,
+        "exclude":exclude if exclude else set([]),
+        "category":category
+    }
+    return type("SubRecord", (SubRecord,), attrs)
+
+
 
 
 class NestedListOf(ListOf):
