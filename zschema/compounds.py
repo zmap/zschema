@@ -215,7 +215,7 @@ def SubRecordType(definition,
         "definition":definition,
         "required":required,
         "allow_unknown":allow_unknown,
-        "exclude":exclude if exclude else set([]),
+        "_exclude":exclude if exclude else set([]),
         "category":category
     }
     return type("SubRecord", (SubRecord,), attrs)
