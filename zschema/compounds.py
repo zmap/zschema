@@ -77,7 +77,7 @@ class SubRecord(Keyable):
             definition=None,
             required=False,
             doc=None,
-            extends=None
+            extends=None,
             allow_unknown=False,
             exclude=None,
             category=None):
