@@ -569,6 +569,30 @@ class CompileAndValidationTests(unittest.TestCase):
         })
         ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
 
+    def test_subrecord_types(self):
+        SSH = SubRecordType({
+            "banner":SubRecord({
+                "comment":String(),
+                "timestamp":DateTime()
+                })
+            },
+            doc="class doc",
+            required=False)
+        self.assertEqual(SSH.doc, "class doc")
+        self.assertEqual(SSH.required, False)
+        ssh = SSH(doc="instance doc", required=True)
+        ipv4_host_ssh = Record({
+            Port(22):SubRecord({
+                "ssh":ssh
+            })
+        })
+        self.assertEqual(ssh.doc, "instance doc")
+        self.assertEqual(ssh.required, True)
+        ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
+        # class unchanged
+        self.assertEqual(SSH.doc, "class doc")
+        self.assertEqual(SSH.required, False)
+
 
 class RegistryTests(unittest.TestCase):
 
