@@ -620,8 +620,6 @@ class CompileAndValidationTests(unittest.TestCase):
         self.assertEqual(SSH.required, False)
 
 
-
-
 class RegistryTests(unittest.TestCase):
 
     def setUp(self):
@@ -672,7 +670,7 @@ class SubRecordTests(unittest.TestCase):
             "ca": Certificate(doc="The CA certificate."),
             "host": Certificate(doc="The host certificate."),
         })
-        self.assertEqual("A parsed certificate." , Certificate.doc)
+        self.assertEqual("A parsed certificate." , Certificate().doc)
         self.assertEqual("The CA certificate.", OtherType.definition["ca"].doc)
         self.assertEqual("The host certificate.", OtherType.definition["host"].doc)
 
