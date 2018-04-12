@@ -77,11 +77,11 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
                 "doc": None,
                 "fields": {
                     "heartbleed": {
-                        "category": None,
+                        "category": "heartbleed",
                         "doc": None,
                         "fields": {
                             "heartbeat_support": {
-                                "category": None,
+                                "category": "heartbleed",
                                 "detail_type": "Boolean",
                                 "doc": None,
                                 "examples": [],
@@ -97,7 +97,7 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
                                 "type": "boolean"
                             },
                             "timestamp": {
-                                "category": None,
+                                "category": "heartbleed",
                                 "detail_type": "DateTime",
                                 "doc": None,
                                 "examples": [],
@@ -109,7 +109,7 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
                         "type": "SubRecord"
                     },
                     "tls": {
-                        "category": None,
+                        "category": "heartbleed",
                         "detail_type": "String",
                         "doc": None,
                         "examples": [],
@@ -181,11 +181,11 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
                 "doc": None,
                 "fields": {
                     "heartbleed": {
-                        "category": None,
+                        "category": "heartbleed",
                         "doc": None,
                         "fields": {
                             "heartbeat_support": {
-                                "category": None,
+                                "category": "heartbleed",
                                 "detail_type": "Boolean",
                                 "doc": None,
                                 "examples": [],
@@ -201,7 +201,7 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
                                 "type": "BOOLEAN"
                             },
                             "timestamp": {
-                                "category": None,
+                                "category": "heartbleed",
                                 "detail_type": "DateTime",
                                 "doc": None,
                                 "examples": [],
@@ -213,7 +213,7 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
                         "type": "SubRecord"
                     },
                     "tls": {
-                        "category": None,
+                        "category": "heartbleed",
                         "detail_type": "String",
                         "doc": None,
                         "examples": [],
