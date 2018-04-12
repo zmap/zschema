@@ -76,9 +76,11 @@ def ListOfType(object_,
         max_items=None,
         doc=None,
         category=None):
+
+    _is_valid_object("Anonymous ListOf", object_)
     attrs = {
-        "object_":definition,
-        "max_items":None,
+        "object_":object_,
+        "max_items":max_items,
         "doc":doc,
         "category":category,
     }
