@@ -11,7 +11,7 @@ def _is_valid_object(name, object_):
 
 class ListOf(Keyable):
 
-    def __init__(self, object_, max_items=10, doc=None, category=None):
+    def __init__(self, object_, max_items=None, doc=None, category=None):
         self.object_ = object_
         self.max_items = max_items
         self.category = category
@@ -72,6 +72,19 @@ class ListOf(Keyable):
             yield rec
 
 
+def ListOfType(object_,
+        max_items=None,
+        doc=None,
+        category=None):
+    attrs = {
+        "object_":definition,
+        "max_items":None,
+        "doc":doc,
+        "category":category,
+    }
+    return type("ListOf", (ListOf,), attrs)
+
+
 class SubRecord(Keyable):
 
     def replace_set(self, k, v):
@@ -99,7 +112,6 @@ class SubRecord(Keyable):
         if self.definition:
             for k, v in sorted(self.definition.iteritems()):
                 _is_valid_object(k, v)
-
 
     def new(self, **kwargs):
         # Get a new "instance" of the type represented by the SubRecord, e.g.:
@@ -233,6 +245,7 @@ def SubRecordType(definition,
         "category":category
     }
     return type("SubRecord", (SubRecord,), attrs)
+
 
 
 class NestedListOf(ListOf):
