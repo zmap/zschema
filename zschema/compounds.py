@@ -12,11 +12,11 @@ def _is_valid_object(name, object_):
 class ListOf(Keyable):
 
     def __init__(self, object_, max_items=None, doc=None, category=None):
-        self.object_ = object_
-        self.max_items = max_items
-        self.category = category
-        self.doc = doc
-        _is_valid_object("Anonymous ListOf", object_)
+        self.replace_set("object_", object_)
+        self.replace_set("max_items", max_items)
+        self.replace_set("category", category)
+        self.replace_set("doc", doc)
+        _is_valid_object("Anonymous ListOf", self.object_)
 
     @property
     def exclude_bigquery(self):
@@ -88,10 +88,6 @@ def ListOfType(object_,
 
 
 class SubRecord(Keyable):
-
-    def replace_set(self, k, v):
-        if not hasattr(self, k) or v is not None:
-            setattr(self, k, v)
 
     def __init__(self,
             definition=None,
