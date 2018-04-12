@@ -1,3 +1,4 @@
+import sys
 import copy
 import json
 
@@ -98,6 +99,19 @@ class SubRecord(Keyable):
         if self.definition:
             for k, v in sorted(self.definition.iteritems()):
                 _is_valid_object(k, v)
+
+
+    def new(self, **kwargs):
+        # Get a new "instance" of the type represented by the SubRecord, e.g.:
+        # Certificate = SubRecord({...}, doc="A parsed certificate.")
+        # OtherType = SubRecord({
+        #   "ca": Certificate.new(doc="The CA certificate."),
+        #   "host": Certificate.new(doc="The host certificate.", required=True)
+        # })
+        e = "WARN: .new() is deprecated and will be removed in a "\
+                "future release. Schemas should use SubRecordTypes.\n"
+        sys.stderr.write(e)
+        return SubRecord({}, extends=self, **kwargs)
 
     def to_flat(self, parent, name, repeated=False):
         if repeated:
