@@ -74,14 +74,15 @@ class ListOf(Keyable):
 
 
 def ListOfType(object_,
+        required=None,
         max_items=None,
         doc=None,
         category=None):
-
     _is_valid_object("Anonymous ListOf", object_)
     attrs = {
         "object_":object_,
         "max_items":max_items,
+        "required":required,
         "doc":doc,
         "category":category,
     }
