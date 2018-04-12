@@ -11,10 +11,11 @@ def _is_valid_object(name, object_):
 
 class ListOf(Keyable):
 
-    def __init__(self, object_, max_items=None, doc=None, category=None):
+    def __init__(self, object_, required=None, max_items=None, doc=None, category=None):
         self.replace_set("object_", object_)
         self.replace_set("max_items", max_items)
         self.replace_set("category", category)
+        self.replace_set("required", required)
         self.replace_set("doc", doc)
         _is_valid_object("Anonymous ListOf", self.object_)
 
@@ -322,3 +323,4 @@ class Record(SubRecord):
     @classmethod
     def from_json(cls, j):
         return cls({(k, __encode(v)) for k, v in sorted(j.iteritems())})
+
