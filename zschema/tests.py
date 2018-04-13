@@ -593,8 +593,6 @@ class CompileAndValidationTests(unittest.TestCase):
         self.assertEqual(SSH.doc, "class doc")
         self.assertEqual(SSH.required, False)
 
-
-
     def test_subrecord_type_override(self):
         SSH = SubRecordType({
             "banner":SubRecord({
