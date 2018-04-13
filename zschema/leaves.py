@@ -299,6 +299,9 @@ class IPv4Address(IPAddress):
 
 class _Integer(Leaf):
 
+    ES_TYPE = "integer"
+    BQ_TYPE = "INTEGER"
+
     EXPECTED_CLASS = [int,]
 
     def _validate(self, name, value):
@@ -313,9 +316,6 @@ class _Integer(Leaf):
 
 
 class Signed32BitInteger(_Integer):
-
-    ES_TYPE = "integer"
-    BQ_TYPE = "INTEGER"
 
     INVALID = 8589934592
     VALID = 234234252
