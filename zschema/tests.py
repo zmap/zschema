@@ -15,6 +15,7 @@ def json_fixture(name):
         fixture = json.load(fixture_file)
     return fixture
 
+
 class LeafUnitTests(unittest.TestCase):
 
     def test_valid(self):
@@ -29,6 +30,26 @@ class LeafUnitTests(unittest.TestCase):
                                 leaf.__name__)
             except DataValidationException:
                 continue
+
+    def test_to_dict(self):
+        for leaf in VALID_LEAVES:
+            leaf().to_dict()
+
+    def test_es(self):
+        for leaf in VALID_LEAVES:
+            leaf().to_es()
+
+    def test_bq(self):
+        for leaf in VALID_LEAVES:
+            leaf().to_bigquery("myname")
+
+    def test_docs_es(self):
+        for leaf in VALID_LEAVES:
+            leaf().docs_es()
+
+    def test_docs_bq(self):
+        for leaf in VALID_LEAVES:
+            leaf().docs_bq()
 
 
 VALID_ELASTIC_SEARCH = {
