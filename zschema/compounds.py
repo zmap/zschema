@@ -1,3 +1,4 @@
+import sys
 import copy
 import json
 
@@ -10,12 +11,13 @@ def _is_valid_object(name, object_):
 
 class ListOf(Keyable):
 
-    def __init__(self, object_, max_items=10, doc=None, category=None):
-        self.object_ = object_
-        self.max_items = max_items
-        self.category = category
-        self.doc = doc
-        _is_valid_object("Anonymous ListOf", object_)
+    def __init__(self, object_, required=None, max_items=None, doc=None, category=None):
+        self.replace_set("object_", object_)
+        self.replace_set("max_items", max_items)
+        self.replace_set("category", category)
+        self.replace_set("required", required)
+        self.replace_set("doc", doc)
+        _is_valid_object("Anonymous ListOf", self.object_)
 
     @property
     def exclude_bigquery(self):
@@ -71,28 +73,45 @@ class ListOf(Keyable):
             yield rec
 
 
+def ListOfType(object_,
+        required=None,
+        max_items=None,
+        doc=None,
+        category=None):
+    _is_valid_object("Anonymous ListOf", object_)
+    attrs = {
+        "object_":object_,
+        "max_items":max_items,
+        "required":required,
+        "doc":doc,
+        "category":category,
+    }
+    return type("ListOf", (ListOf,), attrs)
+
+
 class SubRecord(Keyable):
 
     def __init__(self,
-            definition,
+            definition=None,
             required=False,
             doc=None,
             extends=None,
             allow_unknown=False,
             exclude=None,
             category=None):
-        self.definition = definition
-        self.required = required
-        self.allow_unknown = allow_unknown
-        self.doc = doc
-        self.category = category
-        self._exclude = set(exclude) if exclude else set([])
-        # merge
-        if extends:
+        self.replace_set("definition", definition)
+        self.replace_set("required", required)
+        self.replace_set("allow_unknown", allow_unknown)
+        self.replace_set("doc", doc)
+        self.replace_set("category", category)
+        self.replace_set("_exclude", set(exclude) if exclude else set([]))
+        if extends is not None:
             extends = copy.deepcopy(extends)
             self.definition = self.merge(extends).definition
-        for k, v in sorted(self.definition.iteritems()):
-            _is_valid_object(k, v)
+        # safety check
+        if self.definition:
+            for k, v in sorted(self.definition.iteritems()):
+                _is_valid_object(k, v)
 
     def new(self, **kwargs):
         # Get a new "instance" of the type represented by the SubRecord, e.g.:
@@ -101,6 +120,9 @@ class SubRecord(Keyable):
         #   "ca": Certificate.new(doc="The CA certificate."),
         #   "host": Certificate.new(doc="The host certificate.", required=True)
         # })
+        e = "WARN: .new() is deprecated and will be removed in a "\
+                "future release. Schemas should use SubRecordTypes.\n"
+        sys.stderr.write(e)
         return SubRecord({}, extends=self, **kwargs)
 
     def to_flat(self, parent, name, repeated=False):
@@ -208,6 +230,24 @@ class SubRecord(Keyable):
                 self.definition[subkey].validate(subkey, subvalue)
 
 
+def SubRecordType(definition,
+        required=False,
+        doc=None,
+        allow_unknown=False,
+        exclude=None,
+        category=None):
+    attrs = {
+        "definition":definition,
+        "required":required,
+        "doc":doc,
+        "allow_unknown":allow_unknown,
+        "_exclude":exclude if exclude else set([]),
+        "category":category
+    }
+    return type("SubRecord", (SubRecord,), attrs)
+
+
+
 class NestedListOf(ListOf):
 
     def __init__(self, object_, subrecord_name, max_items=10, doc=None, category=None):
@@ -284,3 +324,4 @@ class Record(SubRecord):
     @classmethod
     def from_json(cls, j):
         return cls({(k, __encode(v)) for k, v in sorted(j.iteritems())})
+

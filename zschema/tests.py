@@ -122,7 +122,7 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
             },
             "ip": {
                 "category": None,
-                "detail_type": "Long",
+                "detail_type": "Unsigned32BitInteger",
                 "doc": "The IP Address of the host",
                 "examples": [],
                 "required": False,
@@ -160,7 +160,7 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
         "fields": {
             "ip": {
                 "category": None,
-                "detail_type": "Long",
+                "detail_type": "Unsigned32BitInteger",
                 "doc": "The IP Address of the host",
                 "examples": [],
                 "required": False,
@@ -332,7 +332,7 @@ class CompileAndValidationTests(unittest.TestCase):
         })
         self.host = Record({
                 "ipstr":IPv4Address(required=True, examples=["8.8.8.8"]),
-                "ip":Long(doc="The IP Address of the host"),
+                "ip":Unsigned32BitInteger(doc="The IP Address of the host"),
                 Port(443):SubRecord({
                     "tls":String(),
                     "heartbleed":heartbleed
@@ -569,6 +569,56 @@ class CompileAndValidationTests(unittest.TestCase):
         })
         ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
 
+    def test_subrecord_types(self):
+        SSH = SubRecordType({
+            "banner":SubRecord({
+                "comment":String(),
+                "timestamp":DateTime()
+                })
+            },
+            doc="class doc",
+            required=False)
+        self.assertEqual(SSH.doc, "class doc")
+        self.assertEqual(SSH.required, False)
+        ssh = SSH(doc="instance doc")
+        ipv4_host_ssh = Record({
+            Port(22):SubRecord({
+                "ssh":ssh
+            })
+        })
+        self.assertEqual(ssh.doc, "instance doc")
+        self.assertEqual(ssh.required, False)
+        ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
+        # class unchanged
+        self.assertEqual(SSH.doc, "class doc")
+        self.assertEqual(SSH.required, False)
+
+
+
+    def test_subrecord_type_override(self):
+        SSH = SubRecordType({
+            "banner":SubRecord({
+                "comment":String(),
+                "timestamp":DateTime()
+                })
+            },
+            doc="class doc",
+            required=False)
+        self.assertEqual(SSH.doc, "class doc")
+        self.assertEqual(SSH.required, False)
+        ssh = SSH(doc="instance doc", required=True)
+        ipv4_host_ssh = Record({
+            Port(22):SubRecord({
+                "ssh":ssh
+            })
+        })
+        self.assertEqual(ssh.doc, "instance doc")
+        self.assertEqual(ssh.required, True)
+        ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
+        # class unchanged
+        self.assertEqual(SSH.doc, "class doc")
+        self.assertEqual(SSH.required, False)
+
 
 class RegistryTests(unittest.TestCase):
 
@@ -615,12 +665,12 @@ class RegistryTests(unittest.TestCase):
 class SubRecordTests(unittest.TestCase):
 
     def test_subrecord_child_types_can_override_parent_attributes(self):
-        Certificate = SubRecord({}, doc="A parsed certificate.")
+        Certificate = SubRecordType({}, doc="A parsed certificate.")
         OtherType = SubRecord({
-            "ca": Certificate.new(doc="The CA certificate."),
-            "host": Certificate.new(doc="The host certificate."),
+            "ca": Certificate(doc="The CA certificate."),
+            "host": Certificate(doc="The host certificate."),
         })
-        self.assertEqual("A parsed certificate." , Certificate.doc)
+        self.assertEqual("A parsed certificate." , Certificate().doc)
         self.assertEqual("The CA certificate.", OtherType.definition["ca"].doc)
         self.assertEqual("The host certificate.", OtherType.definition["host"].doc)
 

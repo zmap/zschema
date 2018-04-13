@@ -54,7 +54,7 @@ Tests are run with [nose](http://nose.readthedocs.io/en/latest/). Run them via `
 License and Copyright
 ---------------------
 
-ZMap Copyright 2017 Regents of the University of Michigan
+ZSchema Copyright 2018 Regents of the University of Michigan
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the

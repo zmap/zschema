@@ -276,6 +276,7 @@ class HTML(AnalyzedString):
 
 
 class IPAddress(Leaf):
+
     ES_TYPE = "ip"
     BQ_TYPE = "STRING"
     EXPECTED_CLASS = [str,unicode]
@@ -296,17 +297,9 @@ class IPAddress(Leaf):
 class IPv4Address(IPAddress):
     pass
 
+class _Integer(Leaf):
 
-class Signed32BitInteger(Leaf):
-
-    ES_TYPE = "integer"
-    BQ_TYPE = "INTEGER"
     EXPECTED_CLASS = [int,]
-
-    INVALID = 8589934592
-    VALID = 234234252
-
-    BITS = 32
 
     def _validate(self, name, value):
         max_ = 2**self.BITS - 1
@@ -319,12 +312,18 @@ class Signed32BitInteger(Leaf):
                     name, str(value), str(min_)))
 
 
-class Integer(Signed32BitInteger):
+class Signed32BitInteger(_Integer):
 
-    DEPRECATED = True
+    ES_TYPE = "integer"
+    BQ_TYPE = "INTEGER"
+
+    INVALID = 8589934592
+    VALID = 234234252
+
+    BITS = 32
 
 
-class Signed8BitInteger(Integer):
+class Signed8BitInteger(_Integer):
 
     ES_TYPE = "byte"
     BITS = 8
@@ -332,18 +331,13 @@ class Signed8BitInteger(Integer):
     VALID = 34
 
 
-class Byte(Signed8BitInteger):
-
-    DEPRECATED = True
-
-
-class Signed16BitInteger(Integer):
+class Signed16BitInteger(_Integer):
 
     ES_TYPE = "short"
     BITS = 16
     INVALID = 2**16
     VALID = 0xFFFF
-    DEPRECATED = False
+    EXPECTED_CLASS = [int,]
 
 
 class Unsigned8BitInteger(Signed16BitInteger):
@@ -354,12 +348,7 @@ class Unsigned16BitInteger(Signed32BitInteger):
     pass
 
 
-class Short(Signed16BitInteger):
-
-    DEPRECATED = True
-
-
-class Signed64BitInteger(Integer):
+class Signed64BitInteger(_Integer):
 
     ES_TYPE = "long"
     BQ_TYPE = "INTEGER"
@@ -367,16 +356,10 @@ class Signed64BitInteger(Integer):
     INVALID = 2l**68
     VALID = 10l
     BITS = 64
-    DEPRECATED = False
 
 
 class Unsigned32BitInteger(Signed64BitInteger):
     pass
-
-
-class Long(Signed64BitInteger):
-
-    DEPRECATED = True
 
 
 class Float(Leaf):
@@ -552,10 +535,6 @@ VALID_LEAVES = [
     Boolean,
     Double,
     Float,
-    Long,
-    Short,
-    Byte,
-    Integer,
     IPv4Address,
     IPAddress,
     Enum,

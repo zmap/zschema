@@ -84,6 +84,10 @@ class Keyable(object):
         else:
             return o.to_string()
 
+    def replace_set(self, k, v):
+        if not hasattr(self, k) or v is not None:
+            setattr(self, k, v)
+
     @property
     def exclude_bigquery(self):
         return "bigquery" in self._exclude
