@@ -83,11 +83,8 @@ class Leaf(Keyable):
             "category": self.category or parent_category,
             "doc": self.doc,
             "required": self.required,
+            "examples": self.examples,
         }
-        if hasattr(self, "values_s") and len(self.values_s):
-            retv["values"] = list(self.values_s)
-        else:
-            retv["examples"] = self.examples
         return retv
 
     def docs_es(self, parent_category=None):
@@ -246,16 +243,24 @@ class Enum(Leaf):
     INVALID = 23
     VALID = None
 
-    def __init__(self, values=[None,], *args, **kwargs):
+    def __init__(self, values=None, *args, **kwargs):
         Leaf.__init__(self, *args, **kwargs)
+        if values is None:
+            values = []
         self.values = values
         self.values_s = set(values)
 
     def _validate(self, name, value):
-        if value not in self.values_s:
+        if len(self.values_s) and value not in self.values_s:
             m = "%s: the value %s is not a valid enum option" % (name, value)
             raise DataValidationException(m)
 
+    def _docs_common(self, parent_category):
+        retv = super(Enum, self)._docs_common(parent_category)
+        if len(self.values_s):
+            retv["values"] = list(self.values_s)
+            del retv["examples"]
+        return retv
 
 class HTML(AnalyzedString):
 
