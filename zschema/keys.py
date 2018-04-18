@@ -33,12 +33,16 @@ class Port(object):
 # Create a dict with all the keys / values of rhs and lhs, where values
 # from lhs are used if a key is in both.
 def left_merge(lhs, rhs):
-    return dict(v for v in rhs.items() + lhs.items())
-
+    ret = rhs.copy()
+    ret.update(lhs)
+    return ret
 
 # Factory for TypeFactorys (e.g. SubRecordType is a TypeFactory for
 # SubRecords).
-class TypeFactoryFactory():
+class TypeFactoryFactory(object):
+    # This factory acts as a constructor for cls with the first 
+    # len(args) positional arguments fixed by args, and with kwargs 
+    # serving as the default keyword arguments.
     def __init__(self, cls, args, kwargs):
         self.args = args
         self.kwargs = kwargs
@@ -47,8 +51,8 @@ class TypeFactoryFactory():
     # Returns a TypeFactory that returns type instances of cls, using
     # the args positional arguments, and using kwargs as the default
     # values for any keyword arguments.
-    def __call__(self, **kwargs):
-        return self.cls(*self.args, **left_merge(kwargs, self.kwargs))
+    def __call__(self, *args, **kwargs):
+        return self.cls(*(self.args + args), **left_merge(kwargs, self.kwargs))
 
 
 class Keyable(object):
