@@ -675,3 +675,42 @@ class SubRecordTests(unittest.TestCase):
 
 class NestedListOfTests(unittest.TestCase):
     pass
+
+
+class WithArgsTests(unittest.TestCase):
+    def test_with_args(self):
+        Certificate = SubRecord.with_args({}, doc="A parsed certificate.")
+        CertificateChain = ListOf.with_args(Certificate())
+        AlgorithmType = String.with_args(doc="An algorithm identifier", examples=["a", "b", "c"])
+        OtherType = SubRecord({
+            "ca": Certificate(doc="The CA certificate."),
+            "host": Certificate(doc="The host certificate."),
+            "chain": CertificateChain(doc="The certificate chain."),
+            "host_alg": AlgorithmType(doc="The host algorithm", examples=["x", "y"]),
+            "client_alg": AlgorithmType(doc="The client algorithm"),
+            "sig_alg": AlgorithmType(examples=["p", "q"]),
+        })
+        # Check default
+        self.assertEqual("A parsed certificate.", Certificate().doc)
+
+        # Check overridden
+        self.assertEqual("The CA certificate.", OtherType.definition["ca"].doc)
+        self.assertEqual("The host certificate.", OtherType.definition["host"].doc)
+
+        # Check ListOf
+        self.assertEqual("The certificate chain.", OtherType.definition["chain"].doc)
+
+        # Check that instance default is used in child
+        self.assertEqual("A parsed certificate.", OtherType.definition["chain"].object_.doc)
+
+        # Check Leaf type doc overrides
+        self.assertEqual("The host algorithm", OtherType.definition["host_alg"].doc)
+        self.assertEqual("The client algorithm", OtherType.definition["client_alg"].doc)
+        self.assertEqual("An algorithm identifier", OtherType.definition["sig_alg"].doc)
+
+        # Check that examples are inherited
+        self.assertEqual(["a", "b", "c"], OtherType.definition["client_alg"].examples)
+
+        # Check that examples are overridden
+        self.assertEqual(["x", "y"], OtherType.definition["host_alg"].examples)
+        self.assertEqual(["p", "q"], OtherType.definition["sig_alg"].examples)

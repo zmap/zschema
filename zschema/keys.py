@@ -30,6 +30,27 @@ class Port(object):
             return cmp(int(self.port), int(other.port))
 
 
+# Create a dict with all the keys / values of rhs and lhs, where values
+# from lhs are used if a key is in both.
+def left_merge(lhs, rhs):
+    return dict(v for v in rhs.items() + lhs.items())
+
+
+# Factory for TypeFactorys (e.g. SubRecordType is a TypeFactory for
+# SubRecords).
+class TypeFactoryFactory():
+    def __init__(self, cls, args, kwargs):
+        self.args = args
+        self.kwargs = kwargs
+        self.cls = cls
+
+    # Returns a TypeFactory that returns type instances of cls, using
+    # the args positional arguments, and using kwargs as the default
+    # values for any keyword arguments.
+    def __call__(self, **kwargs):
+        return self.cls(*self.args, **left_merge(kwargs, self.kwargs))
+
+
 class Keyable(object):
 
     VALID_ES_INDEXES = [
@@ -102,6 +123,19 @@ class Keyable(object):
         elif hasattr(self, default) and getattr(self, default):
             d[name] = getattr(self, default)
         return d
+
+    # Get a constructor for this type using the given positional
+    # arguments; any keyword arguments will act as defaults if they are
+    # not specified.
+    # Example:
+    # MyStringType = String.with_args(doc="Some docs for my string", category="my category")
+    # my_string_1 = MyStringType(doc="overridden docs")
+    # my_string_2 = MyStringType(examples=["a", "b", "c"])
+    # CertChain = ListOf.with_args(Certificate(doc="An element of the chain."), doc="A list of certificates.")
+    # my_chain = CertChain()
+    @classmethod
+    def with_args(cls, *args, **kwargs):
+        return TypeFactoryFactory(cls=cls, args=args, kwargs=kwargs)
 
     @classmethod
     def _populate_types_by_name(cls):
