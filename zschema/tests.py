@@ -714,3 +714,33 @@ class WithArgsTests(unittest.TestCase):
         # Check that examples are overridden
         self.assertEqual(["x", "y"], OtherType.definition["host_alg"].examples)
         self.assertEqual(["p", "q"], OtherType.definition["sig_alg"].examples)
+
+    def test_with_args_positional_override(self):
+        class Positional(Keyable):
+            def __init__(self, *args, **kwargs):
+                self.args = args
+                self.kwargs = kwargs
+
+        # Leave the positional argument (list type) blank, but specify a category.
+        GenericCategorizedList = ListOf.with_args(category="my category")
+        # Get lists with different types (but the same category).
+        categorized_string_list = GenericCategorizedList(String())
+        categorized_cert_list = GenericCategorizedList(Positional())
+        self.assertEqual("my category", categorized_string_list.category)
+        self.assertEqual("my category", categorized_cert_list.category)
+
+        # ListOf(...) takes only one positional arg, so StringList(Positional()) should raise.
+        StringList = ListOf.with_args(String())
+        self.assertRaises(lambda: StringList(Positional()))
+
+        # ListOf(...) needs exactly one positional arg, so GenericCategorizedList() should also raise.
+        self.assertRaises(lambda: CategorizedCertificateList())
+
+        # Confirm that args are appended as expected.
+        MyPositional = Positional.with_args("a")
+        p0 = MyPositional()
+        p1 = MyPositional("b")
+        p2 = MyPositional("x", "y")
+        self.assertEqual(("a",), p0.args)
+        self.assertEqual(("a", "b",), p1.args)
+        self.assertEqual(("a", "x", "y",), p2.args)
