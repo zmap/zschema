@@ -46,13 +46,30 @@ class TypeFactoryFactory(object):
     SubRecords).
     """
 
-    def __init__(self, cls, args, kwargs):
+    def __init__(self, cls, args=None, kwargs=None):
         """
         This factory acts as a constructor for cls with the first
         len(args) positional arguments fixed by args, and with kwargs
         serving as the default keyword arguments.
+        Note: the positional args can be set here, or in the later call,
+        but not in both.
         """
-        self.args = args
+        if not callable(cls):
+            raise Exception("cls must be callable.")
+
+        if args and not isinstance(args, (list, tuple)):
+            raise Exception("If present, args must be a list or a tuple.")
+
+        if kwargs and not isinstance(kwargs, dict):
+            raise Exception("If present, kwargs must be a dict.")
+
+        if args is None:
+            args = []
+
+        if kwargs is None:
+            kwargs = {}
+
+        self.args = tuple(args)
         self.kwargs = kwargs
         self.cls = cls
 
@@ -62,7 +79,11 @@ class TypeFactoryFactory(object):
         the args positional arguments, and using kwargs as the default
         values for any keyword arguments.
         """
-        return self.cls(*(self.args + args), **left_merge(kwargs, self.kwargs))
+        if len(args) > 0 and len(self.args) > 0:
+            raise Exception("Positional arguments already bound during TypeFactory creation.")
+        if len(args) == 0:
+            args = self.args
+        return self.cls(*args, **left_merge(kwargs, self.kwargs))
 
 
 class Keyable(object):

@@ -720,6 +720,7 @@ class WithArgsTests(unittest.TestCase):
             def __init__(self, *args, **kwargs):
                 self.args = args
                 self.kwargs = kwargs
+                self.doc = kwargs.get("doc")
 
         # Leave the positional argument (list type) blank, but specify a category.
         GenericCategorizedList = ListOf.with_args(category="my category")
@@ -736,11 +737,14 @@ class WithArgsTests(unittest.TestCase):
         # ListOf(...) needs exactly one positional arg, so GenericCategorizedList() should also raise.
         self.assertRaises(lambda: CategorizedCertificateList())
 
-        # Confirm that args are appended as expected.
-        MyPositional = Positional.with_args("a")
+        # Confirm that positional args are pulled from the proper location
+        MyPositional = Positional.with_args("a", doc="default docs")
         p0 = MyPositional()
-        p1 = MyPositional("b")
-        p2 = MyPositional("x", "y")
+        p0doc = MyPositional(doc="some docs")
+        # Passing positional args to the factory constructor and the contructor is not allowed
+        self.assertRaises(lambda: MyPositional("b"))
+        self.assertRaises(lambda: MyPositional("x, y"))
         self.assertEqual(("a",), p0.args)
-        self.assertEqual(("a", "b",), p1.args)
-        self.assertEqual(("a", "x", "y",), p2.args)
+        self.assertEqual("default docs", p0.doc)
+        self.assertEqual(("a",), p0doc.args)
+        self.assertEqual("some docs", p0doc.doc)
