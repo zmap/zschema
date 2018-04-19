@@ -55,13 +55,13 @@ class TypeFactoryFactory(object):
         but not in both.
         """
         if not callable(cls):
-            raise Exception("cls must be callable.")
+            raise TypeError("cls must be callable.")
 
         if args and not isinstance(args, (list, tuple)):
-            raise Exception("If present, args must be a list or a tuple.")
+            raise TypeError("If present, args must be a list or a tuple.")
 
         if kwargs and not isinstance(kwargs, dict):
-            raise Exception("If present, kwargs must be a dict.")
+            raise TypeError("If present, kwargs must be a dict.")
 
         if args is None:
             args = []
