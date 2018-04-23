@@ -12,15 +12,44 @@ from leaves import *
 from keys import *
 from compounds import *
 
-commands = ["bigquery", "elasticsearch", "docs-bq", "docs-es", "validate", "flat", "json"]
-parser = argparse.ArgumentParser(prog="zschema", description="Process a zschema definition. VERSION: %s" % zschema.__version__)
-parser.add_argument("command", metavar="command", choices=commands, help="The command to execute; one of [ %s ]" % ', '.join(commands))
-parser.add_argument("schema", help="The name of the schema in the zschema.registry. For backwards compatibility, a filename can be prefixed with a colon, as in 'schema.py:my-type'.")
-parser.add_argument("target", nargs="?", help="Only used for the validate command. The input JSON file that will be checked against the schema.")
+commands = [
+    "bigquery",
+    "elasticsearch",
+    "docs-bq",
+    "docs-es",
+    "validate",
+    "flat",
+    "json"
+]
+
+cmdList = ", ".join(commands)
+
+parser = argparse.ArgumentParser(
+    prog="zschema",
+    description="Process a zschema definition. "
+                "VERSION: %s" % zschema.__version__)
+
+parser.add_argument("command",
+                    metavar="command", choices=commands,
+                    help="The command to execute; one of [ %s ]" % cmdList)
+
+parser.add_argument("schema",
+                    help="The name of the schema in the zschema.registry. "
+                         "For backwards compatibility, a filename can be "
+                         "prefixed with a colon, as in 'schema.py:my-type'.")
+
+parser.add_argument("target", nargs="?",
+                    help="Only used for the validate command. "
+                         "The input JSON file that will be checked against "
+                         "the schema.")
+
 parser.add_argument("--module", help="The name of a module to import.")
-parser.add_argument("--path", nargs="*", help="Provide additional PYTHONPATH directories to include.")
+
+parser.add_argument("--path", nargs="*",
+                    help="Additional PYTHONPATH directories to include.")
 
 args = parser.parse_args()
+
 
 def main():
     if args.path:
@@ -28,7 +57,7 @@ def main():
             addsitedir(syspath)
 
     schema = args.schema
-    
+
     # Backwards compatibility: given "file.py:schema", load file.py.
     if ":" in schema:
         path, recname = schema.split(":")
@@ -62,6 +91,7 @@ def main():
                 record.validate(json.loads(line.strip()))
     else:
         usage()
+
 
 if __name__ == "__main__":
     main()
