@@ -21,7 +21,13 @@ def main():
     if len(sys.argv) < 3:
         usage()
     path, recname = sys.argv[2].split(":")
-    module = load_source("module", path)
+    old_cwd = os.getcwd()
+    dir, file = os.path.dirname(path), os.path.basename(path)
+    os.chdir(dir)
+    try:
+        module = load_source("module", file)
+    finally:
+        os.chdir(old_cwd)
     record = zschema.registry.get_schema(recname)
     command = sys.argv[1]
     if command == "bigquery":
