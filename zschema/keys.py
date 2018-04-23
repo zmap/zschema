@@ -30,16 +30,6 @@ class Port(object):
             return cmp(int(self.port), int(other.port))
 
 
-def left_merge(lhs, rhs):
-    """
-    Create a dict with all the keys / values of rhs and lhs, where
-    from lhs are used if a key is in both.
-    """
-    ret = rhs.copy()
-    ret.update(lhs)
-    return ret
-
-
 class TypeFactoryFactory(object):
     """
     Factory for TypeFactorys (e.g. SubRecordType is a TypeFactory for
@@ -57,21 +47,33 @@ class TypeFactoryFactory(object):
         if not callable(cls):
             raise TypeError("cls must be callable.")
 
-        if args and not isinstance(args, (list, tuple)):
-            raise TypeError("If present, args must be a list or a tuple.")
-
-        if kwargs and not isinstance(kwargs, dict):
-            raise TypeError("If present, kwargs must be a dict.")
-
         if args is None:
-            args = []
+            args = ()
 
         if kwargs is None:
             kwargs = {}
 
+        if not isinstance(args, (list, tuple)):
+            raise TypeError("If present, args must be a list or a tuple.")
+
+        if not isinstance(kwargs, dict):
+            raise TypeError("If present, kwargs must be a dict.")
+
         self.args = tuple(args)
-        self.kwargs = kwargs
+        # Store a shallow copy, not a reference
+        self.kwargs = dict(kwargs)
         self.cls = cls
+
+    @staticmethod
+    def _left_merge(lhs, rhs):
+        """
+        Create a dict with all the keys / values of rhs and lhs, where
+        from lhs are used if a key is in both.
+        TODO FIXME: Unify all of the dict-merging code somewhere and use that instead of this.
+        """
+        ret = rhs.copy()
+        ret.update(lhs)
+        return ret
 
     def __call__(self, *args, **kwargs):
         """
@@ -79,11 +81,11 @@ class TypeFactoryFactory(object):
         the args positional arguments, and using kwargs as the default
         values for any keyword arguments.
         """
-        if len(args) > 0 and len(self.args) > 0:
+        if args and self.args:
             raise Exception("Positional arguments already bound during TypeFactory creation.")
-        if len(args) == 0:
+        if self.args and not args:
             args = self.args
-        return self.cls(*args, **left_merge(kwargs, self.kwargs))
+        return self.cls(*args, **TypeFactoryFactory._left_merge(kwargs, self.kwargs))
 
 
 class Keyable(object):
@@ -207,5 +209,6 @@ class DataValidationException(TypeError):
 
 class MergeConflictException(Exception):
     pass
+
 
 _zschema_types_by_name = {}
