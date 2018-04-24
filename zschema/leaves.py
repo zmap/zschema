@@ -4,73 +4,62 @@ import re
 import dateutil.parser
 
 from keys import *
+from keys import _NO_ARG
+
 
 class Leaf(Keyable):
 
-    DEPRECATED = False
+    # defaults
     INCLUDE_RAW = False
+    REQUIRED = False
 
     def __init__(self,
-            required=False,
-            es_index=None,
-            es_analyzer=None,
-            doc=None,
-            examples=None,
-            es_include_raw=None,
-            deprecated=False,
-            ignore=False,
-            category=None,
-            exclude=None,
-            metadata=None,
-            units=None,
-            min_value=None,
-            max_value=None):
-        self.required = required
-        self.es_index = es_index
-        self.es_analyzer = es_analyzer
-        self.doc = doc
-        self.examples = examples if examples else []
-        if es_include_raw is not None:
-            self.es_include_raw = es_include_raw
-        else:
-            self.es_include_raw = self.INCLUDE_RAW
-        self.deprecated = deprecated
-        self.ignore = ignore
-        if self.DEPRECATED:
-            e = "WARN: %s is deprecated and will be removed in a "\
-                    "future release\n" % self.__class__.__name__
-            sys.stderr.write(e)
-        self.category = category
-        self._exclude = set(exclude) if exclude else set([])
-        self.metadata = metadata if metadata else {}
-        self.units = units
-        self.min_value = min_value
-        self.max_value = max_value
+            required=_NO_ARG,
+            es_index=_NO_ARG,
+            es_analyzer=_NO_ARG,
+            desc=_NO_ARG,
+            doc=_NO_ARG,
+            examples=_NO_ARG,
+            es_include_raw=_NO_ARG,
+            deprecated=_NO_ARG,
+            ignore=_NO_ARG,
+            category=_NO_ARG,
+            exclude=_NO_ARG,
+            metadata=_NO_ARG,
+            units=_NO_ARG,
+            min_value=_NO_ARG,
+            max_value=_NO_ARG):
+        Keyable.__init__(self,
+                required=required,
+                desc=desc,
+                doc=doc,
+                category=category,
+                exclude=exclude,
+                deprecated=deprecated,
+                ignore=ignore,
+                examples=examples)
+        self.set("es_index", es_index)
+        self.set("es_analyzer", es_analyzer)
+        self.set("units", units)
+        self.set("min_value", min_value)
+        self.set("max_value", max_value)
+        self.set("es_include_raw", es_include_raw)
 
     def to_dict(self):
-        retv = {
-            "required":self.required,
-            "doc":self.doc,
-            "type":self.__class__.__name__,
-            "es_type":self.ES_TYPE,
-            "bq_type":self.BQ_TYPE,
-            "metadata":self.metadata,
-            "examples": self.examples,
-        }
-        if self.units is not None:
-            retv["units"] = self.units
-        self.add_es_var(retv, "es_analyzer", "es_analyzer", "ES_ANALYZER")
-        self.add_es_var(retv, "es_index", "es_index", "ES_INDEX")
-        self.add_es_var(retv, "es_search_analyzer", "es_search_analyzer",
-                "ES_SEARCH_ANALYZER")
+        retv = super(Leaf, self).to_dict()
+        self.add_es_var(retv, "es_type", "es_type")
+        self.add_es_var(retv, "bq_type", "bq_type")
+        self.add_es_var(retv, "units", "units")
+        self.add_es_var(retv, "es_analyzer", "es_analyzer")
+        self.add_es_var(retv, "es_index", "es_index")
+        self.add_es_var(retv, "es_search_analyzer", "es_search_analyzer")
         return retv
 
     def to_es(self):
         retv = {"type":self.ES_TYPE}
-        self.add_es_var(retv, "index", "es_index", "ES_INDEX")
-        self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
-        self.add_es_var(retv, "search_analyzer", "es_search_analyzer",
-                "ES_SEARCH_ANALYZER")
+        self.add_es_var(retv, "index", "es_index")
+        self.add_es_var(retv, "analyzer", "es_analyzer")
+        self.add_es_var(retv, "search_analyzer", "es_search_analyzer")
         if self.es_include_raw:
             retv["fields"] = {
                     "raw":{"type":"keyword"}

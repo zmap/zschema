@@ -1,3 +1,8 @@
+class __NO_ARG(object):
+    __nonzero__ = lambda _: False
+_NO_ARG = __NO_ARG()
+
+
 class Port(object):
     def __init__(self, port):
         self.port = str(port)
@@ -48,6 +53,10 @@ class Keyable(object):
         "whitespace", # The whitespace analyzer splits the text on whitespace. It doesn't lowercase.
     ]
 
+    # defaults
+    DEPRECATED = False
+    DEPRECATED_TYPE = False
+
     # create a map from name of type to class. We can use this
     # in order to create the Python definition from JSON. We need
     # this in the web interface. We define this in keyable because
@@ -84,10 +93,6 @@ class Keyable(object):
         else:
             return o.to_string()
 
-    def replace_set(self, k, v):
-        if not hasattr(self, k) or v is not None:
-            setattr(self, k, v)
-
     @property
     def exclude_bigquery(self):
         return "bigquery" in self._exclude
@@ -96,7 +101,9 @@ class Keyable(object):
     def exclude_elasticsearch(self):
         return "elasticsearch" in self._exclude
 
-    def add_es_var(self, d, name, instance, default):
+    def add_es_var(self, d, name, instance, default=None):
+        if default is None:
+            default = name.upper()
         if hasattr(self, instance) and getattr(self, instance):
             d[name] = getattr(self, instance)
         elif hasattr(self, default) and getattr(self, default):
@@ -122,6 +129,61 @@ class Keyable(object):
             yield kls
         for klass in __iter_classes(Keyable):
             Keyable._types_by_name[klass.__name__] = klass
+
+
+    def __init__(self, required=None, desc=None, doc=None, category=None,
+            exclude=None, deprecated=False, ignore=False, examples=None,
+            metadata=None):
+        self.set("required", required)
+        self.set("desc", desc)
+        self.set("doc", doc)
+        self.set("examples", examples)
+        self.set("category", category)
+        self.set("category", metadata)
+        self.set("_exclude", set(exclude) if exclude else set([]))
+        self.set("deprecated", deprecated)
+        self.set("ignore", ignore)
+
+        if self.DEPRECATED_TYPE:
+            e = "WARN: %s is deprecated and will be removed in a "\
+                    "future release\n" % self.__class__.__name__
+            sys.stderr.write(e)
+
+    def to_dict(self):
+        retv = {
+            "required":self.required,
+            "doc":self.doc,
+            "type":self.__class__.__name__,
+            "metadata":self.metadata,
+            "examples": self.examples,
+        }
+
+    def set(self, k, v):
+        new_k = "_value_" + k
+        setattr(self, new_k, v)
+
+    @classmethod
+    def set_default(cls, k, v):
+        new_k = k.upper()
+        setattr(cls, k, v)
+
+    def __getattr__(self, k):
+        if hasattr(self, "_value_" + k):
+            v = getattr(self, "_value_" + k)
+            if v is not _NO_ARG:
+                return v
+        if hasattr(self, k.upper()):
+            v = getattr(self, k.upper())
+            if v is not _NO_ARG:
+                return v
+        raise AttributeError
+
+    @classmethod
+    def set_defaults(cls, required=None, doc=None, category=None):
+        cls.set_default("category", category)
+        cls.set_default("required", required)
+        cls.set_default("doc", doc)
+        cls.set_default("_exclude", set(exclude) if exclude else set([]))
 
 
 class DataValidationException(TypeError):
