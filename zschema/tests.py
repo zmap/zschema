@@ -3,6 +3,7 @@ import itertools
 import json
 import os
 import pprint
+import datetime
 
 from zschema import registry
 from zschema.leaves import *
@@ -698,3 +699,12 @@ class SubRecordTests(unittest.TestCase):
 
 class NestedListOfTests(unittest.TestCase):
     pass
+
+
+class DatetimeTest(unittest.TestCase):
+    def test_datetime_DateTime(self):
+        DateTimeRecord = DateTime()
+        DateTimeRecord.validate("fake", datetime.datetime.now())
+        DateTimeRecord.validate("fake", "Wed Dec  5 01:23:45 CST 1956")
+        # Note: int values are nominally accepted but not valid
+        # DateTimeRecord.validate("fake", 116048701)
