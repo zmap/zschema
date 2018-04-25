@@ -4,6 +4,7 @@ _NO_ARG = __NO_ARG()
 
 
 class Port(object):
+
     def __init__(self, port):
         self.port = str(port)
 
@@ -54,8 +55,17 @@ class Keyable(object):
     ]
 
     # defaults
+    REQUIRED = False
     DEPRECATED = False
     DEPRECATED_TYPE = False
+    DOC = None
+    DESC = None
+    CATEGORY = None
+    EXAMPLES = []
+    EXCLUDE = set([])
+    METADATA = {}
+    EXCLUDE_BIGQUERY = False
+    EXCLUDE_ELASTICSEARCH = False
 
     # create a map from name of type to class. We can use this
     # in order to create the Python definition from JSON. We need
@@ -95,11 +105,11 @@ class Keyable(object):
 
     @property
     def exclude_bigquery(self):
-        return "bigquery" in self._exclude
+        return "bigquery" in self.exclude
 
     @property
     def exclude_elasticsearch(self):
-        return "elasticsearch" in self._exclude
+        return "elasticsearch" in self.exclude
 
     def add_es_var(self, d, name, instance, default=None):
         if default is None:
@@ -131,16 +141,19 @@ class Keyable(object):
             Keyable._types_by_name[klass.__name__] = klass
 
 
-    def __init__(self, required=None, desc=None, doc=None, category=None,
-            exclude=None, deprecated=False, ignore=False, examples=None,
-            metadata=None):
+    def __init__(self, required=_NO_ARG, desc=_NO_ARG, doc=_NO_ARG, category=_NO_ARG,
+            exclude=_NO_ARG, deprecated=_NO_ARG, ignore=_NO_ARG,
+            examples=_NO_ARG, metadata=_NO_ARG):
         self.set("required", required)
         self.set("desc", desc)
         self.set("doc", doc)
+        print ">>>> ._value_doc is", self._value_doc
+        print "hasattr", hasattr("self", "_value_doc")
+        #print ">>>> .doc is ", self.doc
         self.set("examples", examples)
         self.set("category", category)
-        self.set("category", metadata)
-        self.set("_exclude", set(exclude) if exclude else set([]))
+        self.set("metadata", metadata)
+        self.set("exclude", exclude)
         self.set("deprecated", deprecated)
         self.set("ignore", ignore)
 
@@ -157,8 +170,10 @@ class Keyable(object):
             "metadata":self.metadata,
             "examples": self.examples,
         }
+        return retv
 
     def set(self, k, v):
+        #print "set called for ", k, "setting to", v
         new_k = "_value_" + k
         setattr(self, new_k, v)
 
@@ -168,22 +183,28 @@ class Keyable(object):
         setattr(cls, k, v)
 
     def __getattr__(self, k):
+        # base case so that this doesn't end up in an infinite loop
+        print "getattr for", k
+        if k[0] == "_":
+            raise AttributeError(k)
         if hasattr(self, "_value_" + k):
+            print "has _value_" + k
             v = getattr(self, "_value_" + k)
             if v is not _NO_ARG:
                 return v
+        print "does not have _value_" + k
         if hasattr(self, k.upper()):
             v = getattr(self, k.upper())
             if v is not _NO_ARG:
+                print "default"
                 return v
-        raise AttributeError
+        raise AttributeError(k)
 
     @classmethod
     def set_defaults(cls, required=None, doc=None, category=None):
         cls.set_default("category", category)
         cls.set_default("required", required)
         cls.set_default("doc", doc)
-        cls.set_default("_exclude", set(exclude) if exclude else set([]))
 
 
 class DataValidationException(TypeError):

@@ -12,6 +12,8 @@ class Leaf(Keyable):
     # defaults
     INCLUDE_RAW = False
     REQUIRED = False
+    ES_INDEX = None
+    ES_ANALYZER = None
 
     def __init__(self,
             required=_NO_ARG,
@@ -57,13 +59,13 @@ class Leaf(Keyable):
 
     def to_es(self):
         retv = {"type":self.ES_TYPE}
-        self.add_es_var(retv, "index", "es_index")
-        self.add_es_var(retv, "analyzer", "es_analyzer")
-        self.add_es_var(retv, "search_analyzer", "es_search_analyzer")
-        if self.es_include_raw:
-            retv["fields"] = {
-                    "raw":{"type":"keyword"}
-            }
+        #self.add_es_var(retv, "index", "es_index")
+        #self.add_es_var(retv, "analyzer", "es_analyzer")
+        #self.add_es_var(retv, "search_analyzer", "es_search_analyzer")
+        #if self.es_include_raw:
+        #    retv["fields"] = {
+        #            "raw":{"type":"keyword"}
+        #    }
         return retv
 
     def _docs_common(self, parent_category):
@@ -71,6 +73,7 @@ class Leaf(Keyable):
             "detail_type": self.__class__.__name__,
             "category": self.category or parent_category,
             "doc": self.doc,
+            "desc": self.desc,
             "required": self.required,
             "examples": self.examples,
         }

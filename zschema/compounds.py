@@ -14,7 +14,7 @@ class ListOf(Keyable):
 
     def __init__(self, object_, *args, **kwargs):
         _is_valid_object("Anonymous ListOf", object_)
-        super(ListOf, self).__init__(self, *args, **kwargs)
+        super(ListOf, self).__init__(*args, **kwargs)
         self.set("object_", object_)
 
     @property
@@ -91,7 +91,7 @@ class SubRecord(Keyable):
 
     def __init__(self, definition=None, extends=None,
             allow_unknown=False, *args, **kwargs):
-        super(SubRecord, self).__init__(self, *args, **kwargs)
+        super(SubRecord, self).__init__(*args, **kwargs)
         self.set("definition", definition)
         self.set("allow_unknown", allow_unknown)
         if extends is not None:
@@ -232,7 +232,7 @@ def SubRecordType(definition,
     t.set_default("doc", doc)
     t.set_default("desc", desc)
     t.set_default("allow_unknown", allow_unknown)
-    t.set_default("_exclude", exclude if exclude else set([]))
+    t.set_default("exclude", exclude if exclude else set([]))
     t.set_default("category", category)
     return t
 
@@ -240,7 +240,7 @@ def SubRecordType(definition,
 class NestedListOf(ListOf):
 
     def __init__(self, object_, subrecord_name, max_items=10, doc=None, category=None):
-        super(nestedListOf, self).__init__(self, object_, max_items, doc=doc, category=category)
+        super(nestedListOf, self).__init__(object_, max_items, doc=doc, category=category)
         self.set("subrecord_name", subrecord_name)
 
     def to_bigquery(self, name):
