@@ -146,7 +146,7 @@ class Leaf(Keyable):
 
     def validate(self, name, value):
         if not self._check_valid_name(name):
-            raise DataValidationException("Invalid field name: %s" % name)
+            raise Exception("Invalid field name: %s" % name)
         if value is None:
             if self.required:
                 raise DataValidationException("%s is a required field, but "
