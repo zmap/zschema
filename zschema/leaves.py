@@ -25,7 +25,8 @@ class Leaf(Keyable):
             metadata=None,
             units=None,
             min_value=None,
-            max_value=None):
+            max_value=None,
+            validator=None):
         self.required = required
         self.es_index = es_index
         self.es_analyzer = es_analyzer
@@ -47,6 +48,7 @@ class Leaf(Keyable):
         self.units = units
         self.min_value = min_value
         self.max_value = max_value
+        self.validator = validator
 
     def to_dict(self):
         retv = {
@@ -146,21 +148,22 @@ class Leaf(Keyable):
         print val
 
     def validate(self, name, value):
-        if not self._check_valid_name(name):
+        validator = self.validator or self
+        if not validator._check_valid_name(name):
             raise DataValidationException("Invalid field name: %s" % name)
         if value is None:
-            if self.required:
+            if validator.required:
                 raise DataValidationException("%s is a required field, but "
                                               "recieved None" % name)
             else:
                 return
-        if type(value) not in self.EXPECTED_CLASS:
+        if type(value) not in validator.EXPECTED_CLASS:
             m = "class mismatch for %s: expected %s, %s has class %s" % (\
-                    self.key_to_string(name), self.EXPECTED_CLASS,
+                    self.key_to_string(name), validator.EXPECTED_CLASS,
                     str(value), value.__class__.__name__)
             raise DataValidationException(m)
-        if hasattr(self, "_validate"):
-            self._validate(str(name), value)
+        if hasattr(validator, "_validate"):
+            validator._validate(str(name), value)
 
 
 
