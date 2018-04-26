@@ -136,7 +136,6 @@ class SubRecord(Keyable):
 
     def merge(self, other):
         assert isinstance(other, SubRecord)
-        doc = self.doc or other.doc
         newdef = {}
         l_keys = set(self.definition.keys())
         r_keys = set(other.definition.keys())
