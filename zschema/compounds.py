@@ -305,8 +305,7 @@ class Record(SubRecord):
             raise DataValidationException("record is not a dict", str(value))
         for subkey, subvalue in sorted(value.iteritems()):
             if subkey not in self.definition:
-                raise DataValidationException("%s is not a valid subkey of root",
-                                              subkey)
+                raise DataValidationException("%s is not a valid subkey of root" % subkey)
             self.definition[subkey].validate(subkey, subvalue)
 
     def to_dict(self):
