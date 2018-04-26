@@ -448,14 +448,16 @@ class DateTime(Leaf):
 
     def _validate(self, name, value):
         if isinstance(value, datetime.datetime):
-            return
-
-        # FIXME: ignoretz should be set for TIMESTAMP but not DATETIME?
-        try:
-            dt = dateutil.parser.parse(value, ignoretz=True)
-        except Exception, e:
-            m = "%s: %s is not valid timestamp" % (name, str(value))
-            raise DataValidationException(m)
+            dt = value
+        elif isinstance(value, int):
+            dt = datetime.datetime.utcfromtimestamp(value)
+        else:
+            # FIXME: ignoretz should be set for TIMESTAMP but not DATETIME?
+            try:
+                dt = dateutil.parser.parse(value, ignoretz=True)
+            except Exception, e:
+                m = "%s: %s is not valid timestamp" % (name, str(value))
+                raise DataValidationException(m)
         if dt > self._max_value_dt:
             m = "%s: %s is larger than allowed maximum (%s)" % (name,
                     str(value), str(self._max_value_dt))
