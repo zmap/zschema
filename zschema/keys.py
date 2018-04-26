@@ -154,10 +154,10 @@ class Keyable(object):
         self.set("required", required)
         self.set("desc", desc)
         self.set("doc", doc)
-        self.set("examples", examples)
         self.set("category", category)
-        self.set("metadata", metadata)
         self.set("exclude", exclude)
+        self.set("examples", examples)
+        self.set("metadata", metadata)
         self.set("deprecated", deprecated)
         self.set("ignore", ignore)
 
