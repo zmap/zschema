@@ -3,6 +3,8 @@ import copy
 import json
 
 from keys import *
+from keys import _NO_ARG
+
 
 def _is_valid_object(name, object_):
     if not isinstance(object_, Keyable):
@@ -11,13 +13,10 @@ def _is_valid_object(name, object_):
 
 class ListOf(Keyable):
 
-    def __init__(self, object_, required=None, max_items=None, doc=None, category=None):
-        self.replace_set("object_", object_)
-        self.replace_set("max_items", max_items)
-        self.replace_set("category", category)
-        self.replace_set("required", required)
-        self.replace_set("doc", doc)
-        _is_valid_object("Anonymous ListOf", self.object_)
+    def __init__(self, object_, *args, **kwargs):
+        _is_valid_object("Anonymous ListOf", object_)
+        super(ListOf, self).__init__(*args, **kwargs)
+        self.set("object_", object_)
 
     @property
     def exclude_bigquery(self):
@@ -47,6 +46,7 @@ class ListOf(Keyable):
         return retv
 
     def to_es(self):
+        # all elasticsearch fields are automatically repeatable
         return self.object_.to_es()
 
     def docs_es(self, parent_category=None):
@@ -74,40 +74,36 @@ class ListOf(Keyable):
 
 
 def ListOfType(object_,
-        required=None,
-        max_items=None,
-        doc=None,
-        category=None):
+        required=_NO_ARG,
+        max_items=_NO_ARG,
+        doc=_NO_ARG,
+        desc=_NO_ARG,
+        examples=_NO_ARG,
+        category=_NO_ARG):
     _is_valid_object("Anonymous ListOf", object_)
-    attrs = {
-        "object_":object_,
-        "max_items":max_items,
-        "required":required,
-        "doc":doc,
-        "category":category,
-    }
-    return type("ListOf", (ListOf,), attrs)
+    t = type("ListOf", (ListOf,), {})
+    t.set_default("object_", object_)
+    t.set_default("max_items", max_items)
+    t.set_default("required", required)
+    t.set_default("doc", doc)
+    t.set_default("desc", desc)
+    t.set_default("category", category)
+    t.set_default("examples", examples)
 
 
 class SubRecord(Keyable):
 
-    def __init__(self,
-            definition=None,
-            required=False,
-            doc=None,
-            extends=None,
-            allow_unknown=False,
-            exclude=None,
-            category=None):
-        self.replace_set("definition", definition)
-        self.replace_set("required", required)
-        self.replace_set("allow_unknown", allow_unknown)
-        self.replace_set("doc", doc)
-        self.replace_set("category", category)
-        self.replace_set("_exclude", set(exclude) if exclude else set([]))
-        if extends is not None:
+    DEFINITION = {}
+    ALLOW_UNKNOWN = False
+
+    def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
+            allow_unknown=_NO_ARG, *args, **kwargs):
+        super(SubRecord, self).__init__(*args, **kwargs)
+        self.set("definition", definition)
+        self.set("allow_unknown", allow_unknown)
+        if extends is not _NO_ARG:
             extends = copy.deepcopy(extends)
-            self.definition = self.merge(extends).definition
+            self.set("definition", self.merge(extends).definition)
         # safety check
         if self.definition:
             for k, v in sorted(self.definition.iteritems()):
@@ -139,8 +135,7 @@ class SubRecord(Keyable):
                 yield item
 
     def merge(self, other):
-        doc = self.doc or other.doc
-        doc = self.required or other.required
+        assert isinstance(other, SubRecord)
         newdef = {}
         l_keys = set(self.definition.keys())
         r_keys = set(other.definition.keys())
@@ -159,7 +154,9 @@ class SubRecord(Keyable):
                 newdef[key] = l_value.merge(r_value)
             else:
                 raise MergeConflictException("Only subrecords can be merged. (%s)", key)
-        self.definition = newdef
+        self.set("definition", newdef)
+        self.set("required", self.required or other.required)
+        self.set("doc", self.doc or other.doc)
         return self
 
     def to_bigquery(self, name):
@@ -231,28 +228,29 @@ class SubRecord(Keyable):
 
 
 def SubRecordType(definition,
-        required=False,
-        doc=None,
-        allow_unknown=False,
-        exclude=None,
-        category=None):
-    attrs = {
-        "definition":definition,
-        "required":required,
-        "doc":doc,
-        "allow_unknown":allow_unknown,
-        "_exclude":exclude if exclude else set([]),
-        "category":category
-    }
-    return type("SubRecord", (SubRecord,), attrs)
-
+        required=_NO_ARG,
+        doc=_NO_ARG,
+        desc=_NO_ARG,
+        allow_unknown=_NO_ARG,
+        exclude=_NO_ARG,
+        category=_NO_ARG):
+    t = type("SubRecord", (SubRecord,), {})
+    t.set_default("definition", definition)
+    t.set_default("required", required)
+    t.set_default("doc", doc)
+    t.set_default("desc", desc)
+    t.set_default("allow_unknown", allow_unknown)
+    t.set_default("exclude", exclude)
+    t.set_default("category", category)
+    return t
 
 
 class NestedListOf(ListOf):
 
     def __init__(self, object_, subrecord_name, max_items=10, doc=None, category=None):
-        ListOf.__init__(self, object_, max_items, doc=doc, category=category)
-        self.subrecord_name = subrecord_name
+        super(NestedListOf, self).__init__(object_, max_items=max_items,
+                doc=doc, category=category)
+        self.set("subrecord_name", subrecord_name)
 
     def to_bigquery(self, name):
         subr = SubRecord({
