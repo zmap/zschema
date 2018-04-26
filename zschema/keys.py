@@ -44,6 +44,64 @@ class Port(object):
             return cmp(int(self.port), int(other.port))
 
 
+class TypeFactoryFactory(object):
+    """
+    Factory for TypeFactorys (e.g. SubRecordType is a TypeFactory for
+    SubRecords).
+    """
+
+    def __init__(self, cls, args=None, kwargs=None):
+        """
+        This factory acts as a constructor for cls with the first
+        len(args) positional arguments fixed by args, and with kwargs
+        serving as the default keyword arguments.
+        Note: the positional args can be set here, or in the later call,
+        but not in both.
+        """
+        if not callable(cls):
+            raise TypeError("cls must be callable.")
+
+        if args is None:
+            args = ()
+
+        if kwargs is None:
+            kwargs = {}
+
+        if not isinstance(args, (list, tuple)):
+            raise TypeError("If present, args must be a list or a tuple.")
+
+        if not isinstance(kwargs, dict):
+            raise TypeError("If present, kwargs must be a dict.")
+
+        self.args = tuple(args)
+        # Store a shallow copy, not a reference
+        self.kwargs = dict(kwargs)
+        self.cls = cls
+
+    @staticmethod
+    def _left_merge(lhs, rhs):
+        """
+        Create a dict with all the keys / values of rhs and lhs, where
+        from lhs are used if a key is in both.
+        TODO FIXME: Unify all of the dict-merging code somewhere and use that instead of this.
+        """
+        ret = rhs.copy()
+        ret.update(lhs)
+        return ret
+
+    def __call__(self, *args, **kwargs):
+        """
+        Returns a TypeFactory that returns type instances of cls, using
+        the args positional arguments, and using kwargs as the default
+        values for any keyword arguments.
+        """
+        if args and self.args:
+            raise Exception("Positional arguments already bound during TypeFactory creation.")
+        if self.args and not args:
+            args = self.args
+        return self.cls(*args, **TypeFactoryFactory._left_merge(kwargs, self.kwargs))
+
+
 class Keyable(object):
 
     VALID_ES_INDEXES = [
@@ -122,6 +180,27 @@ class Keyable(object):
         if hasattr(self, instance) and getattr(self, instance):
             d[name] = getattr(self, instance)
         return d
+
+    @classmethod
+    def with_args(cls, *args, **kwargs):
+        """
+        Get a constructor for this type using the given positional
+        arguments; any keyword arguments will act as defaults if they
+        not specified.
+
+        Examples:
+            >>> MyStringType = String.with_args(doc="Some docs for my string", category="my category")
+            >>> my_string_1 = MyStringType(doc="overridden docs")
+            >>> my_string_2 = MyStringType(examples=["a", "b", "c"])
+            >>> print my_string_1.doc, my_string_2.doc
+            "overridden docs", "Some docs for my string"
+
+            >>> CertChain = ListOf.with_args(Certificate(doc="An element of the chain."), doc="A list of certificates.")
+            >>> my_chain = CertChain()
+            >>> print my_chain.doc, my_chain.object_.doc
+            "A list of certificates", "An element of the chain."
+        """
+        return TypeFactoryFactory(cls=cls, args=args, kwargs=kwargs)
 
     @classmethod
     def _populate_types_by_name(cls):
@@ -211,5 +290,6 @@ class DataValidationException(TypeError):
 
 class MergeConflictException(Exception):
     pass
+
 
 _zschema_types_by_name = {}

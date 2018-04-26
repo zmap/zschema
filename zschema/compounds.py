@@ -221,8 +221,8 @@ class SubRecord(Keyable):
                                           name, str(value))
         for subkey, subvalue in sorted(value.iteritems()):
             if not self.allow_unknown and subkey not in self.definition:
-                raise DataValidationException("%s: %s is not a valid subkey",
-                                              name, subkey)
+                raise DataValidationException("%s: %s is not a valid subkey" %
+                                              (name, subkey))
             else:
                 self.definition[subkey].validate(subkey, subvalue)
 
