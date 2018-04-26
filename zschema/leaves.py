@@ -2,6 +2,7 @@ import sys
 import unittest
 import re
 import dateutil.parser
+import datetime 
 
 from keys import *
 
@@ -423,7 +424,8 @@ class DateTime(Leaf):
 
     ES_TYPE = "date"
     BQ_TYPE = "DATETIME"
-    EXPECTED_CLASS = [str, int, unicode]
+    # dateutil.parser.parse(int) throws...? is this intended to be a unix epoch offset?
+    EXPECTED_CLASS = [str, int, unicode, datetime.datetime]
 
     VALID = "Wed Jul  8 08:52:01 EDT 2015"
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
@@ -445,6 +447,10 @@ class DateTime(Leaf):
             self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE, ignoretz=True)
 
     def _validate(self, name, value):
+        if isinstance(value, datetime.datetime):
+            return
+
+        # FIXME: ignoretz should be set for TIMESTAMP but not DATETIME?
         try:
             dt = dateutil.parser.parse(value, ignoretz=True)
         except Exception, e:
