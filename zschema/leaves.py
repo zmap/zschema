@@ -2,7 +2,8 @@ import sys
 import unittest
 import re
 import dateutil.parser
-import datetime 
+import datetime
+import socket
 
 from keys import *
 
@@ -289,22 +290,46 @@ class IPAddress(Leaf):
     ES_TYPE = "ip"
     BQ_TYPE = "STRING"
     EXPECTED_CLASS = [str,unicode]
-    IP_REGEX = re.compile('(\d{1,3}\.){3}\d{1,3}')
+
+    IPV4_REGEX = re.compile('(\d{1,3}\.){3}\d{1,3}')
 
     def _is_ipv4_addr(self, ip):
-        return bool(self.IP_REGEX.match(ip))
+        return bool(self.IPV4_REGEX.match(ip))
+
+    def _is_ipv6_addr(self, ip):
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+            return True
+        except socket.error:
+            return False
+
+    def _validate(self, name, value):
+        if not self._is_ipv4_addr(value) and not self._is_ipv6_addr(value):
+            m = "%s: the value %s is not a valid IP address" % (name, value)
+            raise DataValidationException(m)
+
+
+class IPv4Address(IPAddress):
+
+    INVALID = "my string"
+    VALID = "141.212.120.0"
 
     def _validate(self, name, value):
         if not self._is_ipv4_addr(value):
             m = "%s: the value %s is not a valid IPv4 address" % (name, value)
             raise DataValidationException(m)
 
+
+class IPv6Address(IPAddress):
+
     INVALID = "my string"
-    VALID = "141.212.120.0"
+    VALID = "2a04:9740:8:c010:e228:6dff:fefe:6e53"
 
+    def _validate(self, name, value):
+        if not self._is_ipv6_addr(value):
+            m = "%s: the value %s is not a valid IPv6 address" % (name, value)
+            raise DataValidationException(m)
 
-class IPv4Address(IPAddress):
-    pass
 
 class _Integer(Leaf):
 
@@ -552,6 +577,7 @@ VALID_LEAVES = [
     Double,
     Float,
     IPv4Address,
+    IPv6Address,
     IPAddress,
     Enum,
     HexString,
