@@ -88,7 +88,7 @@ def ListOfType(object_,
     t.set_default("doc", doc)
     t.set_default("desc", desc)
     t.set_default("category", category)
-    t.set_default("exampls", examples)
+    t.set_default("examples", examples)
 
 
 class SubRecord(Keyable):
