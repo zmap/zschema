@@ -118,13 +118,9 @@ class Keyable(object):
     def exclude_elasticsearch(self):
         return "elasticsearch" in self.exclude
 
-    def add_es_var(self, d, name, instance, default=None):
-        if default is None:
-            default = name.upper()
+    def add_not_empty(self, d, name, instance):
         if hasattr(self, instance) and getattr(self, instance):
             d[name] = getattr(self, instance)
-        elif hasattr(self, default) and getattr(self, default):
-            d[name] = getattr(self, default)
         return d
 
     @classmethod

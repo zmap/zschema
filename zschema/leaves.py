@@ -49,19 +49,19 @@ class Leaf(Keyable):
 
     def to_dict(self):
         retv = super(Leaf, self).to_dict()
-        self.add_es_var(retv, "es_type", "es_type")
-        self.add_es_var(retv, "bq_type", "bq_type")
-        self.add_es_var(retv, "units", "units")
-        self.add_es_var(retv, "es_analyzer", "es_analyzer")
-        self.add_es_var(retv, "es_index", "es_index")
-        self.add_es_var(retv, "es_search_analyzer", "es_search_analyzer")
+        self.add_not_empty(retv, "es_type", "es_type")
+        self.add_not_empty(retv, "bq_type", "bq_type")
+        self.add_not_empty(retv, "units", "units")
+        self.add_not_empty(retv, "es_analyzer", "es_analyzer")
+        self.add_not_empty(retv, "es_index", "es_index")
+        self.add_not_empty(retv, "es_search_analyzer", "es_search_analyzer")
         return retv
 
     def to_es(self):
         retv = {"type":self.ES_TYPE}
-        self.add_es_var(retv, "index", "es_index")
-        self.add_es_var(retv, "analyzer", "es_analyzer")
-        self.add_es_var(retv, "search_analyzer", "es_search_analyzer")
+        self.add_not_empty(retv, "index", "es_index")
+        self.add_not_empty(retv, "analyzer", "es_analyzer")
+        self.add_not_empty(retv, "search_analyzer", "es_search_analyzer")
         if self.es_include_raw:
             retv["fields"] = {
                     "raw":{"type":"keyword"}
@@ -73,15 +73,15 @@ class Leaf(Keyable):
             "detail_type": self.__class__.__name__,
             "category": self.category or parent_category,
             "doc": self.doc,
-            #"desc": self.desc,
             "required": self.required,
             "examples": self.examples,
         }
+        self.add_not_empty(retv, "desc", "desc")
         return retv
 
     def docs_es(self, parent_category=None):
         retv = self._docs_common(parent_category)
-        self.add_es_var(retv, "analyzer", "es_analyzer", "ES_ANALYZER")
+        self.add_not_empty(retv, "analyzer", "es_analyzer")
         retv["type"] = self.ES_TYPE
         return retv
 
