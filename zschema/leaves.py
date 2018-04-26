@@ -149,22 +149,24 @@ class Leaf(Keyable):
         print val
 
     def validate(self, name, value):
-        validator = self.validator or self
-        if not validator._check_valid_name(name):
+        if self.validator:
+            self.validator.validate(name, value)
+            return
+        if not self._check_valid_name(name):
             raise DataValidationException("Invalid field name: %s" % name)
         if value is None:
-            if validator.required:
+            if self.required:
                 raise DataValidationException("%s is a required field, but "
                                               "recieved None" % name)
             else:
                 return
-        if type(value) not in validator.EXPECTED_CLASS:
+        if type(value) not in self.EXPECTED_CLASS:
             m = "class mismatch for %s: expected %s, %s has class %s" % (\
-                    self.key_to_string(name), validator.EXPECTED_CLASS,
+                    self.key_to_string(name), self.EXPECTED_CLASS,
                     str(value), value.__class__.__name__)
             raise DataValidationException(m)
-        if hasattr(validator, "_validate"):
-            validator._validate(str(name), value)
+        if hasattr(self, "_validate"):
+            self._validate(str(name), value)
 
 
 
