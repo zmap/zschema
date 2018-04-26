@@ -72,6 +72,7 @@ class Keyable(object):
     EXAMPLES = []
     EXCLUDE = set([])
     METADATA = {}
+    ALLOW_UNKNOWN = False
 
     # create a map from name of type to class. We can use this
     # in order to create the Python definition from JSON. We need
@@ -181,7 +182,7 @@ class Keyable(object):
 
     @classmethod
     def set_default(cls, k, v):
-        if k is not _NO_ARG:
+        if v is not _NO_ARG:
             new_k = k.upper()
             setattr(cls, new_k, v)
 

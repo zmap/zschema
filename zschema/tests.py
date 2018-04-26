@@ -612,10 +612,8 @@ class CompileAndValidationTests(unittest.TestCase):
         self.assertEqual(ssh.required, False)
         ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
         # class unchanged
-        self.assertEqual(SSH.doc, "class doc")
-        self.assertEqual(SSH.required, False)
-
-
+        self.assertEqual(SSH.DOC, "class doc")
+        self.assertEqual(SSH.REQUIRED, False)
 
     def test_subrecord_type_override(self):
         SSH = SubRecordType({
@@ -638,8 +636,8 @@ class CompileAndValidationTests(unittest.TestCase):
         self.assertEqual(ssh.required, True)
         ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
         # class unchanged
-        self.assertEqual(SSH.doc, "class doc")
-        self.assertEqual(SSH.required, False)
+        self.assertEqual(SSH.DOC, "class doc")
+        self.assertEqual(SSH.REQUIRED, False)
 
 
 class RegistryTests(unittest.TestCase):

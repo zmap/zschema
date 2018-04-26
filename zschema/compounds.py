@@ -5,6 +5,7 @@ import json
 from keys import *
 from keys import _NO_ARG
 
+
 def _is_valid_object(name, object_):
     if not isinstance(object_, Keyable):
         raise Exception("Invalid schema. %s is not a Keyable." % name)
@@ -89,12 +90,15 @@ def ListOfType(object_,
 
 class SubRecord(Keyable):
 
-    def __init__(self, definition=None, extends=None,
-            allow_unknown=False, *args, **kwargs):
+    DEFINITION = {}
+    ALLOW_UNKNOWN = False
+
+    def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
+            allow_unknown=_NO_ARG, *args, **kwargs):
         super(SubRecord, self).__init__(*args, **kwargs)
         self.set("definition", definition)
         self.set("allow_unknown", allow_unknown)
-        if extends is not None:
+        if extends is not _NO_ARG:
             extends = copy.deepcopy(extends)
             self.set("definition", self.merge(extends).definition)
         # safety check
@@ -128,8 +132,8 @@ class SubRecord(Keyable):
                 yield item
 
     def merge(self, other):
+        assert isinstance(other, SubRecord)
         doc = self.doc or other.doc
-        required = self.required or other.required
         newdef = {}
         l_keys = set(self.definition.keys())
         r_keys = set(other.definition.keys())
@@ -149,7 +153,8 @@ class SubRecord(Keyable):
             else:
                 raise MergeConflictException("Only subrecords can be merged. (%s)", key)
         self.set("definition", newdef)
-        self.set("required", required)
+        self.set("required", self.required or other.required)
+        self.set("doc", self.doc or other.doc)
         return self
 
     def to_bigquery(self, name):
@@ -232,7 +237,9 @@ def SubRecordType(definition,
     t.set_default("required", required)
     t.set_default("doc", doc)
     t.set_default("desc", desc)
+    print ">>>>>>>>>>>>>>>>", t.ALLOW_UNKNOWN
     t.set_default("allow_unknown", allow_unknown)
+    print ">>>>>>>>>>>>>>>>", t.ALLOW_UNKNOWN
     t.set_default("exclude", exclude)
     t.set_default("category", category)
     return t
