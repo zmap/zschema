@@ -78,6 +78,7 @@ def ListOfType(object_,
         max_items=_NO_ARG,
         doc=_NO_ARG,
         desc=_NO_ARG,
+        examples=_NO_ARG,
         category=_NO_ARG):
     _is_valid_object("Anonymous ListOf", object_)
     t = type("ListOf", (ListOf,), {})
@@ -86,6 +87,8 @@ def ListOfType(object_,
     t.set_default("required", required)
     t.set_default("doc", doc)
     t.set_default("desc", desc)
+    t.set_default("category", category)
+    t.set_default("exampls", examples)
 
 
 class SubRecord(Keyable):
