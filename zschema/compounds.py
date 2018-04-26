@@ -240,9 +240,7 @@ def SubRecordType(definition,
     t.set_default("required", required)
     t.set_default("doc", doc)
     t.set_default("desc", desc)
-    print ">>>>>>>>>>>>>>>>", t.ALLOW_UNKNOWN
     t.set_default("allow_unknown", allow_unknown)
-    print ">>>>>>>>>>>>>>>>", t.ALLOW_UNKNOWN
     t.set_default("exclude", exclude)
     t.set_default("category", category)
     return t
