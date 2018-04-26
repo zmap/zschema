@@ -2,28 +2,73 @@ import sys
 import os.path
 import json
 import zschema.registry
+import argparse
 
 from imp import load_source
+from importlib import import_module
+from site import addsitedir
 
 from leaves import *
 from keys import *
 from compounds import *
 
-def usage():
-    sys.stderr.write("USAGE: %s command schema [file].\n" % sys.argv[0].split("/")[-1])
-    sys.stderr.write("Valid commands: bigquery, elasticsearch, docs-es, docs-bq, json, flat, validate.\n")
-    sys.stderr.write("Schema should be passed as file.py:record\n")
-    sys.stderr.write("The optional 'file' argument is used only as the test file for the 'validate' command.\n")
-    sys.stderr.write("VERSION: %s\n" % zschema.__version__)
-    sys.exit(1)
+commands = [
+    "bigquery",
+    "elasticsearch",
+    "docs-bq",
+    "docs-es",
+    "validate",
+    "flat",
+    "json"
+]
+
+cmdList = ", ".join(commands)
+
+parser = argparse.ArgumentParser(
+    prog="zschema",
+    description="Process a zschema definition. "
+                "VERSION: %s" % zschema.__version__)
+
+parser.add_argument("command",
+                    metavar="command", choices=commands,
+                    help="The command to execute; one of [ %s ]" % cmdList)
+
+parser.add_argument("schema",
+                    help="The name of the schema in the zschema.registry. "
+                         "For backwards compatibility, a filename can be "
+                         "prefixed with a colon, as in 'schema.py:my-type'.")
+
+parser.add_argument("target", nargs="?",
+                    help="Only used for the validate command. "
+                         "The input JSON file that will be checked against "
+                         "the schema.")
+
+parser.add_argument("--module", help="The name of a module to import.")
+
+parser.add_argument("--path", nargs="*",
+                    help="Additional PYTHONPATH directories to include.")
+
+args = parser.parse_args()
+
 
 def main():
-    if len(sys.argv) < 3:
-        usage()
-    path, recname = sys.argv[2].split(":")
-    module = load_source("module", path)
-    record = zschema.registry.get_schema(recname)
-    command = sys.argv[1]
+    if args.path:
+        for syspath in args.path:
+            addsitedir(syspath)
+
+    schema = args.schema
+
+    # Backwards compatibility: given "file.py:schema", load file.py.
+    if ":" in schema:
+        path, recname = schema.split(":")
+        load_source('module', path)
+        schema = recname
+
+    if args.module:
+        import_module(args.module)
+
+    record = zschema.registry.get_schema(schema)
+    command = args.command
     if command == "bigquery":
         print json.dumps(record.to_bigquery())
     elif command == "elasticsearch":
@@ -38,14 +83,15 @@ def main():
         for r in record.to_flat():
             print json.dumps(r)
     elif command == "validate":
-        if not os.path.exists(sys.argv[3]):
-            sys.stderr.write("Invalid test file. %s does not exist.\n" % sys.argv[3])
+        if not os.path.exists(args.target):
+            sys.stderr.write("Invalid test file. %s does not exist.\n" % args.target)
             sys.exit(1)
-        with open(sys.argv[3]) as fd:
+        with open(args.target) as fd:
             for line in fd:
                 record.validate(json.loads(line.strip()))
     else:
         usage()
+
 
 if __name__ == "__main__":
     main()

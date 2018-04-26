@@ -3,6 +3,7 @@ import itertools
 import json
 import os
 import pprint
+import datetime
 
 from zschema import registry
 from zschema.leaves import *
@@ -14,6 +15,7 @@ def json_fixture(name):
     with open(fixture_path) as fixture_file:
         fixture = json.load(fixture_file)
     return fixture
+
 
 class LeafUnitTests(unittest.TestCase):
 
@@ -29,6 +31,26 @@ class LeafUnitTests(unittest.TestCase):
                                 leaf.__name__)
             except DataValidationException:
                 continue
+
+    def test_to_dict(self):
+        for leaf in VALID_LEAVES:
+            leaf().to_dict()
+
+    def test_es(self):
+        for leaf in VALID_LEAVES:
+            leaf().to_es()
+
+    def test_bq(self):
+        for leaf in VALID_LEAVES:
+            leaf().to_bigquery("myname")
+
+    def test_docs_es(self):
+        for leaf in VALID_LEAVES:
+            leaf().docs_es()
+
+    def test_docs_bq(self):
+        for leaf in VALID_LEAVES:
+            leaf().docs_bq()
 
 
 VALID_ELASTIC_SEARCH = {
@@ -748,3 +770,11 @@ class WithArgsTests(unittest.TestCase):
         self.assertEqual("default docs", p0.doc)
         self.assertEqual(("a",), p0doc.args)
         self.assertEqual("some docs", p0doc.doc)
+
+class DatetimeTest(unittest.TestCase):
+    def test_datetime_DateTime(self):
+        DateTimeRecord = DateTime()
+        DateTimeRecord.validate("fake", datetime.datetime.now())
+        DateTimeRecord.validate("fake", "Wed Dec  5 01:23:45 CST 1956")
+        # Note: int values are nominally accepted but not valid
+        # DateTimeRecord.validate("fake", 116048701)

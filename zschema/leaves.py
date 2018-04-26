@@ -2,6 +2,7 @@ import sys
 import unittest
 import re
 import dateutil.parser
+import datetime 
 
 from keys import *
 
@@ -83,11 +84,8 @@ class Leaf(Keyable):
             "category": self.category or parent_category,
             "doc": self.doc,
             "required": self.required,
+            "examples": self.examples,
         }
-        if hasattr(self, "values_s") and len(self.values_s):
-            retv["values"] = list(self.values_s)
-        else:
-            retv["examples"] = self.examples
         return retv
 
     def docs_es(self, parent_category=None):
@@ -149,7 +147,7 @@ class Leaf(Keyable):
 
     def validate(self, name, value):
         if not self._check_valid_name(name):
-            raise Exception("Invalid field name: %s" % name)
+            raise DataValidationException("Invalid field name: %s" % name)
         if value is None:
             if self.required:
                 raise DataValidationException("%s is a required field, but "
@@ -246,16 +244,24 @@ class Enum(Leaf):
     INVALID = 23
     VALID = None
 
-    def __init__(self, values=[None,], *args, **kwargs):
+    def __init__(self, values=None, *args, **kwargs):
         Leaf.__init__(self, *args, **kwargs)
+        if values is None:
+            values = []
         self.values = values
         self.values_s = set(values)
 
     def _validate(self, name, value):
-        if value not in self.values_s:
+        if len(self.values_s) and value not in self.values_s:
             m = "%s: the value %s is not a valid enum option" % (name, value)
             raise DataValidationException(m)
 
+    def _docs_common(self, parent_category):
+        retv = super(Enum, self)._docs_common(parent_category)
+        if len(self.values_s):
+            retv["values"] = list(self.values_s)
+            del retv["examples"]
+        return retv
 
 class HTML(AnalyzedString):
 
@@ -418,7 +424,8 @@ class DateTime(Leaf):
 
     ES_TYPE = "date"
     BQ_TYPE = "DATETIME"
-    EXPECTED_CLASS = [str, int, unicode]
+    # dateutil.parser.parse(int) throws...? is this intended to be a unix epoch offset?
+    EXPECTED_CLASS = [str, int, unicode, datetime.datetime]
 
     VALID = "Wed Jul  8 08:52:01 EDT 2015"
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
@@ -440,6 +447,10 @@ class DateTime(Leaf):
             self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE, ignoretz=True)
 
     def _validate(self, name, value):
+        if isinstance(value, datetime.datetime):
+            return
+
+        # FIXME: ignoretz should be set for TIMESTAMP but not DATETIME?
         try:
             dt = dateutil.parser.parse(value, ignoretz=True)
         except Exception, e:

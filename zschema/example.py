@@ -10,7 +10,7 @@ heartbleed = SubRecord({
 
 host = Record({
         "ipstr":IPv4Address(required=True),
-        "ip":Long(),
+        "ip":Unsigned32BitInteger(),
         Port(443):SubRecord({
             "tls":String(),
             "heartbleed":heartbleed

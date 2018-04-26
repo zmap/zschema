@@ -5,8 +5,3 @@ install:
   - python setup.py install
 script:
   - nosetests zschema
-notifications:
-  email:
-    - zmap-devel@umich.edu
-  slack:
-    secure: f38d1pwwdOLavJxiy05Zd6USWYfnK+535HG0lVxmI/8Wshi1aPJzsM3DpaFLKvw+bbnQXbHA8PwzpR89tgS+lTT8BlIkTRzoeqebATLw+4W+JwqM03jzH/NPu4zdc7Wb6G/iQrd1H/NS9yK9a2SMIn9I3yXjwlQUSTUvFwFw9114zZX7VmocaTN7dqMIOOuJAbjn7BzA3TDiZcOX9p/s+3DGPW4tkxciSlLDLNyRNUpE35CDKoq7nx5X+YJBTq4WP8S2GMuYRsKXpAaqEp7CouR9I+dQkPzTl4eysbtYCmHLWIRStC+fdv8s57Vr2pXGFV3lwcE43y9nAGlMqGdjWw9Ikbo4F0DyWwyKL65CvXoYBpOE6Ix9s7waOl31oZTxEdy02lJ1/3wTl7NeLkblw0RzlLHDrPvGZbgP6H25yM3ae1FQ/heSA4jo9jBfQidkcKvug1z4zja0Ii1XL+Zoj+Q8xqG7EMjDEzfV2YcJ1nS3OoAsro2oF0QOZM19i645MCKG7//54LfKW7FA60giMkhP6nFZqwLQ2njbl77Ov3gbgtVIblqbbmXnpHA8i5QFiXnYreXy05mBWf+H2vZL79e5CLYh+bBGL8i5I4DAMQIjm3i3pTvVSoMrb3Do4eHd1jrF3gomRk+EqMXRXnLRGmZHgAPIYl72m6pZUXAe3mA=
