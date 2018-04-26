@@ -129,7 +129,7 @@ class SubRecord(Keyable):
 
     def merge(self, other):
         doc = self.doc or other.doc
-        doc = self.required or other.required
+        required = self.required or other.required
         newdef = {}
         l_keys = set(self.definition.keys())
         r_keys = set(other.definition.keys())
@@ -148,7 +148,8 @@ class SubRecord(Keyable):
                 newdef[key] = l_value.merge(r_value)
             else:
                 raise MergeConflictException("Only subrecords can be merged. (%s)", key)
-        self.definition = newdef
+        self.set("definition", newdef)
+        self.set("required", required)
         return self
 
     def to_bigquery(self, name):
@@ -220,19 +221,19 @@ class SubRecord(Keyable):
 
 
 def SubRecordType(definition,
-        required=False,
-        doc=None,
-        desc=None,
-        allow_unknown=False,
-        exclude=None,
-        category=None):
+        required=_NO_ARG,
+        doc=_NO_ARG,
+        desc=_NO_ARG,
+        allow_unknown=_NO_ARG,
+        exclude=_NO_ARG,
+        category=_NO_ARG):
     t = type("SubRecord", (SubRecord,), {})
     t.set_default("definition", definition)
     t.set_default("required", required)
     t.set_default("doc", doc)
     t.set_default("desc", desc)
     t.set_default("allow_unknown", allow_unknown)
-    t.set_default("exclude", exclude if exclude else set([]))
+    t.set_default("exclude", exclude)
     t.set_default("category", category)
     return t
 

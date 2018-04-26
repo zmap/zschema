@@ -1,6 +1,14 @@
-class __NO_ARG(object):
+class _NO_ARG(object):
     __nonzero__ = lambda _: False
-_NO_ARG = __NO_ARG()
+
+    def __new__(cls):
+        if hasattr(cls, "_instance"):
+            return cls._instance
+        retv = super(_NO_ARG, cls).__new__(cls)
+        cls._instance = retv
+        return retv
+
+_NO_ARG = _NO_ARG()
 
 
 class Port(object):
@@ -64,8 +72,6 @@ class Keyable(object):
     EXAMPLES = []
     EXCLUDE = set([])
     METADATA = {}
-    EXCLUDE_BIGQUERY = False
-    EXCLUDE_ELASTICSEARCH = False
 
     # create a map from name of type to class. We can use this
     # in order to create the Python definition from JSON. We need
@@ -147,9 +153,6 @@ class Keyable(object):
         self.set("required", required)
         self.set("desc", desc)
         self.set("doc", doc)
-        print ">>>> ._value_doc is", self._value_doc
-        print "hasattr", hasattr("self", "_value_doc")
-        #print ">>>> .doc is ", self.doc
         self.set("examples", examples)
         self.set("category", category)
         self.set("metadata", metadata)
@@ -173,30 +176,28 @@ class Keyable(object):
         return retv
 
     def set(self, k, v):
-        #print "set called for ", k, "setting to", v
         new_k = "_value_" + k
         setattr(self, new_k, v)
 
     @classmethod
     def set_default(cls, k, v):
-        new_k = k.upper()
-        setattr(cls, k, v)
+        if k is not _NO_ARG:
+            new_k = k.upper()
+            setattr(cls, new_k, v)
 
     def __getattr__(self, k):
         # base case so that this doesn't end up in an infinite loop
-        print "getattr for", k
         if k[0] == "_":
             raise AttributeError(k)
+        if k.upper() == k:
+            raise AttributeError(k)
         if hasattr(self, "_value_" + k):
-            print "has _value_" + k
             v = getattr(self, "_value_" + k)
             if v is not _NO_ARG:
                 return v
-        print "does not have _value_" + k
         if hasattr(self, k.upper()):
             v = getattr(self, k.upper())
             if v is not _NO_ARG:
-                print "default"
                 return v
         raise AttributeError(k)
 
