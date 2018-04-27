@@ -812,6 +812,15 @@ class ValidationPolicies(unittest.TestCase):
     def test_policy_setting_inherit(self):
         self.assertRaises(lambda: self.record.validate({"c":{"foo":"string value"}}))
 
+    def test_policy_setting_multi_level_inherit(self):
+        self.assertRaises(lambda: self.record.validate({"a":{"bar":"string value"}}))
+
+    def test_explicit_policy(self):
+        self.record.validate({"c":{"foo":"string value"}},
+                policy="ignore")
+
+
+
 
 
 
