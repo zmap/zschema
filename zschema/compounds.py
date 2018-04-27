@@ -11,12 +11,13 @@ def _is_valid_object(name, object_):
 
 class ListOf(Keyable):
 
-    def __init__(self, object_, required=None, max_items=None, doc=None, category=None):
+    def __init__(self, object_, required=None, max_items=None, doc=None, category=None, validator=None):
         self.replace_set("object_", object_)
         self.replace_set("max_items", max_items)
         self.replace_set("category", category)
         self.replace_set("required", required)
         self.replace_set("doc", doc)
+        self.replace_set("validator", validator)
         _is_valid_object("Anonymous ListOf", self.object_)
 
     @property
@@ -59,6 +60,9 @@ class ListOf(Keyable):
         return retv
 
     def validate(self, name, value):
+        if self.validator:
+            self.validator.validate(name, value)
+            return
         if type(value) != list:
             raise DataValidationException("%s: %s is not a list",
                                           name, str(value))
@@ -98,12 +102,14 @@ class SubRecord(Keyable):
             extends=None,
             allow_unknown=False,
             exclude=None,
-            category=None):
+            category=None,
+            validator=None):
         self.replace_set("definition", definition)
         self.replace_set("required", required)
         self.replace_set("allow_unknown", allow_unknown)
         self.replace_set("doc", doc)
         self.replace_set("category", category)
+        self.replace_set("validator", validator)
         self.replace_set("_exclude", set(exclude) if exclude else set([]))
         if extends is not None:
             extends = copy.deepcopy(extends)
@@ -219,6 +225,9 @@ class SubRecord(Keyable):
         return {"type":"subrecord", "subfields": p, "doc":self.doc, "required":self.required}
 
     def validate(self, name, value):
+        if self.validator:
+            self.validator.validate(name, value)
+            return
         if type(value) != dict:
             raise DataValidationException("%s: %s is not a dict",
                                           name, str(value))
