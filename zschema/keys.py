@@ -1,3 +1,5 @@
+import logging
+
 class _NO_ARG(object):
     __nonzero__ = lambda _: False
 
@@ -131,6 +133,7 @@ class Keyable(object):
     EXCLUDE = set([])
     METADATA = {}
     ALLOW_UNKNOWN = False
+    VALIDATION_POLICY = "inherit"
 
     # create a map from name of type to class. We can use this
     # in order to create the Python definition from JSON. We need
@@ -167,6 +170,43 @@ class Keyable(object):
             return o
         else:
             return o.to_string()
+
+    @staticmethod
+    def _handle_validation(policy, e):
+        if policy == "error":
+            raise e
+        elif policy == "warn":
+            logging.warn(e.message)
+        elif policy == "ignore":
+            pass
+        else:
+            raise Exception
+
+    @staticmethod
+    def _validate_policy(name, policy):
+        if policy not in {"error", "warn", "ignore"}:
+            raise Exception("Invalid policy for %s: %s" % (name, policy))
+
+    def _calculate_policy(self, name, policy, parent_policy):
+        # Validation policies can be enforced several ways in the following
+        # priority order:
+        #
+        # 1) explicit policy passed into .validate
+        # 2) policy defined in the object:
+        #       a) policy at object creation
+        #       b) default or that field type
+
+        # the real policy automatically wins
+        if policy is not _NO_ARG:
+            if policy == "inherit":
+                raise Exception("Cannot explicitly validate with inherit")
+        else:
+            if self.validation_policy == "inherit":
+                policy = parent_policy
+            else:
+                policy = self.validation_policy
+        self._validate_policy(name, policy)
+        return policy
 
     @property
     def exclude_bigquery(self):
@@ -225,7 +265,7 @@ class Keyable(object):
 
     def __init__(self, required=_NO_ARG, desc=_NO_ARG, doc=_NO_ARG, category=_NO_ARG,
             exclude=_NO_ARG, deprecated=_NO_ARG, ignore=_NO_ARG,
-            examples=_NO_ARG, metadata=_NO_ARG):
+            examples=_NO_ARG, metadata=_NO_ARG, validation_policy=_NO_ARG):
         self.set("required", required)
         self.set("desc", desc)
         self.set("doc", doc)
@@ -235,6 +275,7 @@ class Keyable(object):
         self.set("metadata", metadata)
         self.set("deprecated", deprecated)
         self.set("ignore", ignore)
+        self.set("validation_policy", validation_policy)
 
         if self.DEPRECATED_TYPE:
             e = "WARN: %s is deprecated and will be removed in a "\

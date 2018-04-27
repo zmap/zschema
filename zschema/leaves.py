@@ -2,7 +2,7 @@ import sys
 import unittest
 import re
 import dateutil.parser
-import datetime 
+import datetime
 
 from keys import *
 from keys import _NO_ARG
@@ -137,7 +137,9 @@ class Leaf(Keyable):
             val = tabs + val
         print val
 
-    def validate(self, name, value):
+    def validate(self, name, value, *args, **kwargs):
+        # ^ take args and kwargs because compounds have additional
+        # arguments that get passed in
         if not self._check_valid_name(name):
             raise DataValidationException("Invalid field name: %s" % name)
         if value is None:
@@ -153,7 +155,6 @@ class Leaf(Keyable):
             raise DataValidationException(m)
         if hasattr(self, "_validate"):
             self._validate(str(name), value)
-
 
 
 class String(Leaf):
