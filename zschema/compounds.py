@@ -254,7 +254,8 @@ def SubRecordType(definition,
         desc=_NO_ARG,
         allow_unknown=_NO_ARG,
         exclude=_NO_ARG,
-        category=_NO_ARG):
+        category=_NO_ARG,
+        validation_policy=_NO_ARG):
     t = type("SubRecord", (SubRecord,), {})
     t.set_default("definition", definition)
     t.set_default("required", required)
@@ -263,6 +264,7 @@ def SubRecordType(definition,
     t.set_default("allow_unknown", allow_unknown)
     t.set_default("exclude", exclude)
     t.set_default("category", category)
+    t.set_default("validation_policy", validation_policy)
     return t
 
 

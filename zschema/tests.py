@@ -774,9 +774,44 @@ class WithArgsTests(unittest.TestCase):
         self.assertEqual("some docs", p0doc.doc)
 
 class DatetimeTest(unittest.TestCase):
+
     def test_datetime_DateTime(self):
         DateTimeRecord = DateTime(validation_policy="error")
         DateTimeRecord.validate("fake", datetime.datetime.now())
         DateTimeRecord.validate("fake", "Wed Dec  5 01:23:45 CST 1956")
         # Note: int values are nominally accepted but not valid
         # DateTimeRecord.validate("fake", 116048701)
+
+
+class ValidationPolicies(unittest.TestCase):
+
+
+    def setUp(self):
+        self.maxDiff=10000
+
+        Child = SubRecordType({
+            "foo":Boolean(),
+            "bar":Boolean(validation_policy="error"),
+        }, validation_policy="error")
+        self.record = Record({
+            "a":Child(validation_policy="error"),
+            "b":Child(validation_policy="warn"),
+            "c":Child(validation_policy="ignore"),
+            "d":Child(validation_policy="inherit"),
+        })
+
+    def test_policy_setting_warn(self):
+        self.record.validate({"b":{"foo":"string value"}})
+
+    def test_policy_setting_ignore(self):
+        self.record.validate({"c":{"foo":"string value"}})
+
+    def test_policy_setting_error(self):
+        self.assertRaises(lambda: self.record.validate({"c":{"foo":"string value"}}))
+
+    def test_policy_setting_inherit(self):
+        self.assertRaises(lambda: self.record.validate({"c":{"foo":"string value"}}))
+
+
+
+
