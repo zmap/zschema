@@ -180,7 +180,7 @@ class Keyable(object):
         elif policy == "ignore":
             pass
         else:
-            raise Exception
+            raise Exception("Invalid validation policy. Must be one of: error, warn, ignore")
 
     @staticmethod
     def _validate_policy(name, policy):
