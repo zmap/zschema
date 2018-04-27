@@ -194,7 +194,7 @@ class Keyable(object):
         # 1) explicit policy passed into .validate
         # 2) policy defined in the object:
         #       a) policy at object creation
-        #       b) default or that field type
+        #       b) default on that field type
 
         # the real policy automatically wins
         if policy is not _NO_ARG:
