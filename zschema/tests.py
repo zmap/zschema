@@ -22,12 +22,12 @@ class LeafUnitTests(unittest.TestCase):
 
     def test_valid(self):
         for leaf in VALID_LEAVES:
-            leaf().validate(leaf.__name__, leaf.VALID)
+            leaf(validation_policy="error").validate(leaf.__name__, leaf.VALID)
 
     def test_invalid(self):
         for leaf in VALID_LEAVES:
             try:
-                leaf().validate(leaf.__name__, leaf.INVALID)
+                leaf(validation_policy="error").validate(leaf.__name__, leaf.INVALID)
                 raise Exception("invalid value did not fail for %s",
                                 leaf.__name__)
             except DataValidationException:
@@ -775,7 +775,7 @@ class WithArgsTests(unittest.TestCase):
 
 class DatetimeTest(unittest.TestCase):
     def test_datetime_DateTime(self):
-        DateTimeRecord = DateTime()
+        DateTimeRecord = DateTime(validation_policy="error")
         DateTimeRecord.validate("fake", datetime.datetime.now())
         DateTimeRecord.validate("fake", "Wed Dec  5 01:23:45 CST 1956")
         # Note: int values are nominally accepted but not valid
