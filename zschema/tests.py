@@ -816,7 +816,7 @@ class ValidationPolicies(unittest.TestCase):
         self.assertRaises(lambda: self.record.validate({"a":{"bar":"string value"}}))
 
     def test_explicit_policy(self):
-        self.record.validate({"c":{"foo":"string value"}},
+        self.record.validate({"a":{"foo":"string value"}},
                 policy="ignore")
 
 
