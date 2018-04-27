@@ -241,7 +241,7 @@ class SubRecord(Keyable):
                 if not self.allow_unknown and subkey not in self.definition:
                     raise DataValidationException("%s: %s is not a valid subkey" %
                                                   (name, subkey))
-                else:
+                if subkey in self.definition:
                     self.definition[subkey].validate(subkey, subvalue,
                             policy, calculated_policy)
             except DataValidationException as e:
