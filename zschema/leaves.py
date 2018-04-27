@@ -461,7 +461,7 @@ class DateTime(Leaf):
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
 
     MIN_VALUE = "1753-01-01 00:00:00.000000"
-    MAX_VALUE = "9999-12-31 00:00:00.000000"
+    MAX_VALUE = "9999-12-31 23:59:59.999999"
 
     def __init__(self, *args, **kwargs):
         super(DateTime, self).__init__(*args, **kwargs)
