@@ -61,8 +61,13 @@ class ListOf(Keyable):
     def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
         if type(value) != list:
-            raise DataValidationException("%s: %s is not a list",
-                                          name, str(value))
+            try:
+                raise DataValidationException("%s: %s is not a list",
+                                              name, str(value))
+            except DataValidationException as e:
+                self._handle_validation(calculated_policy, e)
+                # we won't be able to iterate
+                return
         for item in value:
             try:
                 self.object_.validate(name, item, policy, calculated_policy)
@@ -224,12 +229,13 @@ class SubRecord(Keyable):
     def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
         try:
-            if isinstance(value, dict):
+            if not isinstance(value, dict):
                 raise DataValidationException("%s: %s is not a dict",
                                               name, str(value))
         except DataValidationException as e:
             self._handle_validation(calculated_policy, e)
-
+            # cannot iterate over members if this isn't a dictionary
+            return
         for subkey, subvalue in sorted(value.iteritems()):
             try:
                 if not self.allow_unknown and subkey not in self.definition:
