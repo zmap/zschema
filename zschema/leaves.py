@@ -144,7 +144,7 @@ class Leaf(Keyable):
         try:
             self._raising_validate(name, value)
         except DataValidationException as e:
-            self._handle_validation(calculated_policy, e)
+            self._handle_validation_exception(calculated_policy, e)
 
     def _raising_validate(self, name, value):
         # ^ take args and kwargs because compounds have additional

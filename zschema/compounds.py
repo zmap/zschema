@@ -65,14 +65,14 @@ class ListOf(Keyable):
                 raise DataValidationException("%s: %s is not a list",
                                               name, str(value))
             except DataValidationException as e:
-                self._handle_validation(calculated_policy, e)
+                self._handle_validation_exception(calculated_policy, e)
                 # we won't be able to iterate
                 return
         for item in value:
             try:
                 self.object_.validate(name, item, policy, calculated_policy)
             except DataValidationException as e:
-                self._handle_validation(calculated_policy, e)
+                self._handle_validation_exception(calculated_policy, e)
 
     def to_dict(self):
         return {"type":"list", "list_of":self.object_.to_json()}
@@ -233,7 +233,7 @@ class SubRecord(Keyable):
                 raise DataValidationException("%s: %s is not a dict",
                                               name, str(value))
         except DataValidationException as e:
-            self._handle_validation(calculated_policy, e)
+            self._handle_validation_exception(calculated_policy, e)
             # cannot iterate over members if this isn't a dictionary
             return
         for subkey, subvalue in sorted(value.iteritems()):
@@ -245,7 +245,7 @@ class SubRecord(Keyable):
                     self.definition[subkey].validate(subkey, subvalue,
                             policy, calculated_policy)
             except DataValidationException as e:
-                self._handle_validation(calculated_policy, e)
+                self._handle_validation_exception(calculated_policy, e)
 
 
 def SubRecordType(definition,
@@ -334,7 +334,7 @@ class Record(SubRecord):
                 self.definition[subkey].validate(subkey, subvalue, policy,
                         self.validation_policy)
             except DataValidationException as e:
-                self._handle_validation(calculated_policy, e)
+                self._handle_validation_exception(calculated_policy, e)
 
     def to_dict(self):
         source = sorted(self.definition.iteritems())

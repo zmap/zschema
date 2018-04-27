@@ -172,7 +172,7 @@ class Keyable(object):
             return o.to_string()
 
     @staticmethod
-    def _handle_validation(policy, e):
+    def _handle_validation_exception(policy, e):
         if policy == "error":
             raise e
         elif policy == "warn":
