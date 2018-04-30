@@ -45,6 +45,15 @@ parser.add_argument("target", nargs="?",
 
 parser.add_argument("--module", help="The name of a module to import.")
 
+parser.add_argument("--validation-policy", help="What to do when a validation "
+        "error occurs. This only overrides the top-level Record. It does not "
+        "override subrecords. Default: error.", choices=["ignore", "warn", "error"],
+        default=None)
+
+parser.add_argument("--validation-policy-override", help="Override validation "
+        "policy for all levels of the schema.", choices=["ignore", "warn", "error"],
+        default=None)
+
 parser.add_argument("--path", nargs="*",
                     help="Additional PYTHONPATH directories to include.")
 
@@ -68,6 +77,8 @@ def main():
         import_module(args.module)
 
     record = zschema.registry.get_schema(schema)
+    if args.validation_policy:
+        record.set("validation_policy", args.validation_policy)
     command = args.command
     if command == "bigquery":
         print json.dumps(record.to_bigquery())
@@ -88,7 +99,8 @@ def main():
             sys.exit(1)
         with open(args.target) as fd:
             for line in fd:
-                record.validate(json.loads(line.strip()))
+                record.validate(json.loads(line.strip()),
+                        args.validation_policy_override)
     else:
         usage()
 
