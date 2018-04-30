@@ -72,9 +72,9 @@ class ListOf(Keyable):
                 m = "%s: %s has too many values (max: %i)" % (name, str(value),
                         self.max_items)
                 raise DataValidationException(m)
-            if self.min_items > 0 and len(value) < self.max_items:
+            if self.min_items > 0 and len(value) < self.min_items:
                 m = "%s: %s has too few values (min: %i)" % (name, str(value),
-                        self.max_items)
+                        self.min_items)
 
         except DataValidationException as e:
             self._handle_validation_exception(calculated_policy, e)
