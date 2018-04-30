@@ -230,8 +230,8 @@ class SubRecord(Keyable):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
         try:
             if not isinstance(value, dict):
-                raise DataValidationException("%s: %s is not a dict",
-                                              name, str(value))
+                m = "%s: %s is not a dict" % (name, str(value))
+                raise DataValidationException(m)
         except DataValidationException as e:
             self._handle_validation_exception(calculated_policy, e)
             # cannot iterate over members if this isn't a dictionary
