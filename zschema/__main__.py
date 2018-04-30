@@ -45,6 +45,10 @@ parser.add_argument("target", nargs="?",
 
 parser.add_argument("--module", help="The name of a module to import.")
 
+parser.add_argument("--override-validation-policy", help="What to do when a validation "
+        "error occurs. Default: error.", choices=["ignore", "warn", "error"],
+        default=None)
+
 parser.add_argument("--path", nargs="*",
                     help="Additional PYTHONPATH directories to include.")
 
@@ -88,7 +92,7 @@ def main():
             sys.exit(1)
         with open(args.target) as fd:
             for line in fd:
-                record.validate(json.loads(line.strip()))
+                record.validate(json.loads(line.strip()), args.validation_policy)
     else:
         usage()
 

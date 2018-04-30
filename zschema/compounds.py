@@ -13,10 +13,14 @@ def _is_valid_object(name, object_):
 
 class ListOf(Keyable):
 
-    def __init__(self, object_, *args, **kwargs):
+    MAX_ITEMS = 0
+
+    def __init__(self, object_, max_items=_NO_ARG, min_items=_NO_ARG, *args, **kwargs):
         _is_valid_object("Anonymous ListOf", object_)
         super(ListOf, self).__init__(*args, **kwargs)
         self.set("object_", object_)
+        self.set("max_items", max_items)
+        self.set("min_items", min_items)
 
     @property
     def exclude_bigquery(self):
@@ -60,14 +64,22 @@ class ListOf(Keyable):
 
     def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
-        if type(value) != list:
-            try:
+        try:
+            if type(value) != list:
                 m = "%s: %s is not a list" % (name, str(value))
                 raise DataValidationException(m)
-            except DataValidationException as e:
-                self._handle_validation_exception(calculated_policy, e)
-                # we won't be able to iterate
-                return
+            if self.max_items > 0 and len(value) > self.max_items:
+                m = "%s: %s has too many values (max: %i)" % (name, str(value),
+                        self.max_items)
+                raise DataValidationException(m)
+            if self.min_items > 0 and len(value) < self.max_items:
+                m = "%s: %s has too few values (min: %i)" % (name, str(value),
+                        self.max_items)
+
+        except DataValidationException as e:
+            self._handle_validation_exception(calculated_policy, e)
+            # we won't be able to iterate
+            return
         for item in value:
             try:
                 self.object_.validate(name, item, policy, calculated_policy)
@@ -324,6 +336,8 @@ class Record(SubRecord):
             field.print_indent_string(name, 0)
 
     def validate(self, value, policy=_NO_ARG):
+        if policy is None:
+            policy = _NO_ARG
         calculated_policy = self._calculate_policy("root", policy, self.validation_policy)
         # ^ note: record explicitly does not take a parent_policy
         if type(value) != dict:
