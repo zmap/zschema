@@ -6,3 +6,7 @@ dist/*
 zschema.egg-info/*
 build/*
 MANIFEST
+
+# IntelliJ IDEA
+.idea/
+*.iml
