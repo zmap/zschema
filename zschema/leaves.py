@@ -293,6 +293,9 @@ class IPAddress(Leaf):
     BQ_TYPE = "STRING"
     EXPECTED_CLASS = [str,unicode]
 
+    INVALID = "my string"
+    VALID = "141.212.120.0"
+
     IPV4_REGEX = re.compile('(\d{1,3}\.){3}\d{1,3}')
 
     def _is_ipv4_addr(self, ip):
@@ -313,7 +316,7 @@ class IPAddress(Leaf):
 
 class IPv4Address(IPAddress):
 
-    INVALID = "my string"
+    INVALID = "2a04:9740:8:c010:e228:6dff:fefe:6e53"
     VALID = "141.212.120.0"
 
     def _validate(self, name, value):
@@ -324,7 +327,7 @@ class IPv4Address(IPAddress):
 
 class IPv6Address(IPAddress):
 
-    INVALID = "my string"
+    INVALID = "141.212.120.0"
     VALID = "2a04:9740:8:c010:e228:6dff:fefe:6e53"
 
     def _validate(self, name, value):
