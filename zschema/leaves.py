@@ -2,7 +2,7 @@ import sys
 import unittest
 import re
 import dateutil.parser
-import datetime 
+import datetime
 
 from keys import *
 from keys import _NO_ARG
@@ -31,7 +31,8 @@ class Leaf(Keyable):
             metadata=_NO_ARG,
             units=_NO_ARG,
             min_value=_NO_ARG,
-            max_value=_NO_ARG):
+            max_value=_NO_ARG,
+            validation_policy=_NO_ARG):
         Keyable.__init__(self,
                 required=required,
                 desc=desc,
@@ -40,7 +41,8 @@ class Leaf(Keyable):
                 exclude=exclude,
                 deprecated=deprecated,
                 ignore=ignore,
-                examples=examples)
+                examples=examples,
+                validation_policy=validation_policy)
         self.set("es_index", es_index)
         self.set("es_analyzer", es_analyzer)
         self.set("units", units)
@@ -137,7 +139,16 @@ class Leaf(Keyable):
             val = tabs + val
         print val
 
-    def validate(self, name, value):
+    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG):
+        calculated_policy = self._calculate_policy(name, policy, parent_policy)
+        try:
+            self._raising_validate(name, value)
+        except DataValidationException as e:
+            self._handle_validation_exception(calculated_policy, e)
+
+    def _raising_validate(self, name, value):
+        # ^ take args and kwargs because compounds have additional
+        # arguments that get passed in
         if not self._check_valid_name(name):
             raise DataValidationException("Invalid field name: %s" % name)
         if value is None:
@@ -153,7 +164,6 @@ class Leaf(Keyable):
             raise DataValidationException(m)
         if hasattr(self, "_validate"):
             self._validate(str(name), value)
-
 
 
 class String(Leaf):
