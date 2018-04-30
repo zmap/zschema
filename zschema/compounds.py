@@ -65,7 +65,7 @@ class ListOf(Keyable):
     def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
         try:
-            if type(value) != list:
+            if not isinstance(value, list):
                 m = "%s: %s is not a list" % (name, str(value))
                 raise DataValidationException(m)
             if self.max_items > 0 and len(value) > self.max_items:
@@ -75,7 +75,7 @@ class ListOf(Keyable):
             if self.min_items > 0 and len(value) < self.min_items:
                 m = "%s: %s has too few values (min: %i)" % (name, str(value),
                         self.min_items)
-
+                raise DataValidationException(m)
         except DataValidationException as e:
             self._handle_validation_exception(calculated_policy, e)
             # we won't be able to iterate
