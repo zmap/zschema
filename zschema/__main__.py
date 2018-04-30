@@ -48,15 +48,6 @@ parser.add_argument("--module", help="The name of a module to import.")
 parser.add_argument("--path", nargs="*",
                     help="Additional PYTHONPATH directories to include.")
 
-parser.add_argument("--validation-policy", help="Validation policy to enforce. "
-                                                "error: stop after reaching "
-                                                "first problem. warn: continue "
-                                                "traversing and log problems as"
-                                                " they are found. Default: use "
-                                                "the policy determined by the "
-                                                "schema."
-                                            )
-
 args = parser.parse_args()
 
 

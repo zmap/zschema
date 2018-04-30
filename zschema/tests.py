@@ -785,7 +785,6 @@ class DatetimeTest(unittest.TestCase):
 
 class ValidationPolicies(unittest.TestCase):
 
-
     def setUp(self):
         self.maxDiff=10000
 
@@ -818,9 +817,5 @@ class ValidationPolicies(unittest.TestCase):
     def test_explicit_policy(self):
         self.record.validate({"a":{"foo":"string value"}},
                 policy="ignore")
-
-
-
-
 
 

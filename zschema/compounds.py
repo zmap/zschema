@@ -62,8 +62,8 @@ class ListOf(Keyable):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
         if type(value) != list:
             try:
-                raise DataValidationException("%s: %s is not a list",
-                                              name, str(value))
+                m = "%s: %s is not a list" % (name, str(value))
+                raise DataValidationException(m)
             except DataValidationException as e:
                 self._handle_validation_exception(calculated_policy, e)
                 # we won't be able to iterate
