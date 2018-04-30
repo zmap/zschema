@@ -296,10 +296,12 @@ class IPAddress(Leaf):
     INVALID = "my string"
     VALID = "141.212.120.0"
 
-    IPV4_REGEX = re.compile('(\d{1,3}\.){3}\d{1,3}')
-
     def _is_ipv4_addr(self, ip):
-        return bool(self.IPV4_REGEX.match(ip))
+        try:
+            socket.inet_pton(socket.AF_INET, ip)
+            return True
+        except socket.error:
+            return False
 
     def _is_ipv6_addr(self, ip):
         try:
