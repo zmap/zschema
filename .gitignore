@@ -1,6 +1,7 @@
 *.pyo
 *.pyc
-.*
+
+.eggs/
 dist/*
 zschema.egg-info/*
 build/*
