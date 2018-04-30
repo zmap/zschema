@@ -14,6 +14,7 @@ def _is_valid_object(name, object_):
 class ListOf(Keyable):
 
     MAX_ITEMS = 0
+    MIN_ITEMS = 0
 
     def __init__(self, object_, max_items=_NO_ARG, min_items=_NO_ARG, *args, **kwargs):
         _is_valid_object("Anonymous ListOf", object_)
