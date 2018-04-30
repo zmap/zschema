@@ -26,8 +26,7 @@ class Leaf(Keyable):
             metadata=None,
             units=None,
             min_value=None,
-            max_value=None,
-            validator=None):
+            max_value=None):
         self.required = required
         self.es_index = es_index
         self.es_analyzer = es_analyzer
@@ -49,7 +48,6 @@ class Leaf(Keyable):
         self.units = units
         self.min_value = min_value
         self.max_value = max_value
-        self.validator = validator
 
     def to_dict(self):
         retv = {
@@ -149,9 +147,6 @@ class Leaf(Keyable):
         print val
 
     def validate(self, name, value):
-        if self.validator:
-            self.validator.validate(name, value)
-            return
         if not self._check_valid_name(name):
             raise DataValidationException("Invalid field name: %s" % name)
         if value is None:
