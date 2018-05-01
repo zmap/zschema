@@ -150,7 +150,7 @@ class Leaf(Keyable):
         # ^ take args and kwargs because compounds have additional
         # arguments that get passed in
         if not self._check_valid_name(name):
-            raise DataValidationException("Invalid field name: %s" % name)
+            raise Exception("Invalid field name: %s" % name)
         if value is None:
             if self.required:
                 raise DataValidationException("%s is a required field, but "
