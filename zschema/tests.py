@@ -9,6 +9,7 @@ from zschema import registry
 from zschema.leaves import *
 from zschema.compounds import *
 
+
 def json_fixture(name):
     filename = name + ".json"
     fixture_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fixtures', filename)
@@ -21,12 +22,12 @@ class LeafUnitTests(unittest.TestCase):
 
     def test_valid(self):
         for leaf in VALID_LEAVES:
-            leaf().validate(leaf.__name__, leaf.VALID)
+            leaf(validation_policy="error").validate(leaf.__name__, leaf.VALID)
 
     def test_invalid(self):
         for leaf in VALID_LEAVES:
             try:
-                leaf().validate(leaf.__name__, leaf.INVALID)
+                leaf(validation_policy="error").validate(leaf.__name__, leaf.INVALID)
                 raise Exception("invalid value did not fail for %s",
                                 leaf.__name__)
             except DataValidationException:
@@ -600,8 +601,8 @@ class CompileAndValidationTests(unittest.TestCase):
             },
             doc="class doc",
             required=False)
-        self.assertEqual(SSH.doc, "class doc")
-        self.assertEqual(SSH.required, False)
+        self.assertEqual(SSH.DOC, "class doc")
+        self.assertEqual(SSH.REQUIRED, False)
         ssh = SSH(doc="instance doc")
         ipv4_host_ssh = Record({
             Port(22):SubRecord({
@@ -612,8 +613,8 @@ class CompileAndValidationTests(unittest.TestCase):
         self.assertEqual(ssh.required, False)
         ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
         # class unchanged
-        self.assertEqual(SSH.doc, "class doc")
-        self.assertEqual(SSH.required, False)
+        self.assertEqual(SSH.DOC, "class doc")
+        self.assertEqual(SSH.REQUIRED, False)
 
     def test_subrecord_type_override(self):
         SSH = SubRecordType({
@@ -624,8 +625,8 @@ class CompileAndValidationTests(unittest.TestCase):
             },
             doc="class doc",
             required=False)
-        self.assertEqual(SSH.doc, "class doc")
-        self.assertEqual(SSH.required, False)
+        self.assertEqual(SSH.DOC, "class doc")
+        self.assertEqual(SSH.REQUIRED, False)
         ssh = SSH(doc="instance doc", required=True)
         ipv4_host_ssh = Record({
             Port(22):SubRecord({
@@ -636,8 +637,8 @@ class CompileAndValidationTests(unittest.TestCase):
         self.assertEqual(ssh.required, True)
         ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
         # class unchanged
-        self.assertEqual(SSH.doc, "class doc")
-        self.assertEqual(SSH.required, False)
+        self.assertEqual(SSH.DOC, "class doc")
+        self.assertEqual(SSH.REQUIRED, False)
 
 
 class RegistryTests(unittest.TestCase):
@@ -686,10 +687,11 @@ class SubRecordTests(unittest.TestCase):
 
     def test_subrecord_child_types_can_override_parent_attributes(self):
         Certificate = SubRecordType({}, doc="A parsed certificate.")
+        c = Certificate(doc="The CA certificate.")
         OtherType = SubRecord({
-            "ca": Certificate(doc="The CA certificate."),
+            "ca": c,
             "host": Certificate(doc="The host certificate."),
-        })
+        }, doc="hello")
         self.assertEqual("A parsed certificate." , Certificate().doc)
         self.assertEqual("The CA certificate.", OtherType.definition["ca"].doc)
         self.assertEqual("The host certificate.", OtherType.definition["host"].doc)
@@ -772,9 +774,70 @@ class WithArgsTests(unittest.TestCase):
         self.assertEqual("some docs", p0doc.doc)
 
 class DatetimeTest(unittest.TestCase):
+
     def test_datetime_DateTime(self):
-        DateTimeRecord = DateTime()
+        DateTimeRecord = DateTime(validation_policy="error")
         DateTimeRecord.validate("fake", datetime.datetime.now())
         DateTimeRecord.validate("fake", "Wed Dec  5 01:23:45 CST 1956")
         # Note: int values are nominally accepted but not valid
         # DateTimeRecord.validate("fake", 116048701)
+
+
+class ValidationPolicies(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff=10000
+
+        Child = SubRecordType({
+            "foo":Boolean(),
+            "bar":Boolean(validation_policy="error"),
+        }, validation_policy="error")
+        self.record = Record({
+            "a":Child(validation_policy="error"),
+            "b":Child(validation_policy="warn"),
+            "c":Child(validation_policy="ignore"),
+            "d":Child(validation_policy="inherit"),
+        })
+
+    def test_policy_setting_warn(self):
+        self.record.validate({"b":{"foo":"string value"}})
+
+    def test_policy_setting_ignore(self):
+        self.record.validate({"c":{"foo":"string value"}})
+
+    def test_policy_setting_error(self):
+        self.assertRaises(lambda: self.record.validate({"c":{"foo":"string value"}}))
+
+    def test_policy_setting_inherit(self):
+        self.assertRaises(lambda: self.record.validate({"c":{"foo":"string value"}}))
+
+    def test_policy_setting_multi_level_inherit(self):
+        self.assertRaises(lambda: self.record.validate({"a":{"bar":"string value"}}))
+
+    def test_explicit_policy(self):
+        self.record.validate({"a":{"foo":"string value"}},
+                policy="ignore")
+
+    def test_child_subtree_overrides_and_inherits(self):
+        schema = Record({
+            Port(445): SubRecord({
+                "smb": SubRecord({
+                    "banner": SubRecord({
+                        "smb_v1": Boolean()
+                    })
+                }, validation_policy="error")
+            })
+        }, validation_policy="warn")
+
+        doc = {
+            "445": {
+                "smb": {
+                    "banner": {
+                        "smb_v1": True,
+                        "metadata": {},
+                    }
+                }
+            }
+        }
+
+        self.assertRaises(DataValidationException, lambda: schema.validate(doc))

@@ -3,6 +3,8 @@ import copy
 import json
 
 from keys import *
+from keys import _NO_ARG
+
 
 def _is_valid_object(name, object_):
     if not isinstance(object_, Keyable):
@@ -11,13 +13,15 @@ def _is_valid_object(name, object_):
 
 class ListOf(Keyable):
 
-    def __init__(self, object_, required=None, max_items=None, doc=None, category=None):
-        self.replace_set("object_", object_)
-        self.replace_set("max_items", max_items)
-        self.replace_set("category", category)
-        self.replace_set("required", required)
-        self.replace_set("doc", doc)
-        _is_valid_object("Anonymous ListOf", self.object_)
+    MAX_ITEMS = 0
+    MIN_ITEMS = 0
+
+    def __init__(self, object_, max_items=_NO_ARG, min_items=_NO_ARG, *args, **kwargs):
+        _is_valid_object("Anonymous ListOf", object_)
+        super(ListOf, self).__init__(*args, **kwargs)
+        self.set("object_", object_)
+        self.set("max_items", max_items)
+        self.set("min_items", min_items)
 
     @property
     def exclude_bigquery(self):
@@ -47,6 +51,7 @@ class ListOf(Keyable):
         return retv
 
     def to_es(self):
+        # all elasticsearch fields are automatically repeatable
         return self.object_.to_es()
 
     def docs_es(self, parent_category=None):
@@ -58,12 +63,29 @@ class ListOf(Keyable):
             retv["doc"] = self.doc
         return retv
 
-    def validate(self, name, value):
-        if type(value) != list:
-            raise DataValidationException("%s: %s is not a list",
-                                          name, str(value))
+    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG):
+        calculated_policy = self._calculate_policy(name, policy, parent_policy)
+        try:
+            if not isinstance(value, list):
+                m = "%s: %s is not a list" % (name, str(value))
+                raise DataValidationException(m)
+            if self.max_items > 0 and len(value) > self.max_items:
+                m = "%s: %s has too many values (max: %i)" % (name, str(value),
+                        self.max_items)
+                raise DataValidationException(m)
+            if self.min_items > 0 and len(value) < self.min_items:
+                m = "%s: %s has too few values (min: %i)" % (name, str(value),
+                        self.min_items)
+                raise DataValidationException(m)
+        except DataValidationException as e:
+            self._handle_validation_exception(calculated_policy, e)
+            # we won't be able to iterate
+            return
         for item in value:
-            self.object_.validate(name, item)
+            try:
+                self.object_.validate(name, item, policy, calculated_policy)
+            except DataValidationException as e:
+                self._handle_validation_exception(calculated_policy, e)
 
     def to_dict(self):
         return {"type":"list", "list_of":self.object_.to_json()}
@@ -74,40 +96,38 @@ class ListOf(Keyable):
 
 
 def ListOfType(object_,
-        required=None,
-        max_items=None,
-        doc=None,
-        category=None):
+        required=_NO_ARG,
+        max_items=_NO_ARG,
+        doc=_NO_ARG,
+        desc=_NO_ARG,
+        examples=_NO_ARG,
+        category=_NO_ARG,
+        validation_policy=_NO_ARG):
     _is_valid_object("Anonymous ListOf", object_)
-    attrs = {
-        "object_":object_,
-        "max_items":max_items,
-        "required":required,
-        "doc":doc,
-        "category":category,
-    }
-    return type("ListOf", (ListOf,), attrs)
+    t = type("ListOf", (ListOf,), {})
+    t.set_default("object_", object_)
+    t.set_default("max_items", max_items)
+    t.set_default("required", required)
+    t.set_default("doc", doc)
+    t.set_default("desc", desc)
+    t.set_default("category", category)
+    t.set_default("examples", examples)
+    t.set_default("validation_policy", validation_policy)
 
 
 class SubRecord(Keyable):
 
-    def __init__(self,
-            definition=None,
-            required=False,
-            doc=None,
-            extends=None,
-            allow_unknown=False,
-            exclude=None,
-            category=None):
-        self.replace_set("definition", definition)
-        self.replace_set("required", required)
-        self.replace_set("allow_unknown", allow_unknown)
-        self.replace_set("doc", doc)
-        self.replace_set("category", category)
-        self.replace_set("_exclude", set(exclude) if exclude else set([]))
-        if extends is not None:
+    DEFINITION = {}
+    ALLOW_UNKNOWN = False
+
+    def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
+            allow_unknown=_NO_ARG, *args, **kwargs):
+        super(SubRecord, self).__init__(*args, **kwargs)
+        self.set("definition", definition)
+        self.set("allow_unknown", allow_unknown)
+        if extends is not _NO_ARG:
             extends = copy.deepcopy(extends)
-            self.definition = self.merge(extends).definition
+            self.set("definition", self.merge(extends).definition)
         # safety check
         if self.definition:
             for k, v in sorted(self.definition.iteritems()):
@@ -139,8 +159,7 @@ class SubRecord(Keyable):
                 yield item
 
     def merge(self, other):
-        doc = self.doc or other.doc
-        doc = self.required or other.required
+        assert isinstance(other, SubRecord)
         newdef = {}
         l_keys = set(self.definition.keys())
         r_keys = set(other.definition.keys())
@@ -159,7 +178,9 @@ class SubRecord(Keyable):
                 newdef[key] = l_value.merge(r_value)
             else:
                 raise MergeConflictException("Only subrecords can be merged. (%s)", key)
-        self.definition = newdef
+        self.set("definition", newdef)
+        self.set("required", self.required or other.required)
+        self.set("doc", self.doc or other.doc)
         return self
 
     def to_bigquery(self, name):
@@ -218,41 +239,54 @@ class SubRecord(Keyable):
         p = {self.key_to_es(k): v.to_dict() for k, v in source}
         return {"type":"subrecord", "subfields": p, "doc":self.doc, "required":self.required}
 
-    def validate(self, name, value):
-        if type(value) != dict:
-            raise DataValidationException("%s: %s is not a dict",
-                                          name, str(value))
+    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG):
+        calculated_policy = self._calculate_policy(name, policy, parent_policy)
+        try:
+            if not isinstance(value, dict):
+                m = "%s: %s is not a dict" % (name, str(value))
+                raise DataValidationException(m)
+        except DataValidationException as e:
+            self._handle_validation_exception(calculated_policy, e)
+            # cannot iterate over members if this isn't a dictionary
+            return
         for subkey, subvalue in sorted(value.iteritems()):
-            if not self.allow_unknown and subkey not in self.definition:
-                raise DataValidationException("%s: %s is not a valid subkey" %
-                                              (name, subkey))
-            else:
-                self.definition[subkey].validate(subkey, subvalue)
+            try:
+                if not self.allow_unknown and subkey not in self.definition:
+                    raise DataValidationException("%s: %s is not a valid subkey" %
+                                                  (name, subkey))
+                if subkey in self.definition:
+                    self.definition[subkey].validate(subkey, subvalue,
+                            policy, calculated_policy)
+            except DataValidationException as e:
+                self._handle_validation_exception(calculated_policy, e)
 
 
 def SubRecordType(definition,
-        required=False,
-        doc=None,
-        allow_unknown=False,
-        exclude=None,
-        category=None):
-    attrs = {
-        "definition":definition,
-        "required":required,
-        "doc":doc,
-        "allow_unknown":allow_unknown,
-        "_exclude":exclude if exclude else set([]),
-        "category":category
-    }
-    return type("SubRecord", (SubRecord,), attrs)
-
+        required=_NO_ARG,
+        doc=_NO_ARG,
+        desc=_NO_ARG,
+        allow_unknown=_NO_ARG,
+        exclude=_NO_ARG,
+        category=_NO_ARG,
+        validation_policy=_NO_ARG):
+    t = type("SubRecord", (SubRecord,), {})
+    t.set_default("definition", definition)
+    t.set_default("required", required)
+    t.set_default("doc", doc)
+    t.set_default("desc", desc)
+    t.set_default("allow_unknown", allow_unknown)
+    t.set_default("exclude", exclude)
+    t.set_default("category", category)
+    t.set_default("validation_policy", validation_policy)
+    return t
 
 
 class NestedListOf(ListOf):
 
     def __init__(self, object_, subrecord_name, max_items=10, doc=None, category=None):
-        ListOf.__init__(self, object_, max_items, doc=doc, category=category)
-        self.subrecord_name = subrecord_name
+        super(NestedListOf, self).__init__(object_, max_items=max_items,
+                doc=doc, category=category)
+        self.set("subrecord_name", subrecord_name)
 
     def to_bigquery(self, name):
         subr = SubRecord({
@@ -278,6 +312,8 @@ class NestedListOf(ListOf):
 
 class Record(SubRecord):
 
+    VALIDATION_POLICY = "error"
+
     def to_es(self, name):
         return {name:SubRecord.to_es(self)}
 
@@ -300,14 +336,22 @@ class Record(SubRecord):
         for name, field in sorted(self.definition.iteritems()):
             field.print_indent_string(name, 0)
 
-    def validate(self, value):
+    def validate(self, value, policy=_NO_ARG):
+        if policy is None:
+            policy = _NO_ARG
+        calculated_policy = self._calculate_policy("root", policy, self.validation_policy)
+        # ^ note: record explicitly does not take a parent_policy
         if type(value) != dict:
             raise DataValidationException("record is not a dict", str(value))
         for subkey, subvalue in sorted(value.iteritems()):
-            if subkey not in self.definition:
-                raise DataValidationException("%s is not a valid subkey of root",
-                                              subkey)
-            self.definition[subkey].validate(subkey, subvalue)
+            try:
+                if subkey not in self.definition:
+                    raise DataValidationException("%s is not a valid subkey of root",
+                                                  subkey)
+                self.definition[subkey].validate(subkey, subvalue, policy,
+                        self.validation_policy)
+            except DataValidationException as e:
+                self._handle_validation_exception(calculated_policy, e)
 
     def to_dict(self):
         source = sorted(self.definition.iteritems())
