@@ -3,6 +3,8 @@ import unittest
 import re
 import dateutil.parser
 import datetime
+import socket
+import pytz
 
 from keys import *
 from keys import _NO_ARG
@@ -154,7 +156,7 @@ class Leaf(Keyable):
         if value is None:
             if self.required:
                 raise DataValidationException("%s is a required field, but "
-                                              "recieved None" % name)
+                                              "received None" % name)
             else:
                 return
         if type(value) not in self.EXPECTED_CLASS:
@@ -288,22 +290,51 @@ class IPAddress(Leaf):
     ES_TYPE = "ip"
     BQ_TYPE = "STRING"
     EXPECTED_CLASS = [str,unicode]
-    IP_REGEX = re.compile('(\d{1,3}\.){3}\d{1,3}')
+
+    INVALID = "my string"
+    VALID = "141.212.120.0"
 
     def _is_ipv4_addr(self, ip):
-        return bool(self.IP_REGEX.match(ip))
+        try:
+            socket.inet_pton(socket.AF_INET, ip)
+            return True
+        except socket.error:
+            return False
+
+    def _is_ipv6_addr(self, ip):
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+            return True
+        except socket.error:
+            return False
+
+    def _validate(self, name, value):
+        if not self._is_ipv4_addr(value) and not self._is_ipv6_addr(value):
+            m = "%s: the value %s is not a valid IP address" % (name, value)
+            raise DataValidationException(m)
+
+
+class IPv4Address(IPAddress):
+
+    INVALID = "2a04:9740:8:c010:e228:6dff:fefe:6e53"
+    VALID = "141.212.120.0"
 
     def _validate(self, name, value):
         if not self._is_ipv4_addr(value):
             m = "%s: the value %s is not a valid IPv4 address" % (name, value)
             raise DataValidationException(m)
 
-    INVALID = "my string"
-    VALID = "141.212.120.0"
 
+class IPv6Address(IPAddress):
 
-class IPv4Address(IPAddress):
-    pass
+    INVALID = "141.212.120.0"
+    VALID = "2a04:9740:8:c010:e228:6dff:fefe:6e53"
+
+    def _validate(self, name, value):
+        if not self._is_ipv6_addr(value):
+            m = "%s: the value %s is not a valid IPv6 address" % (name, value)
+            raise DataValidationException(m)
+
 
 class _Integer(Leaf):
 
@@ -432,32 +463,34 @@ class DateTime(Leaf):
     VALID = "Wed Jul  8 08:52:01 EDT 2015"
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
 
-    MIN_VALUE = "1753-01-01 00:00:00.000000"
-    MAX_VALUE = "9999-12-31 00:00:00.000000"
+    MIN_VALUE = "1753-01-01 00:00:00.000000+00:00"
+    MAX_VALUE = "9999-12-31 23:59:59.999999+00:00"
 
     def __init__(self, *args, **kwargs):
         super(DateTime, self).__init__(*args, **kwargs)
 
         if self.min_value:
-            self._min_value_dt = dateutil.parser.parse(self.min_value, ignoretz=True)
+            self._min_value_dt = dateutil.parser.parse(self.min_value)
         else:
-            self._min_value_dt = dateutil.parser.parse(self.MIN_VALUE, ignoretz=True)
+            self._min_value_dt = dateutil.parser.parse(self.MIN_VALUE)
 
         if self.max_value:
-            self._max_value_dt = dateutil.parser.parse(self.max_value, ignoretz=True)
+            self._max_value_dt = dateutil.parser.parse(self.max_value)
         else:
-            self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE, ignoretz=True)
+            self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE)
 
     def _validate(self, name, value):
         if isinstance(value, datetime.datetime):
-            return
-
-        # FIXME: ignoretz should be set for TIMESTAMP but not DATETIME?
-        try:
-            dt = dateutil.parser.parse(value, ignoretz=True)
-        except Exception, e:
-            m = "%s: %s is not valid timestamp" % (name, str(value))
-            raise DataValidationException(m)
+            dt = value
+        elif isinstance(value, int):
+            dt = datetime.datetime.utcfromtimestamp(value)
+        else:
+            try:
+                dt = dateutil.parser.parse(value)
+            except Exception:
+                m = "%s: %s is not valid timestamp" % (name, str(value))
+                raise DataValidationException(m)
+        dt = DateTime._ensure_tz_aware(dt)
         if dt > self._max_value_dt:
             m = "%s: %s is larger than allowed maximum (%s)" % (name,
                     str(value), str(self._max_value_dt))
@@ -466,6 +499,14 @@ class DateTime(Leaf):
             m = "%s: %s is larger than allowed minimum (%s)" % (name,
                     str(value), str(self._min_value_dt))
             raise DataValidationException(m)
+
+    @staticmethod
+    def _ensure_tz_aware(dt):
+        """Ensures that the given datetime is timezone-aware. If it is not timezone-aware as
+        given, this function localizes it to UTC. Returns a timezone-aware datetime instance."""
+        if dt.tzinfo:
+            return dt
+        return pytz.utc.localize(dt)
 
 
 class Timestamp(DateTime):
@@ -549,6 +590,7 @@ VALID_LEAVES = [
     Double,
     Float,
     IPv4Address,
+    IPv6Address,
     IPAddress,
     Enum,
     HexString,
