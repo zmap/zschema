@@ -155,7 +155,7 @@ class Leaf(Keyable):
         if value is None:
             if self.required:
                 raise DataValidationException("%s is a required field, but "
-                                              "recieved None" % name)
+                                              "received None" % name)
             else:
                 return
         if type(value) not in self.EXPECTED_CLASS:
