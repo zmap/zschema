@@ -178,6 +178,7 @@ class Keyable(object):
             raise e
         if policy == "error":
             e.force = True
+            logging.error(e.message)
             raise e
         elif policy == "warn":
             logging.warn(e.message)
