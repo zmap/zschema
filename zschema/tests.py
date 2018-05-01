@@ -839,7 +839,4 @@ class ValidationPolicies(unittest.TestCase):
                 }
             }
         }
-        print schema.definition["445"].validation_policy
-        print schema.definition["445"].definition["smb"].validation_policy
-
         self.assertRaises(DataValidationException, lambda: schema.validate(doc))
