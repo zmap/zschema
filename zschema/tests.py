@@ -816,3 +816,26 @@ class ValidationPolicies(unittest.TestCase):
     def test_explicit_policy(self):
         self.record.validate({"a":{"foo":"string value"}},
                 policy="ignore")
+
+    def test_child_subtree_overrides_and_inherits(self):
+        schema = Record({
+            Port(445): SubRecord({
+                "smb": SubRecord({
+                    "banner": SubRecord({
+                        "smb_v1": Boolean()
+                    })
+                }, validation_policy="error")
+            })
+        }, validation_policy="warn")
+
+        doc = {
+            "445": {
+                "smb": {
+                    "banner": {
+                        "smb_v1": True,
+                        "metadata": {},
+                    }
+                }
+            }
+        }
+        self.assertRaises(DataValidationException, lambda: schema.validate(doc))
