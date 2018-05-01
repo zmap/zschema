@@ -4,6 +4,7 @@ import re
 import dateutil.parser
 import datetime
 import socket
+import pytz
 
 from keys import *
 from keys import _NO_ARG
@@ -462,21 +463,21 @@ class DateTime(Leaf):
     VALID = "Wed Jul  8 08:52:01 EDT 2015"
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
 
-    MIN_VALUE = "1753-01-01 00:00:00.000000"
-    MAX_VALUE = "9999-12-31 23:59:59.999999"
+    MIN_VALUE = "1753-01-01 00:00:00.000000+00:00"
+    MAX_VALUE = "9999-12-31 23:59:59.999999+00:00"
 
     def __init__(self, *args, **kwargs):
         super(DateTime, self).__init__(*args, **kwargs)
 
         if self.min_value:
-            self._min_value_dt = dateutil.parser.parse(self.min_value, ignoretz=True)
+            self._min_value_dt = dateutil.parser.parse(self.min_value)
         else:
-            self._min_value_dt = dateutil.parser.parse(self.MIN_VALUE, ignoretz=True)
+            self._min_value_dt = dateutil.parser.parse(self.MIN_VALUE)
 
         if self.max_value:
-            self._max_value_dt = dateutil.parser.parse(self.max_value, ignoretz=True)
+            self._max_value_dt = dateutil.parser.parse(self.max_value)
         else:
-            self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE, ignoretz=True)
+            self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE)
 
     def _validate(self, name, value):
         if isinstance(value, datetime.datetime):
@@ -484,12 +485,12 @@ class DateTime(Leaf):
         elif isinstance(value, int):
             dt = datetime.datetime.utcfromtimestamp(value)
         else:
-            # FIXME: ignoretz should be set for TIMESTAMP but not DATETIME?
             try:
-                dt = dateutil.parser.parse(value, ignoretz=True)
-            except Exception, e:
+                dt = dateutil.parser.parse(value)
+            except Exception:
                 m = "%s: %s is not valid timestamp" % (name, str(value))
                 raise DataValidationException(m)
+        dt = DateTime._ensure_tz_aware(dt)
         if dt > self._max_value_dt:
             m = "%s: %s is larger than allowed maximum (%s)" % (name,
                     str(value), str(self._max_value_dt))
@@ -498,6 +499,14 @@ class DateTime(Leaf):
             m = "%s: %s is larger than allowed minimum (%s)" % (name,
                     str(value), str(self._min_value_dt))
             raise DataValidationException(m)
+
+    @staticmethod
+    def _ensure_tz_aware(dt):
+        """Ensures that the given datetime is timezone-aware. If it is not timezone-aware as
+        given, this function localizes it to UTC. Returns a timezone-aware datetime instance."""
+        if dt.tzinfo:
+            return dt
+        return pytz.utc.localize(dt)
 
 
 class Timestamp(DateTime):
