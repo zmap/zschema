@@ -839,5 +839,4 @@ class ValidationPolicies(unittest.TestCase):
                 }
             }
         }
-
         self.assertRaises(DataValidationException, lambda: schema.validate(doc))
