@@ -173,7 +173,12 @@ class Keyable(object):
 
     @staticmethod
     def _handle_validation_exception(policy, e):
+        # allow errors from below to bubble up
+        if e.force:
+            raise e
         if policy == "error":
+            e.force = True
+            logging.error(e.message)
             raise e
         elif policy == "warn":
             logging.warn(e.message)
@@ -326,7 +331,10 @@ class Keyable(object):
 
 
 class DataValidationException(TypeError):
-    pass
+
+    def __init__(self, message, force=False):
+        self.message = message
+        self.force = force
 
 
 class MergeConflictException(Exception):

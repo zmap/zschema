@@ -354,12 +354,11 @@ class Record(SubRecord):
         calculated_policy = self._calculate_policy("root", policy, self.validation_policy)
         # ^ note: record explicitly does not take a parent_policy
         if type(value) != dict:
-            raise DataValidationException("record is not a dict", str(value))
+            raise DataValidationException("record is not a dict:\n{}".format(value))
         for subkey, subvalue in sorted(value.iteritems()):
             try:
                 if subkey not in self.definition:
-                    raise DataValidationException("%s is not a valid subkey of root",
-                                                  subkey)
+                    raise DataValidationException("%s is not a valid subkey of root" % subkey)
                 self.definition[subkey].validate(subkey, subvalue, policy,
                         self.validation_policy)
             except DataValidationException as e:
