@@ -142,9 +142,6 @@ class SubRecord(Keyable):
     def __delitem__(self, key):
         del self.definition[key]
 
-    def __len__(self):
-        return len(self.definition)
-
     def new(self, **kwargs):
         # Get a new "instance" of the type represented by the SubRecord, e.g.:
         # Certificate = SubRecord({...}, doc="A parsed certificate.")
