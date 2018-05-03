@@ -133,6 +133,18 @@ class SubRecord(Keyable):
             for k, v in sorted(self.definition.iteritems()):
                 _is_valid_object(k, v)
 
+    def __getitem__(self, key):
+        return self.definition[key]
+
+    def __setitem__(self, key, value):
+        self.definition[key] = value
+
+    def __delitem__(self, key):
+        del self.definition[key]
+
+    def __len__(self, key):
+        return len(self.definition)
+
     def new(self, **kwargs):
         # Get a new "instance" of the type represented by the SubRecord, e.g.:
         # Certificate = SubRecord({...}, doc="A parsed certificate.")
