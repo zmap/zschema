@@ -142,7 +142,7 @@ class SubRecord(Keyable):
     def __delitem__(self, key):
         del self.definition[key]
 
-    def __len__(self, key):
+    def __len__(self):
         return len(self.definition)
 
     def new(self, **kwargs):
