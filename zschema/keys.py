@@ -140,6 +140,9 @@ class Keyable(object):
     # this in the web interface. We define this in keyable because
     _types_by_name = {}
 
+    def __or__(self, f):
+        return f(self)
+
     @staticmethod
     def _check_valid_name(name):
         if "-" in name:
