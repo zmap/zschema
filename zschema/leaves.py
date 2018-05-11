@@ -14,6 +14,7 @@ class Leaf(Keyable):
 
     # defaults
     REQUIRED = False
+    INCLUDE_RAW = False
     ES_INCLUDE_RAW = False
     ES_INDEX = None
     ES_ANALYZER = None
@@ -67,7 +68,7 @@ class Leaf(Keyable):
         self.add_not_empty(retv, "index", "es_index")
         self.add_not_empty(retv, "analyzer", "es_analyzer")
         self.add_not_empty(retv, "search_analyzer", "es_search_analyzer")
-        if self.es_include_raw:
+        if self.es_include_raw or self.INCLUDE_RAW:
             retv["fields"] = {
                     "raw":{"type":"keyword"}
             }
@@ -125,7 +126,7 @@ class Leaf(Keyable):
             "documentation":self.doc,
             "mode":mode
         }
-        if self.es_include_raw:
+        if self.es_include_raw or self.INCLUDE_RAW:
             yield {
                 "name":full_name + ".raw",
                 "type":self.__class__.__name__,
