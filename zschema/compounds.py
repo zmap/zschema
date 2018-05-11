@@ -224,7 +224,11 @@ class SubRecord(Keyable):
         p = {self.key_to_es(k): v.to_es() \
                 for k, v in sorted(self.definition.iteritems()) \
                 if not v.exclude_elasticsearch}
-        return {"properties": p}
+        dynamic = bool(self.allow_unknown)
+        return {
+            "properties": p,
+            "dynamic": dynamic,
+        }
 
     def _docs_common(self, category):
         retv = {

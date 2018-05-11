@@ -56,13 +56,16 @@ class LeafUnitTests(unittest.TestCase):
 
 VALID_ELASTIC_SEARCH = {
     "host": {
+        "dynamic": False,
         "properties": {
             "443": {
+                "dynamic": False,
                 "properties": {
                     "tls": {
                         "type": "keyword"
                     },
                     "heartbleed": {
+                        "dynamic": True,
                         "properties": {
                             "heartbeat_support": {
                                 "type": "boolean"
@@ -352,7 +355,7 @@ class CompileAndValidationTests(unittest.TestCase):
             "heartbeat_support":Boolean(),
             "heartbleed_vulnerable":Boolean(category="Vulnerabilities"),
             "timestamp":DateTime()
-        })
+        }, allow_unknown=True)
         self.host = Record({
                 "ipstr":IPv4Address(required=True, examples=["8.8.8.8"]),
                 "ip":Unsigned32BitInteger(doc="The IP Address of the host"),
