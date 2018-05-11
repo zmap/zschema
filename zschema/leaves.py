@@ -215,6 +215,7 @@ class WhitespaceAnalyzedString(AnalyzedString):
     }'
     """
     ES_ANALYZER="lower_whitespace"
+    ES_INCLUDE_RAW = True
 
 
 class HexString(Leaf):
@@ -532,7 +533,7 @@ class OID(String):
 
 class EmailAddress(WhitespaceAnalyzedString):
 
-    INCLUDE_RAW = True
+    pass
 
 
 class URL(AnalyzedString):
