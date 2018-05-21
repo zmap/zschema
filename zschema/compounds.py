@@ -263,9 +263,12 @@ class SubRecord(Keyable):
                 if not self.allow_unknown and subkey not in self.definition:
                     raise DataValidationException("%s: %s is not a valid subkey" %
                                                   (name, subkey))
-                if subkey in self.definition:
+                if subkey in self.definition and subvalue is not None:
                     self.definition[subkey].validate(subkey, subvalue,
                             policy, calculated_policy)
+                if subvalue is None and self.definition[subkey].required:
+                    m = "Subkey %s is None but is marked required" % (subkey)
+                    raise DataValidationException(m)
             except DataValidationException as e:
                 self._handle_validation_exception(calculated_policy, e)
 
@@ -356,8 +359,12 @@ class Record(SubRecord):
             try:
                 if subkey not in self.definition:
                     raise DataValidationException("%s is not a valid subkey of root" % subkey)
-                self.definition[subkey].validate(subkey, subvalue, policy,
-                        self.validation_policy)
+                if subvalue is not None:
+                    self.definition[subkey].validate(subkey, subvalue, policy,
+                            self.validation_policy)
+                if subvalue is None and self.definition[subkey].required:
+                    m = "Subkey %s is None but is marked required" % (subkey)
+                    raise DataValidationException(m)
             except DataValidationException as e:
                 self._handle_validation_exception(calculated_policy, e)
 
