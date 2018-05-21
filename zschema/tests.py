@@ -555,9 +555,8 @@ class CompileAndValidationTests(unittest.TestCase):
         }
         try:
             self.host.validate(test)
-            self.fail("heartbleed is null")
         except DataValidationException:
-            pass
+            self.fail("heartbleed is null, but not marked required")
 
     def test_null_port(self):
         test = {
@@ -566,9 +565,8 @@ class CompileAndValidationTests(unittest.TestCase):
         }
         try:
             self.host.validate(test)
-            self.fail("443 is null")
         except DataValidationException:
-            pass
+            self.fail("443 is null, but not marked required")
 
     def test_null_notrequired(self):
         test = {
