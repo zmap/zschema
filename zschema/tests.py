@@ -696,6 +696,20 @@ class SubRecordTests(unittest.TestCase):
         self.assertEqual("The CA certificate.", OtherType.definition["ca"].doc)
         self.assertEqual("The host certificate.", OtherType.definition["host"].doc)
 
+    def test_null_is_accepted_for_optional_subrecord(self):
+        schema = Record({
+            "domain":String(required=True),
+            "metadata": SubRecord({}, required=False),
+        }, validation_policy="error")
+        document = {
+            "domain": "dzombak.com",
+            "metadata": None,
+        }
+        try:
+            schema.validate(document)
+        except DataValidationException as e:
+            self.fail("Validation failed for a null SubRecord marked as optional")
+
 
 class NestedListOfTests(unittest.TestCase):
     pass
