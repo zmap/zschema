@@ -857,3 +857,5 @@ class ExcludeTests(unittest.TestCase):
         d = ListOf(String(exclude=["bigquery"]), exclude=["elasticsearch"])
         self.assertTrue(d.exclude_bigquery)
         self.assertTrue(d.exclude_elasticsearch)
+
+    # TODO: test the rest of the types
