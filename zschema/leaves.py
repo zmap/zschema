@@ -481,23 +481,25 @@ class DateTime(Leaf):
             self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE)
 
     def _validate(self, name, value):
-        if isinstance(value, datetime.datetime):
-            dt = value
-        elif isinstance(value, int):
-            dt = datetime.datetime.utcfromtimestamp(value)
-        else:
-            try:
-                dt = dateutil.parser.parse(value)
-            except Exception:
-                m = "%s: %s is not valid timestamp" % (name, str(value))
-                raise DataValidationException(m)
+        try:
+            if isinstance(value, datetime.datetime):
+                dt = value
+            elif isinstance(value, int):
+                dt = datetime.datetime.utcfromtimestamp(value)
+            else:
+                dt = dateutil.parser.parse(value)   
+        except (ValueError, TypeError):
+            # Either `datetime.utcfromtimestamp` or `dateutil.parser.parse` above
+            # may raise on invalid input.
+            m = "%s: %s is not valid timestamp" % (name, str(value))
+            raise DataValidationException(m)
         dt = DateTime._ensure_tz_aware(dt)
         if dt > self._max_value_dt:
-            m = "%s: %s is larger than allowed maximum (%s)" % (name,
+            m = "%s: %s is greater than allowed maximum (%s)" % (name,
                     str(value), str(self._max_value_dt))
             raise DataValidationException(m)
         if dt < self._min_value_dt:
-            m = "%s: %s is larger than allowed minimum (%s)" % (name,
+            m = "%s: %s is less than allowed minimum (%s)" % (name,
                     str(value), str(self._min_value_dt))
             raise DataValidationException(m)
 
