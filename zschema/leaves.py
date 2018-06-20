@@ -488,7 +488,7 @@ class DateTime(Leaf):
                 dt = datetime.datetime.utcfromtimestamp(value)
             else:
                 dt = dateutil.parser.parse(value)   
-        except Exception:
+        except (ValueError, TypeError):
             # Either `datetime.utcfromtimestamp` or `dateutil.parser.parse` above
             # may raise on invalid input.
             m = "%s: %s is not valid timestamp" % (name, str(value))
