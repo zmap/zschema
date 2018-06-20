@@ -25,11 +25,15 @@ class ListOf(Keyable):
 
     @property
     def exclude_bigquery(self):
-        return self.object_.exclude_bigquery
+        # If the child type is excluded, that is the same as excluding this --
+        # it's not clear what it would mean otherwise, from a schema perspective
+        return super(ListOf, self).exclude_bigquery \
+               or self.object_.exclude_bigquery
 
     @property
     def exclude_elasticsearch(self):
-        return self.object_.exclude_elasticsearch
+        return super(ListOf, self).exclude_elasticsearch \
+               or self.object_.exclude_elasticsearch
 
     def print_indent_string(self, name, indent):
         tabs = "\t" * indent if indent else ""

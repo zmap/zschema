@@ -842,3 +842,23 @@ class ValidationPolicies(unittest.TestCase):
             }
         }
         self.assertRaises(DataValidationException, lambda: schema.validate(doc))
+
+class ExcludeTests(unittest.TestCase):
+    def test_ListOf_exclude(self):
+        a = ListOf(String())
+        self.assertFalse(a.exclude_bigquery)
+        self.assertFalse(a.exclude_elasticsearch)
+
+        b = ListOf(String(exclude=["bigquery"]))
+        self.assertTrue(b.exclude_bigquery)
+        self.assertFalse(b.exclude_elasticsearch)
+
+        c = ListOf(String(), exclude=["elasticsearch"])
+        self.assertFalse(c.exclude_bigquery)
+        self.assertTrue(c.exclude_elasticsearch)
+
+        d = ListOf(String(exclude=["bigquery"]), exclude=["elasticsearch"])
+        self.assertTrue(d.exclude_bigquery)
+        self.assertTrue(d.exclude_elasticsearch)
+
+    # TODO: test the rest of the types
