@@ -495,11 +495,11 @@ class DateTime(Leaf):
             raise DataValidationException(m)
         dt = DateTime._ensure_tz_aware(dt)
         if dt > self._max_value_dt:
-            m = "%s: %s is larger than allowed maximum (%s)" % (name,
+            m = "%s: %s is greater than allowed maximum (%s)" % (name,
                     str(value), str(self._max_value_dt))
             raise DataValidationException(m)
         if dt < self._min_value_dt:
-            m = "%s: %s is larger than allowed minimum (%s)" % (name,
+            m = "%s: %s is less than allowed minimum (%s)" % (name,
                     str(value), str(self._min_value_dt))
             raise DataValidationException(m)
 
