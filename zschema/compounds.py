@@ -10,6 +10,18 @@ def _is_valid_object(name, object_):
     if not isinstance(object_, Keyable):
         raise Exception("Invalid schema. %s is not a Keyable." % name)
 
+def _proto_message_name(string):
+    if string != string.lower():
+        return string
+    string = "".join(w.capitalize() for w in string.split("_"))
+    string = string.replace("Ztag", "ZTag")
+    return string
+
+def _proto_indent(string, n):
+    return "\n".join(n*"    " + s for s in string.split("\n"))
+
+# Track protobuf message definitions that have been emitted.
+_proto_messages = {}
 
 class ListOf(Keyable):
 
@@ -44,6 +56,9 @@ class ListOf(Keyable):
         retv = self.object_.to_bigquery(name)
         retv["mode"] = "REPEATED"
         return retv
+
+    def to_proto(self, name, indent):
+        return "repeated " + self.object_.to_proto(name, indent)
 
     def docs_bq(self, parent_category=None):
         category = self.category or parent_category
@@ -120,15 +135,15 @@ def ListOfType(object_,
 
 
 class SubRecord(Keyable):
-
     DEFINITION = {}
     ALLOW_UNKNOWN = False
 
     def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
-            allow_unknown=_NO_ARG, *args, **kwargs):
+            allow_unknown=_NO_ARG, type_name=_NO_ARG, *args, **kwargs):
         super(SubRecord, self).__init__(*args, **kwargs)
         self.set("definition", definition)
         self.set("allow_unknown", allow_unknown)
+        self.set("type_name", type_name)
         if extends is not _NO_ARG:
             extends = copy.deepcopy(extends)
             self.set("definition", self.merge(extends).definition)
@@ -209,6 +224,27 @@ class SubRecord(Keyable):
         }
         return retv
 
+    def to_proto(self, name, indent):
+        anon = False
+        try:
+            message_type = _proto_message_name(self.type_name)
+        except: # anonymous message
+            message_type = _proto_message_name(self.key_to_proto(name)) + "Struct"
+            anon = True
+
+        global _proto_messages
+        if anon or message_type not in _proto_messages:
+            fields = [v.to_proto(k, indent) for k,v in \
+                      sorted(self.definition.iteritems(), key=lambda (k,v): v.sort_index)]
+            fields = ["%s = %d;" % (fields[i], i+1) for i in range(len(fields))]
+            proto_def = "message %s {\n%s\n}" % (message_type, _proto_indent("\n".join(fields), indent+1))
+            _proto_messages[message_type] = True
+            if not anon:
+                print proto_def
+            else:
+                return "%s\n%s %s" % (proto_def, message_type, self.key_to_proto(name))
+        return "%s %s" % (message_type, self.key_to_proto(name))
+
     def docs_bq(self, parent_category=None):
         category = self.category or parent_category
         retv = self._docs_common(category)
@@ -276,6 +312,7 @@ class SubRecord(Keyable):
 
 def SubRecordType(definition,
         required=_NO_ARG,
+        type_name=_NO_ARG,
         doc=_NO_ARG,
         desc=_NO_ARG,
         allow_unknown=_NO_ARG,
@@ -284,6 +321,7 @@ def SubRecordType(definition,
         validation_policy=_NO_ARG):
     t = type("SubRecord", (SubRecord,), {})
     t.set_default("definition", definition)
+    t.set_default("type_name", type_name)
     t.set_default("required", required)
     t.set_default("doc", doc)
     t.set_default("desc", desc)
@@ -340,6 +378,10 @@ class Record(SubRecord):
                 for (name, s) in source \
                 if not s.exclude_bigquery
                 ]
+
+    def to_proto(self, name):
+        return "message %s {\n%s\n}" % (_proto_message_name(name), \
+            _proto_indent(SubRecord.to_proto(self, name, 0) + " = 1;", 1))
 
     def docs_bq(self, name, parent_category=None):
         category = self.category or parent_category
