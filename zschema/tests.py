@@ -315,8 +315,8 @@ VALID_BIG_QUERY = [
     },
 ]
 
-VALID_PROTO = """message Hist {
-    message HistStruct {
+VALID_PROTO = """message Host {
+    message HostStruct {
         string ipstr = 1;
         uint32 ip = 2;
         message P443Struct {
@@ -331,7 +331,7 @@ VALID_PROTO = """message Hist {
         P443Struct p443 = 3;
         repeated string tags = 4;
     }
-    HistStruct hist = 1;
+    HostStruct host = 1;
 }"""
 
 class CompileAndValidationTests(unittest.TestCase):
@@ -388,7 +388,7 @@ class CompileAndValidationTests(unittest.TestCase):
 
     def test_proto(self):
         global VALID_PROTO
-        r = self.host.to_proto("hist")
+        r = self.host.to_proto("host")
         self.assertEqual(r, VALID_PROTO)
         
     def test_elasticsearch(self):
