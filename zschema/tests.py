@@ -315,6 +315,24 @@ VALID_BIG_QUERY = [
     },
 ]
 
+VALID_PROTO = """message Hist {
+    message HistStruct {
+        string ipstr = 1;
+        uint32 ip = 2;
+        message P443Struct {
+            message HeartbleedStruct {
+                bool heartbeat_support = 1;
+                bool heartbleed_vulnerable = 2;
+                Timestamp timestamp = 3;
+            }
+            HeartbleedStruct heartbleed = 1;
+            string tls = 2;
+        }
+        P443Struct p443 = 3;
+        repeated string tags = 4;
+    }
+    HistStruct hist = 1;
+}"""
 
 class CompileAndValidationTests(unittest.TestCase):
 
@@ -368,6 +386,11 @@ class CompileAndValidationTests(unittest.TestCase):
         r = self.host.to_bigquery()
         self.assertBigQuerySchemaEqual(r, VALID_BIG_QUERY)
 
+    def test_proto(self):
+        global VALID_PROTO
+        r = self.host.to_proto("hist")
+        self.assertEqual(r, VALID_PROTO)
+        
     def test_elasticsearch(self):
         global VALID_ELASTIC_SEARCH
         r = self.host.to_es("host")
