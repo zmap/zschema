@@ -37,6 +37,8 @@ Commands:
 
  * json (compile documentation to JSON)
 
+ * proto (compile documentation to proto3)
+
  * text (compile documentation to plain text)
 
  * html (compile documentation to HTML)
