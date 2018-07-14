@@ -1,6 +1,7 @@
 import sys
 import copy
 import json
+from collections import OrderedDict
 
 from keys import *
 from keys import _NO_ARG
@@ -21,7 +22,7 @@ def _proto_indent(string, n):
     return "\n".join(n*"    " + s for s in string.split("\n"))
 
 # Track protobuf message definitions that have been emitted.
-_proto_messages = {}
+_proto_messages = OrderedDict()
 
 class ListOf(Keyable):
 
@@ -58,7 +59,9 @@ class ListOf(Keyable):
         return retv
 
     def to_proto(self, name, indent):
-        return "repeated " + self.object_.to_proto(name, indent)
+        retv = self.object_.to_proto(name, indent)
+        retv["field"] = "repeated " + retv["field"]
+        return retv
 
     def docs_bq(self, parent_category=None):
         category = self.category or parent_category
@@ -225,25 +228,34 @@ class SubRecord(Keyable):
         return retv
 
     def to_proto(self, name, indent):
-        anon = False
-        try:
+        try: # named message type -- produced at top level, once
             message_type = _proto_message_name(self.type_name)
-        except: # anonymous message
+            anon = False
+        except: # anonymous message type -- nests within containing message
             message_type = _proto_message_name(self.key_to_proto(name)) + "Struct"
             anon = True
 
+        proto_def = ""
         global _proto_messages
         if anon or message_type not in _proto_messages:
-            fields = [v.to_proto(k, indent) for k,v in \
+            retvs = [v.to_proto(k, indent) for k,v in \
                       sorted(self.definition.iteritems(), key=lambda (k,v): v.sort_index)]
-            fields = ["%s = %d;" % (fields[i], i+1) for i in range(len(fields))]
-            proto_def = "message %s {\n%s\n}" % (message_type, _proto_indent("\n".join(fields), indent+1))
-            _proto_messages[message_type] = True
+            n = 0
+            proto = []
+            for v in retvs:
+                if v["message"]:
+                    proto += [v["message"]]
+                proto += ["%s = %d;" % (v["field"], n+1)]
+                n += 1
+            proto_def = "message %s {\n%s\n}" % \
+                        (message_type, _proto_indent("\n".join(proto), indent+1))
             if not anon:
-                print proto_def
-            else:
-                return "%s\n%s %s" % (proto_def, message_type, self.key_to_proto(name))
-        return "%s %s" % (message_type, self.key_to_proto(name))
+                _proto_messages[message_type] = proto_def
+                proto_def = ""
+        return {
+            "message": proto_def,
+            "field": "%s %s" % (message_type, self.key_to_proto(name))
+        }
 
     def docs_bq(self, parent_category=None):
         category = self.category or parent_category
@@ -380,8 +392,14 @@ class Record(SubRecord):
                 ]
 
     def to_proto(self, name):
-        return "message %s {\n%s\n}" % (_proto_message_name(name), \
-            _proto_indent(SubRecord.to_proto(self, name, 0) + " = 1;", 1))
+        self.type_name = name
+        SubRecord.to_proto(self, name, 0)
+        return """syntax = "proto3";
+package schema;
+
+import "google/protobuf/timestamp.proto";
+
+""" + "\n".join(_proto_messages.values())
 
     def docs_bq(self, name, parent_category=None):
         category = self.category or parent_category

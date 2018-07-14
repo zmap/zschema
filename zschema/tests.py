@@ -315,23 +315,25 @@ VALID_BIG_QUERY = [
     },
 ]
 
-VALID_PROTO = """message Host {
-    message HostStruct {
-        string ipstr = 1;
-        uint32 ip = 2;
-        message P443Struct {
-            message HeartbleedStruct {
-                bool heartbeat_support = 1;
-                bool heartbleed_vulnerable = 2;
-                Timestamp timestamp = 3;
-            }
-            HeartbleedStruct heartbleed = 1;
-            string tls = 2;
+VALID_PROTO = """syntax = "proto3";
+package schema;
+
+import "google/protobuf/timestamp.proto";
+
+message Host {
+    string ipstr = 1;
+    uint32 ip = 2;
+    message P443Struct {
+        message HeartbleedStruct {
+            bool heartbeat_support = 1;
+            bool heartbleed_vulnerable = 2;
+            Timestamp timestamp = 3;
         }
-        P443Struct p443 = 3;
-        repeated string tags = 4;
+        HeartbleedStruct heartbleed = 1;
+        string tls = 2;
     }
-    HostStruct host = 1;
+    P443Struct p443 = 3;
+    repeated string tags = 4;
 }"""
 
 class CompileAndValidationTests(unittest.TestCase):
