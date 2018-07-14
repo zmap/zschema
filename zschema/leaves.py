@@ -109,7 +109,10 @@ class Leaf(Keyable):
     def to_proto(self, name, indent):
         if not self._check_valid_name(name):
             raise Exception("Invalid field name: %s" % name)
-        return "%s %s" % (self.PR_TYPE, self.key_to_proto(name))
+        return {
+            "message": "",
+            "field": "%s %s" % (self.PR_TYPE, self.key_to_proto(name))
+        }
 
     def to_string(self, name):
         return "%s: %s" % (self.key_to_string(name),
