@@ -368,10 +368,10 @@ class CompileAndValidationTests(unittest.TestCase):
     def setUp(self):
         self.maxDiff=10000
 
-        heartbleed = SubRecord({
-            "heartbeat_support":Boolean(),
-            "heartbleed_vulnerable":Boolean(category="Vulnerabilities"),
-            "timestamp":DateTime(pr_index=10) # explicit proto field index
+        heartbleed = SubRecord({ # with explicit proto field indices
+            "heartbeat_support":Boolean(pr_index=11),
+            "heartbleed_vulnerable":Boolean(category="Vulnerabilities", pr_index=12),
+            "timestamp":DateTime(pr_index=10)
         })
         self.host = Record({
                 "ipstr":IPv4Address(required=True, examples=["8.8.8.8"]),

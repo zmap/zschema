@@ -241,6 +241,8 @@ class SubRecord(Keyable):
             retvs = [(v.to_proto(k, indent), v.explicit_index) for k,v in \
                       sorted(self.definition.iteritems(), key=lambda (k,v): v.explicit_index) \
                     if v.explicit_index != None]
+            if len(retvs) > 0 and len(retvs) < len(self.definition):
+                raise Exception("Mixing explicit and explicit field indices is prohibited.")
             retvs += [(v.to_proto(k, indent), v.explicit_index) for k,v in \
                       sorted(self.definition.iteritems(), key=lambda (k,v): v.implicit_index) \
                     if v.explicit_index == None]
