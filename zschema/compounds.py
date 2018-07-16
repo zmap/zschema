@@ -15,7 +15,6 @@ def _proto_message_name(string):
     if string != string.lower():
         return string
     string = "".join(w.capitalize() for w in string.split("_"))
-    string = string.replace("Ztag", "ZTag")
     return string
 
 def _proto_indent(string, n):
