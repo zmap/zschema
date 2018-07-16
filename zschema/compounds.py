@@ -237,15 +237,23 @@ class SubRecord(Keyable):
         proto_def = ""
         global _proto_messages
         if anon or message_type not in _proto_messages:
-            retvs = [v.to_proto(k, indent) for k,v in \
-                      sorted(self.definition.iteritems(), key=lambda (k,v): v.sort_index)]
+            # Explicitly indexed values go first, then implicitly indexed values:
+            retvs = [(v.to_proto(k, indent), v.explicit_index) for k,v in \
+                      sorted(self.definition.iteritems(), key=lambda (k,v): v.explicit_index) \
+                    if v.explicit_index != None]
+            retvs += [(v.to_proto(k, indent), v.explicit_index) for k,v in \
+                      sorted(self.definition.iteritems(), key=lambda (k,v): v.implicit_index) \
+                    if v.explicit_index == None]
             n = 0
             proto = []
-            for v in retvs:
+            for (v, i) in retvs:
                 if v["message"]:
                     proto += [v["message"]]
-                proto += ["%s = %d;" % (v["field"], n+1)]
-                n += 1
+                if i != None:
+                    n = i
+                else:
+                    n += 1
+                proto += ["%s = %d;" % (v["field"], n)]
             proto_def = "message %s {\n%s\n}" % \
                         (message_type, _proto_indent("\n".join(proto), indent+1))
             if not anon:

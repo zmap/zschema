@@ -35,7 +35,8 @@ class Leaf(Keyable):
             units=_NO_ARG,
             min_value=_NO_ARG,
             max_value=_NO_ARG,
-            validation_policy=_NO_ARG):
+            validation_policy=_NO_ARG,
+            pr_index=_NO_ARG):
         Keyable.__init__(self,
                 required=required,
                 desc=desc,
@@ -45,7 +46,8 @@ class Leaf(Keyable):
                 deprecated=deprecated,
                 ignore=ignore,
                 examples=examples,
-                validation_policy=validation_policy)
+                validation_policy=validation_policy,
+                pr_index=pr_index)
         self.set("es_index", es_index)
         self.set("es_analyzer", es_analyzer)
         self.set("units", units)

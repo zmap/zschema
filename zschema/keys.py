@@ -139,6 +139,7 @@ class Keyable(object):
     METADATA = {}
     ALLOW_UNKNOWN = False
     VALIDATION_POLICY = "inherit"
+    EXPLICIT_INDEX = None
 
     # create a map from name of type to class. We can use this
     # in order to create the Python definition from JSON. We need
@@ -285,7 +286,7 @@ class Keyable(object):
 
     def __init__(self, required=_NO_ARG, desc=_NO_ARG, doc=_NO_ARG, category=_NO_ARG,
             exclude=_NO_ARG, deprecated=_NO_ARG, ignore=_NO_ARG,
-            examples=_NO_ARG, metadata=_NO_ARG, validation_policy=_NO_ARG):
+            examples=_NO_ARG, metadata=_NO_ARG, validation_policy=_NO_ARG, pr_index=_NO_ARG):
         global _keyable_counter
         self.set("required", required)
         self.set("desc", desc)
@@ -297,7 +298,8 @@ class Keyable(object):
         self.set("deprecated", deprecated)
         self.set("ignore", ignore)
         self.set("validation_policy", validation_policy)
-        self.set("sort_index", _keyable_counter)
+        self.set("explicit_index", pr_index)
+        self.set("implicit_index", _keyable_counter)
         _keyable_counter += 1
 
         if self.DEPRECATED_TYPE:

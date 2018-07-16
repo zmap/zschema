@@ -325,9 +325,9 @@ message Host {
     uint32 ip = 2;
     message P443Struct {
         message HeartbleedStruct {
-            bool heartbeat_support = 1;
-            bool heartbleed_vulnerable = 2;
-            Timestamp timestamp = 3;
+            Timestamp timestamp = 10;
+            bool heartbeat_support = 11;
+            bool heartbleed_vulnerable = 12;
         }
         HeartbleedStruct heartbleed = 1;
         string tls = 2;
@@ -371,7 +371,7 @@ class CompileAndValidationTests(unittest.TestCase):
         heartbleed = SubRecord({
             "heartbeat_support":Boolean(),
             "heartbleed_vulnerable":Boolean(category="Vulnerabilities"),
-            "timestamp":DateTime()
+            "timestamp":DateTime(pr_index=10) # explicit proto field index
         })
         self.host = Record({
                 "ipstr":IPv4Address(required=True, examples=["8.8.8.8"]),
