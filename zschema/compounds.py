@@ -139,6 +139,7 @@ def ListOfType(object_,
 class SubRecord(Keyable):
     DEFINITION = {}
     ALLOW_UNKNOWN = False
+    TYPE_NAME = None
 
     def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
             allow_unknown=_NO_ARG, type_name=_NO_ARG, *args, **kwargs):
@@ -227,10 +228,10 @@ class SubRecord(Keyable):
         return retv
 
     def to_proto(self, name, indent):
-        try: # named message type -- produced at top level, once
+        if self.type_name != None: # named message type -- produced at top level, once
             message_type = _proto_message_name(self.type_name)
             anon = False
-        except: # anonymous message type -- nests within containing message
+        else: # anonymous message type -- nests within containing message
             message_type = _proto_message_name(self.key_to_proto(name)) + "Struct"
             anon = True
 
