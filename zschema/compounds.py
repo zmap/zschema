@@ -124,7 +124,7 @@ def ListOfType(object_,
         examples=_NO_ARG,
         category=_NO_ARG,
         validation_policy=_NO_ARG,
-        pr_omit=_NO_ARG):
+        pr_ignore=_NO_ARG):
     _is_valid_object("Anonymous ListOf", object_)
     t = type("ListOf", (ListOf,), {})
     t.set_default("object_", object_)
@@ -135,7 +135,7 @@ def ListOfType(object_,
     t.set_default("category", category)
     t.set_default("examples", examples)
     t.set_default("validation_policy", validation_policy)
-    t.set_default("pr_omit", pr_omit)
+    t.set_default("pr_ignore", pr_ignore)
 
 
 class SubRecord(Keyable):
@@ -242,13 +242,13 @@ class SubRecord(Keyable):
         if anon or message_type not in _proto_messages:
             # Explicitly indexed values go first, then implicitly indexed values:
             retvs = [(v.to_proto(k, indent), v.explicit_index) for k,v in \
-                      sorted(self.definition.iteritems(), key=lambda (k,v): v.explicit_index) \
-                    if v.explicit_index != None and not v.pr_omit]
+                     sorted(self.definition.iteritems(), key=lambda (k,v): v.explicit_index) \
+                     if v.explicit_index != None and not v.pr_ignore]
             if len(retvs) > 0 and len(retvs) < len(self.definition):
                 raise Exception("Mixing explicit and explicit field indices is prohibited (%s)." % (name))
             retvs += [(v.to_proto(k, indent), v.explicit_index) for k,v in \
                       sorted(self.definition.iteritems(), key=lambda (k,v): v.implicit_index) \
-                    if v.explicit_index == None and not v.pr_omit]
+                      if v.explicit_index == None and not v.pr_ignore]
             n = 0
             proto = []
             for (v, i) in retvs:
@@ -343,7 +343,7 @@ def SubRecordType(definition,
         exclude=_NO_ARG,
         category=_NO_ARG,
         validation_policy=_NO_ARG,
-        pr_omit=_NO_ARG):
+        pr_ignore=_NO_ARG):
     t = type("SubRecord", (SubRecord,), {})
     t.set_default("definition", definition)
     t.set_default("type_name", type_name)
@@ -354,7 +354,7 @@ def SubRecordType(definition,
     t.set_default("exclude", exclude)
     t.set_default("category", category)
     t.set_default("validation_policy", validation_policy)
-    t.set_default("pr_omit", pr_omit)
+    t.set_default("pr_ignore", pr_ignore)
     return t
 
 
