@@ -36,7 +36,8 @@ class Leaf(Keyable):
             min_value=_NO_ARG,
             max_value=_NO_ARG,
             validation_policy=_NO_ARG,
-            pr_index=_NO_ARG):
+            pr_index=_NO_ARG,
+            pr_omit=_NO_ARG):
         Keyable.__init__(self,
                 required=required,
                 desc=desc,
@@ -47,7 +48,8 @@ class Leaf(Keyable):
                 ignore=ignore,
                 examples=examples,
                 validation_policy=validation_policy,
-                pr_index=pr_index)
+                pr_index=pr_index,
+                pr_omit=pr_omit)
         self.set("es_index", es_index)
         self.set("es_analyzer", es_analyzer)
         self.set("units", units)
@@ -391,7 +393,7 @@ class Signed32BitInteger(_Integer):
 class Signed8BitInteger(_Integer):
 
     ES_TYPE = "byte"
-    PR_TYPE = "sint32"
+    PR_TYPE = "int32"
 
     BITS = 8
     INVALID = 2**8+5
@@ -401,7 +403,7 @@ class Signed8BitInteger(_Integer):
 class Signed16BitInteger(_Integer):
 
     ES_TYPE = "short"
-    PR_TYPE = "sint32"
+    PR_TYPE = "int32"
 
     BITS = 16
     INVALID = 2**16
@@ -423,7 +425,7 @@ class Signed64BitInteger(_Integer):
 
     ES_TYPE = "long"
     BQ_TYPE = "INTEGER"
-    PR_TYPE = "sint64"
+    PR_TYPE = "int64"
 
     EXPECTED_CLASS = [int,long]
     INVALID = 2l**68
