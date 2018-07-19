@@ -1,5 +1,7 @@
 import logging
 
+_keyable_counter = 0
+
 class _NO_ARG(object):
     __nonzero__ = lambda _: False
 
@@ -23,6 +25,9 @@ class Port(object):
 
     def to_es(self):
         return self.port
+
+    def to_proto(self):
+        return "p%s" % self.port
 
     to_string = to_es
 
@@ -134,6 +139,8 @@ class Keyable(object):
     METADATA = {}
     ALLOW_UNKNOWN = False
     VALIDATION_POLICY = "inherit"
+    EXPLICIT_INDEX = None
+    PR_IGNORE = False
 
     # create a map from name of type to class. We can use this
     # in order to create the Python definition from JSON. We need
@@ -155,6 +162,13 @@ class Keyable(object):
             return o
         else:
             return o.to_bigquery()
+
+    @staticmethod
+    def key_to_proto(o):
+        if type(o) in (str, unicode):
+            return o
+        else:
+            return o.to_proto()
 
     @staticmethod
     def key_to_es(o):
@@ -273,7 +287,8 @@ class Keyable(object):
 
     def __init__(self, required=_NO_ARG, desc=_NO_ARG, doc=_NO_ARG, category=_NO_ARG,
             exclude=_NO_ARG, deprecated=_NO_ARG, ignore=_NO_ARG,
-            examples=_NO_ARG, metadata=_NO_ARG, validation_policy=_NO_ARG):
+            examples=_NO_ARG, metadata=_NO_ARG, validation_policy=_NO_ARG, pr_index=_NO_ARG, pr_ignore=_NO_ARG):
+        global _keyable_counter
         self.set("required", required)
         self.set("desc", desc)
         self.set("doc", doc)
@@ -284,6 +299,10 @@ class Keyable(object):
         self.set("deprecated", deprecated)
         self.set("ignore", ignore)
         self.set("validation_policy", validation_policy)
+        self.set("explicit_index", pr_index)
+        self.set("implicit_index", _keyable_counter)
+        _keyable_counter += 1
+        self.set("pr_ignore", pr_ignore)
 
         if self.DEPRECATED_TYPE:
             e = "WARN: %s is deprecated and will be removed in a "\

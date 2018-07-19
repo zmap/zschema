@@ -1,6 +1,7 @@
 import sys
 import copy
 import json
+from collections import OrderedDict
 
 from keys import *
 from keys import _NO_ARG
@@ -10,6 +11,17 @@ def _is_valid_object(name, object_):
     if not isinstance(object_, Keyable):
         raise Exception("Invalid schema. %s is not a Keyable." % name)
 
+def _proto_message_name(string):
+    if string != string.lower():
+        return string
+    string = "".join(w.capitalize() for w in string.split("_"))
+    return string
+
+def _proto_indent(string, n):
+    return "\n".join(n*"    " + s for s in string.split("\n"))
+
+# Track protobuf message definitions that have been emitted.
+_proto_messages = OrderedDict()
 
 class ListOf(Keyable):
 
@@ -43,6 +55,11 @@ class ListOf(Keyable):
     def to_bigquery(self, name):
         retv = self.object_.to_bigquery(name)
         retv["mode"] = "REPEATED"
+        return retv
+
+    def to_proto(self, name, indent):
+        retv = self.object_.to_proto(name, indent)
+        retv["field"] = "repeated " + retv["field"]
         return retv
 
     def docs_bq(self, parent_category=None):
@@ -106,7 +123,8 @@ def ListOfType(object_,
         desc=_NO_ARG,
         examples=_NO_ARG,
         category=_NO_ARG,
-        validation_policy=_NO_ARG):
+        validation_policy=_NO_ARG,
+        pr_ignore=_NO_ARG):
     _is_valid_object("Anonymous ListOf", object_)
     t = type("ListOf", (ListOf,), {})
     t.set_default("object_", object_)
@@ -117,18 +135,20 @@ def ListOfType(object_,
     t.set_default("category", category)
     t.set_default("examples", examples)
     t.set_default("validation_policy", validation_policy)
+    t.set_default("pr_ignore", pr_ignore)
 
 
 class SubRecord(Keyable):
-
     DEFINITION = {}
     ALLOW_UNKNOWN = False
+    TYPE_NAME = None
 
     def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
-            allow_unknown=_NO_ARG, *args, **kwargs):
+            allow_unknown=_NO_ARG, type_name=_NO_ARG, *args, **kwargs):
         super(SubRecord, self).__init__(*args, **kwargs)
         self.set("definition", definition)
         self.set("allow_unknown", allow_unknown)
+        self.set("type_name", type_name)
         if extends is not _NO_ARG:
             extends = copy.deepcopy(extends)
             self.set("definition", self.merge(extends).definition)
@@ -209,6 +229,46 @@ class SubRecord(Keyable):
         }
         return retv
 
+    def to_proto(self, name, indent):
+        if self.type_name != None: # named message type -- produced at top level, once
+            message_type = _proto_message_name(self.type_name)
+            anon = False
+        else: # anonymous message type -- nests within containing message
+            message_type = _proto_message_name(self.key_to_proto(name)) + "Struct"
+            anon = True
+
+        proto_def = ""
+        global _proto_messages
+        if anon or message_type not in _proto_messages:
+            # Explicitly indexed values go first, then implicitly indexed values:
+            retvs = [(v.to_proto(k, indent), v.explicit_index) for k,v in \
+                     sorted(self.definition.iteritems(), key=lambda (k,v): v.explicit_index) \
+                     if v.explicit_index != None and not v.pr_ignore]
+            if len(retvs) > 0 and len(retvs) < len(self.definition):
+                raise Exception("Mixing explicit and explicit field indices is prohibited (%s)." % (name))
+            retvs += [(v.to_proto(k, indent), v.explicit_index) for k,v in \
+                      sorted(self.definition.iteritems(), key=lambda (k,v): v.implicit_index) \
+                      if v.explicit_index == None and not v.pr_ignore]
+            n = 0
+            proto = []
+            for (v, i) in retvs:
+                if v["message"]:
+                    proto += [v["message"]]
+                if i != None:
+                    n = i
+                else:
+                    n += 1
+                proto += ["%s = %d;" % (v["field"], n)]
+            proto_def = "message %s {\n%s\n}" % \
+                        (message_type, _proto_indent("\n".join(proto), indent+1))
+            if not anon:
+                _proto_messages[message_type] = proto_def
+                proto_def = ""
+        return {
+            "message": proto_def,
+            "field": "%s %s" % (message_type, self.key_to_proto(name))
+        }
+
     def docs_bq(self, parent_category=None):
         category = self.category or parent_category
         retv = self._docs_common(category)
@@ -276,14 +336,17 @@ class SubRecord(Keyable):
 
 def SubRecordType(definition,
         required=_NO_ARG,
+        type_name=_NO_ARG,
         doc=_NO_ARG,
         desc=_NO_ARG,
         allow_unknown=_NO_ARG,
         exclude=_NO_ARG,
         category=_NO_ARG,
-        validation_policy=_NO_ARG):
+        validation_policy=_NO_ARG,
+        pr_ignore=_NO_ARG):
     t = type("SubRecord", (SubRecord,), {})
     t.set_default("definition", definition)
+    t.set_default("type_name", type_name)
     t.set_default("required", required)
     t.set_default("doc", doc)
     t.set_default("desc", desc)
@@ -291,6 +354,7 @@ def SubRecordType(definition,
     t.set_default("exclude", exclude)
     t.set_default("category", category)
     t.set_default("validation_policy", validation_policy)
+    t.set_default("pr_ignore", pr_ignore)
     return t
 
 
@@ -340,6 +404,16 @@ class Record(SubRecord):
                 for (name, s) in source \
                 if not s.exclude_bigquery
                 ]
+
+    def to_proto(self, name):
+        self.type_name = name
+        SubRecord.to_proto(self, name, 0)
+        return """syntax = "proto3";
+package schema;
+
+import "google/protobuf/timestamp.proto";
+
+""" + "\n".join(_proto_messages.values())
 
     def docs_bq(self, name, parent_category=None):
         category = self.category or parent_category
