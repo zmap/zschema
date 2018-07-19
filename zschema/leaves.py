@@ -36,8 +36,7 @@ class Leaf(Keyable):
             min_value=_NO_ARG,
             max_value=_NO_ARG,
             validation_policy=_NO_ARG,
-            pr_index=_NO_ARG,
-            pr_ignore=_NO_ARG):
+            pr_index=_NO_ARG):
         Keyable.__init__(self,
                 required=required,
                 desc=desc,
@@ -48,8 +47,7 @@ class Leaf(Keyable):
                 ignore=ignore,
                 examples=examples,
                 validation_policy=validation_policy,
-                pr_index=pr_index,
-                pr_ignore=pr_ignore)
+                pr_index=pr_index)
         self.set("es_index", es_index)
         self.set("es_analyzer", es_analyzer)
         self.set("units", units)
@@ -99,6 +97,10 @@ class Leaf(Keyable):
     def docs_bq(self, parent_category=None):
         retv = self._docs_common(parent_category)
         retv["type"] = self.BQ_TYPE
+        return retv
+
+    def docs_proto(self, parent_category=None):
+        retv = self._docs_common(parent_category)
         return retv
 
     def to_bigquery(self, name):
@@ -259,6 +261,20 @@ class HexString(Leaf):
             m = "%s: the value %s is not hex" % (name, value)
             raise DataValidationException(m)
 
+def _proto_enum_name(string):
+    if string != string.lower():
+        return string
+    string = "".join(w.capitalize() for w in string.split("_"))
+    string = string[0].lower() + string[1:]
+    return string
+
+def _proto_enum_value(string):
+    string = string.upper()
+    string = string.replace(".", "_")
+    string = string.replace("-", "_")
+    if string[0].isdigit():
+        string = "_" + string
+    return string
 
 class Enum(Leaf):
 
@@ -289,6 +305,20 @@ class Enum(Leaf):
             retv["values"] = list(self.values_s)
             del retv["examples"]
         return retv
+
+    def to_proto(self, name, indent):
+        if not self._check_valid_name(name):
+            raise Exception("Invalid field name: %s" % name)
+        enum = "enum %sEnum {\n" % _proto_enum_name(name)
+        vals = self.values
+        enum += "  %s = 0;\n" % (_proto_enum_value(name + "_unspecified"))
+        for i in range(len(self.values_s)):
+            enum += "  %s = %d;\n" % (_proto_enum_value(name + "_" + str(vals[i]).lower()), i+1)
+        enum += "}\n%sEnum %s" % (_proto_enum_name(name), name)
+        return {
+            "message": "",
+            "field": enum
+        }
 
 class HTML(AnalyzedString):
 
@@ -365,7 +395,7 @@ class _Integer(Leaf):
 
     ES_TYPE = "integer"
     BQ_TYPE = "INTEGER"
-    PR_TYPE = "sint64"
+    PR_TYPE = "int64"
 
     EXPECTED_CLASS = [int,]
 
@@ -382,7 +412,7 @@ class _Integer(Leaf):
 
 class Signed32BitInteger(_Integer):
 
-    PR_TYPE = "sint32"
+    PR_TYPE = "int32"
 
     INVALID = 8589934592
     VALID = 234234252
@@ -503,7 +533,7 @@ class DateTime(Leaf):
 
     ES_TYPE = "date"
     BQ_TYPE = "DATETIME"
-    PR_TYPE = "Timestamp"
+    PR_TYPE = "google.protobuf.Timestamp"
 
     # dateutil.parser.parse(int) throws...? is this intended to be a unix epoch offset?
     EXPECTED_CLASS = [str, int, unicode, datetime.datetime]

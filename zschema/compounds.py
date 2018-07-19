@@ -71,6 +71,15 @@ class ListOf(Keyable):
             retv["doc"] = self.doc
         return retv
 
+    def docs_proto(self, parent_category=None):
+        category = self.category or parent_category
+        retv = self.object_.docs_proto(parent_category=category)
+        retv["category"] = category
+        retv["repeated"] = True
+        if self.doc:
+            retv["doc"] = self.doc
+        return retv
+
     def to_es(self):
         # all elasticsearch fields are automatically repeatable
         return self.object_.to_es()
@@ -123,8 +132,7 @@ def ListOfType(object_,
         desc=_NO_ARG,
         examples=_NO_ARG,
         category=_NO_ARG,
-        validation_policy=_NO_ARG,
-        pr_ignore=_NO_ARG):
+        validation_policy=_NO_ARG):
     _is_valid_object("Anonymous ListOf", object_)
     t = type("ListOf", (ListOf,), {})
     t.set_default("object_", object_)
@@ -135,8 +143,13 @@ def ListOfType(object_,
     t.set_default("category", category)
     t.set_default("examples", examples)
     t.set_default("validation_policy", validation_policy)
-    t.set_default("pr_ignore", pr_ignore)
 
+
+def _proto_quotable(value):
+    if type(value) == type(True):
+        return str(value).lower()
+    else:
+        return '"%s"' % str(value)
 
 class SubRecord(Keyable):
     DEFINITION = {}
@@ -241,24 +254,59 @@ class SubRecord(Keyable):
         global _proto_messages
         if anon or message_type not in _proto_messages:
             # Explicitly indexed values go first, then implicitly indexed values:
-            retvs = [(v.to_proto(k, indent), v.explicit_index) for k,v in \
+            retvs = [(v.to_proto(k, indent), v.explicit_index, v) for k,v in \
                      sorted(self.definition.iteritems(), key=lambda (k,v): v.explicit_index) \
-                     if v.explicit_index != None and not v.pr_ignore]
+                     if v.explicit_index != None and not v.exclude_proto]
             if len(retvs) > 0 and len(retvs) < len(self.definition):
                 raise Exception("Mixing explicit and explicit field indices is prohibited (%s)." % (name))
-            retvs += [(v.to_proto(k, indent), v.explicit_index) for k,v in \
+            retvs += [(v.to_proto(k, indent), v.explicit_index, v) for k,v in \
                       sorted(self.definition.iteritems(), key=lambda (k,v): v.implicit_index) \
-                      if v.explicit_index == None and not v.pr_ignore]
+                      if v.explicit_index == None and not v.exclude_proto]
             n = 0
             proto = []
-            for (v, i) in retvs:
+            for (v, i, obj) in retvs:
                 if v["message"]:
                     proto += [v["message"]]
                 if i != None:
                     n = i
                 else:
                     n += 1
-                proto += ["%s = %d;" % (v["field"], n)]
+                doc_opts = []
+
+                category = obj.category or self.category
+                doc = obj.docs_proto()
+                if "doc" in doc:
+                    d = doc["doc"]
+                    del doc["doc"]
+                    doc["desc"] = d
+                if "detail_type" in doc:
+                    t = doc["detail_type"]
+                    del doc["detail_type"]
+                    doc["type"] = t
+                # Omit fields that are implied by the proto
+                if "required" in doc and not doc["required"]:
+                    del doc["required"]
+                if "repeated" in doc:
+                    del doc["repeated"]
+                if "values" in doc:
+                    del doc["values"]
+                if "type" in doc and doc["type"] in ["String", "Binary", "Boolean", "Enum", "Timestamp", "Signed32BitInteger", "Unsigned32BitInteger", "Signed64BitInteger", "Unsigned64BitInteger", "Double", "Float", "SubRecord"]:
+                    del doc["type"]
+                for (k,val) in doc.iteritems():
+                    if val is None:
+                        continue
+                    if k == "examples":
+                        doc_opts += [("example", ex) for ex in doc["examples"]]
+                    else:
+                        doc_opts += [(k,val)]
+                opts = ""
+                if len(doc_opts) == 1:
+                    (k,val) = doc_opts[0]
+                    opts = "\n  [(censys.docs).%s = %s]" % (k, _proto_quotable(val))
+                elif len(doc_opts) > 1:
+                    opts = "\n  [(censys.docs) = {%s\n  }]" % \
+                        (",".join(["\n    %s: %s" % (k, _proto_quotable(val)) for (k,val) in doc_opts]))
+                proto += ["%s = %d%s;" % (v["field"], n, opts)]
             proto_def = "message %s {\n%s\n}" % \
                         (message_type, _proto_indent("\n".join(proto), indent+1))
             if not anon:
@@ -276,6 +324,11 @@ class SubRecord(Keyable):
                    for (k,v) in sorted(self.definition.iteritems()) \
                    if not v.exclude_bigquery }
         retv["fields"] = fields
+        return retv
+
+    def docs_proto(self, parent_category=None):
+        category = self.category or parent_category
+        retv = self._docs_common(category)
         return retv
 
     def print_indent_string(self, name, indent):
@@ -342,8 +395,7 @@ def SubRecordType(definition,
         allow_unknown=_NO_ARG,
         exclude=_NO_ARG,
         category=_NO_ARG,
-        validation_policy=_NO_ARG,
-        pr_ignore=_NO_ARG):
+        validation_policy=_NO_ARG):
     t = type("SubRecord", (SubRecord,), {})
     t.set_default("definition", definition)
     t.set_default("type_name", type_name)
@@ -354,7 +406,6 @@ def SubRecordType(definition,
     t.set_default("exclude", exclude)
     t.set_default("category", category)
     t.set_default("validation_policy", validation_policy)
-    t.set_default("pr_ignore", pr_ignore)
     return t
 
 
@@ -375,12 +426,33 @@ class NestedListOf(ListOf):
             retv["doc"] = self.doc
         return retv
 
+    def to_proto(self, name, indent):
+        subr = SubRecord({
+            self.subrecord_name:ListOf(self.object_)
+        })
+        retv = subr.to_proto(self.key_to_proto(name), indent)
+        retv["mode"] = "REPEATED"
+        if self.doc:
+            retv["doc"] = self.doc
+        return retv
+
     def docs_bq(self, parent_category=None):
         subr = SubRecord({
             self.subrecord_name: ListOf(self.object_)
         })
         category = self.category or parent_category
         retv = subr.docs_bq(parent_category=category)
+        retv["repeated"] = True
+        if self.doc:
+            retv["doc"] = self.doc
+        return retv
+
+    def docs_proto(self, parent_category=None):
+        subr = SubRecord({
+            self.subrecord_name: ListOf(self.object_)
+        })
+        category = self.category or parent_category
+        retv = subr.docs_proto(parent_category=category)
         retv["repeated"] = True
         if self.doc:
             retv["doc"] = self.doc
@@ -412,12 +484,17 @@ class Record(SubRecord):
 package schema;
 
 import "google/protobuf/timestamp.proto";
+import "docs.proto";
 
 """ + "\n".join(_proto_messages.values())
 
     def docs_bq(self, name, parent_category=None):
         category = self.category or parent_category
         return {name: SubRecord.docs_bq(self, parent_category=category)}
+
+    def docs_proto(self, name, parent_category=None):
+        category = self.category or parent_category
+        return {name: SubRecord.docs_proto(self, parent_category=category)}
 
     def print_indent_string(self):
         for name, field in sorted(self.definition.iteritems()):
