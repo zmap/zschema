@@ -34,7 +34,9 @@ class Leaf(Keyable):
             units=_NO_ARG,
             min_value=_NO_ARG,
             max_value=_NO_ARG,
-            validation_policy=_NO_ARG):
+            validation_policy=_NO_ARG,
+            pr_index=_NO_ARG,
+            pr_ignore=_NO_ARG):
         Keyable.__init__(self,
                 required=required,
                 desc=desc,
@@ -44,7 +46,9 @@ class Leaf(Keyable):
                 deprecated=deprecated,
                 ignore=ignore,
                 examples=examples,
-                validation_policy=validation_policy)
+                validation_policy=validation_policy,
+                pr_index=pr_index,
+                pr_ignore=pr_ignore)
         self.set("es_index", es_index)
         self.set("es_analyzer", es_analyzer)
         self.set("units", units)
@@ -56,6 +60,7 @@ class Leaf(Keyable):
         retv = super(Leaf, self).to_dict()
         self.add_not_empty(retv, "es_type", "es_type")
         self.add_not_empty(retv, "bq_type", "bq_type")
+        self.add_not_empty(retv, "pr_type", "pr_type")
         self.add_not_empty(retv, "units", "units")
         self.add_not_empty(retv, "es_analyzer", "es_analyzer")
         self.add_not_empty(retv, "es_index", "es_index")
@@ -103,6 +108,14 @@ class Leaf(Keyable):
         if self.doc:
             retv["doc"] = self.doc
         return retv
+
+    def to_proto(self, name, indent):
+        if not self._check_valid_name(name):
+            raise Exception("Invalid field name: %s" % name)
+        return {
+            "message": "",
+            "field": "%s %s" % (self.PR_TYPE, self.key_to_proto(name))
+        }
 
     def to_string(self, name):
         return "%s: %s" % (self.key_to_string(name),
@@ -172,6 +185,8 @@ class String(Leaf):
 
     ES_TYPE = "keyword"
     BQ_TYPE = "STRING"
+    PR_TYPE = "string"
+
     EXPECTED_CLASS = [str,unicode]
 
     INVALID = 23
@@ -182,6 +197,8 @@ class EnglishString(Leaf):
 
     ES_TYPE = "text"
     BQ_TYPE = "STRING"
+    PR_TYPE = "string"
+
     ES_ANALYZER = "standard"
     EXPECTED_CLASS = [str,unicode]
 
@@ -193,6 +210,8 @@ class AnalyzedString(Leaf):
 
     ES_TYPE = "text"
     BQ_TYPE = "STRING"
+    PR_TYPE = "string"
+
     ES_ANALYZER = "simple"
     EXPECTED_CLASS = [str,unicode]
 
@@ -221,6 +240,8 @@ class HexString(Leaf):
 
     ES_TYPE = "keyword"
     BQ_TYPE = "STRING"
+    PR_TYPE = "string"
+
     EXPECTED_CLASS = [str,unicode]
 
     INVALID = "asdfasdfa"
@@ -242,6 +263,7 @@ class Enum(Leaf):
 
     ES_TYPE = "keyword"
     BQ_TYPE = "STRING"
+    PR_TYPE = "string"
 
     EXPECTED_CLASS = [str,unicode]
 
@@ -289,6 +311,8 @@ class IPAddress(Leaf):
 
     ES_TYPE = "ip"
     BQ_TYPE = "STRING"
+    PR_TYPE = "string"
+
     EXPECTED_CLASS = [str,unicode]
 
     INVALID = "my string"
@@ -340,6 +364,7 @@ class _Integer(Leaf):
 
     ES_TYPE = "integer"
     BQ_TYPE = "INTEGER"
+    PR_TYPE = "sint64"
 
     EXPECTED_CLASS = [int,]
 
@@ -356,6 +381,8 @@ class _Integer(Leaf):
 
 class Signed32BitInteger(_Integer):
 
+    PR_TYPE = "sint32"
+
     INVALID = 8589934592
     VALID = 234234252
 
@@ -365,6 +392,8 @@ class Signed32BitInteger(_Integer):
 class Signed8BitInteger(_Integer):
 
     ES_TYPE = "byte"
+    PR_TYPE = "int32"
+
     BITS = 8
     INVALID = 2**8+5
     VALID = 34
@@ -373,6 +402,8 @@ class Signed8BitInteger(_Integer):
 class Signed16BitInteger(_Integer):
 
     ES_TYPE = "short"
+    PR_TYPE = "int32"
+
     BITS = 16
     INVALID = 2**16
     VALID = 0xFFFF
@@ -380,17 +411,21 @@ class Signed16BitInteger(_Integer):
 
 
 class Unsigned8BitInteger(Signed16BitInteger):
-    pass
+
+    PR_TYPE = "uint32"
 
 
 class Unsigned16BitInteger(Signed32BitInteger):
-    pass
+
+    PR_TYPE = "uint32"
 
 
 class Signed64BitInteger(_Integer):
 
     ES_TYPE = "long"
     BQ_TYPE = "INTEGER"
+    PR_TYPE = "int64"
+
     EXPECTED_CLASS = [int,long]
     INVALID = 2l**68
     VALID = 10l
@@ -398,13 +433,16 @@ class Signed64BitInteger(_Integer):
 
 
 class Unsigned32BitInteger(Signed64BitInteger):
-    pass
+
+    PR_TYPE = "uint32"
 
 
 class Float(Leaf):
 
     ES_TYPE = "float"
     BQ_TYPE = "FLOAT"
+    PR_TYPE = "float"
+
     EXPECTED_CLASS = [float,]
     INVALID = "I'm a string!"
     VALID = 10.0
@@ -414,6 +452,8 @@ class Double(Float):
 
     ES_TYPE = "double"
     BQ_TYPE = "FLOAT"
+    PR_TYPE = "double"
+
     EXPECTED_CLASS = [float,]
 
 
@@ -421,6 +461,8 @@ class Boolean(Leaf):
 
     ES_TYPE = "boolean"
     BQ_TYPE = "BOOLEAN"
+    PR_TYPE = "bool"
+
     EXPECTED_CLASS = [bool,]
     INVALID = 0
     VALID = True
@@ -430,6 +472,8 @@ class Binary(Leaf):
 
     ES_TYPE = "binary"
     BQ_TYPE = "STRING"
+    PR_TYPE = "bytes"
+
     ES_INDEX = "no"
     EXPECTED_CLASS = [str,unicode]
     B64_REGEX = re.compile('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$')
@@ -450,6 +494,7 @@ class IndexedBinary(Binary):
 
     ES_TYPE = "string"
     BQ_TYPE = "STRING"
+
     ES_INDEX = "not_analyzed"
 
 
@@ -457,6 +502,8 @@ class DateTime(Leaf):
 
     ES_TYPE = "date"
     BQ_TYPE = "DATETIME"
+    PR_TYPE = "Timestamp"
+
     # dateutil.parser.parse(int) throws...? is this intended to be a unix epoch offset?
     EXPECTED_CLASS = [str, int, unicode, datetime.datetime]
 
@@ -480,23 +527,25 @@ class DateTime(Leaf):
             self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE)
 
     def _validate(self, name, value):
-        if isinstance(value, datetime.datetime):
-            dt = value
-        elif isinstance(value, int):
-            dt = datetime.datetime.utcfromtimestamp(value)
-        else:
-            try:
-                dt = dateutil.parser.parse(value)
-            except Exception:
-                m = "%s: %s is not valid timestamp" % (name, str(value))
-                raise DataValidationException(m)
+        try:
+            if isinstance(value, datetime.datetime):
+                dt = value
+            elif isinstance(value, int):
+                dt = datetime.datetime.utcfromtimestamp(value)
+            else:
+                dt = dateutil.parser.parse(value)   
+        except (ValueError, TypeError):
+            # Either `datetime.utcfromtimestamp` or `dateutil.parser.parse` above
+            # may raise on invalid input.
+            m = "%s: %s is not valid timestamp" % (name, str(value))
+            raise DataValidationException(m)
         dt = DateTime._ensure_tz_aware(dt)
         if dt > self._max_value_dt:
-            m = "%s: %s is larger than allowed maximum (%s)" % (name,
+            m = "%s: %s is greater than allowed maximum (%s)" % (name,
                     str(value), str(self._max_value_dt))
             raise DataValidationException(m)
         if dt < self._min_value_dt:
-            m = "%s: %s is larger than allowed minimum (%s)" % (name,
+            m = "%s: %s is less than allowed minimum (%s)" % (name,
                     str(value), str(self._min_value_dt))
             raise DataValidationException(m)
 

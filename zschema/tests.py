@@ -315,6 +315,26 @@ VALID_BIG_QUERY = [
     },
 ]
 
+VALID_PROTO = """syntax = "proto3";
+package schema;
+
+import "google/protobuf/timestamp.proto";
+
+message Host {
+    string ipstr = 1;
+    uint32 ip = 2;
+    message P443Struct {
+        message HeartbleedStruct {
+            Timestamp timestamp = 10;
+            bool heartbeat_support = 11;
+            bool heartbleed_vulnerable = 12;
+        }
+        HeartbleedStruct heartbleed = 1;
+        string tls = 2;
+    }
+    P443Struct p443 = 3;
+    repeated string tags = 4;
+}"""
 
 class CompileAndValidationTests(unittest.TestCase):
 
@@ -348,10 +368,10 @@ class CompileAndValidationTests(unittest.TestCase):
     def setUp(self):
         self.maxDiff=10000
 
-        heartbleed = SubRecord({
-            "heartbeat_support":Boolean(),
-            "heartbleed_vulnerable":Boolean(category="Vulnerabilities"),
-            "timestamp":DateTime()
+        heartbleed = SubRecord({ # with explicit proto field indices
+            "heartbeat_support":Boolean(pr_index=11),
+            "heartbleed_vulnerable":Boolean(category="Vulnerabilities", pr_index=12),
+            "timestamp":DateTime(pr_index=10)
         })
         self.host = Record({
                 "ipstr":IPv4Address(required=True, examples=["8.8.8.8"]),
@@ -368,6 +388,11 @@ class CompileAndValidationTests(unittest.TestCase):
         r = self.host.to_bigquery()
         self.assertBigQuerySchemaEqual(r, VALID_BIG_QUERY)
 
+    def test_proto(self):
+        global VALID_PROTO
+        r = self.host.to_proto("host")
+        self.assertEqual(r, VALID_PROTO)
+        
     def test_elasticsearch(self):
         global VALID_ELASTIC_SEARCH
         r = self.host.to_es("host")
@@ -839,3 +864,23 @@ class ValidationPolicies(unittest.TestCase):
             }
         }
         self.assertRaises(DataValidationException, lambda: schema.validate(doc))
+
+class ExcludeTests(unittest.TestCase):
+    def test_ListOf_exclude(self):
+        a = ListOf(String())
+        self.assertFalse(a.exclude_bigquery)
+        self.assertFalse(a.exclude_elasticsearch)
+
+        b = ListOf(String(exclude=["bigquery"]))
+        self.assertTrue(b.exclude_bigquery)
+        self.assertFalse(b.exclude_elasticsearch)
+
+        c = ListOf(String(), exclude=["elasticsearch"])
+        self.assertFalse(c.exclude_bigquery)
+        self.assertTrue(c.exclude_elasticsearch)
+
+        d = ListOf(String(exclude=["bigquery"]), exclude=["elasticsearch"])
+        self.assertTrue(d.exclude_bigquery)
+        self.assertTrue(d.exclude_elasticsearch)
+
+    # TODO: test the rest of the types
