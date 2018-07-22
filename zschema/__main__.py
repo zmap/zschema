@@ -15,6 +15,7 @@ from compounds import *
 commands = [
     "bigquery",
     "elasticsearch",
+    "proto",
     "docs-bq",
     "docs-es",
     "validate",
@@ -84,6 +85,8 @@ def main():
         print json.dumps(record.to_bigquery())
     elif command == "elasticsearch":
         print json.dumps(record.to_es(recname))
+    elif command == "proto":
+        print record.to_proto(recname)
     elif command == "docs-es":
         print json.dumps(record.docs_es(recname))
     elif command == "docs-bq":
