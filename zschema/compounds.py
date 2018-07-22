@@ -230,7 +230,7 @@ class SubRecord(Keyable):
         return retv
 
     def to_proto(self, name, indent):
-        if self.type_name != None: # named message type -- produced at top level, once
+        if self.type_name is not None: # named message type -- produced at top level, once
             message_type = _proto_message_name(self.type_name)
             anon = False
         else: # anonymous message type -- nests within containing message
@@ -243,18 +243,18 @@ class SubRecord(Keyable):
             # Explicitly indexed values go first, then implicitly indexed values:
             retvs = [(v.to_proto(k, indent), v.explicit_index) for k,v in \
                      sorted(self.definition.iteritems(), key=lambda (k,v): v.explicit_index) \
-                     if v.explicit_index != None and not v.pr_ignore]
+                     if v.explicit_index is not None and not v.pr_ignore]
             if len(retvs) > 0 and len(retvs) < len(self.definition):
                 raise Exception("Mixing explicit and explicit field indices is prohibited (%s)." % (name))
             retvs += [(v.to_proto(k, indent), v.explicit_index) for k,v in \
                       sorted(self.definition.iteritems(), key=lambda (k,v): v.implicit_index) \
-                      if v.explicit_index == None and not v.pr_ignore]
+                      if v.explicit_index is None and not v.pr_ignore]
             n = 0
             proto = []
             for (v, i) in retvs:
                 if v["message"]:
                     proto += [v["message"]]
-                if i != None:
+                if i is not None:
                     n = i
                 else:
                     n += 1
