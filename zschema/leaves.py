@@ -619,7 +619,7 @@ class URL(AnalyzedString):
 
     ES_ANALYZER = "URL"
     ES_SEARCH_ANALYZER = "whitespace"
-    INCLUDE_RAW = True
+    ES_INCLUDE_RAW = True
 
 
 class FQDN(URL):
