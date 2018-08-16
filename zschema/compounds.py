@@ -360,9 +360,9 @@ def SubRecordType(definition,
 
 class NestedListOf(ListOf):
 
-    def __init__(self, object_, subrecord_name, max_items=10, doc=None, category=None):
+    def __init__(self, object_, subrecord_name, max_items=10, doc=None, category=None, *args, **kwargs):
         super(NestedListOf, self).__init__(object_, max_items=max_items,
-                doc=doc, category=category)
+                doc=doc, category=category, *args, **kwargs)
         self.set("subrecord_name", subrecord_name)
 
     def to_bigquery(self, name):
