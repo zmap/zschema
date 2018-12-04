@@ -287,7 +287,8 @@ class Keyable(object):
 
     def __init__(self, required=_NO_ARG, desc=_NO_ARG, doc=_NO_ARG, category=_NO_ARG,
             exclude=_NO_ARG, deprecated=_NO_ARG, ignore=_NO_ARG,
-            examples=_NO_ARG, metadata=_NO_ARG, validation_policy=_NO_ARG, pr_index=_NO_ARG, pr_ignore=_NO_ARG):
+            examples=_NO_ARG, metadata=_NO_ARG, validation_policy=_NO_ARG, pr_index=_NO_ARG,
+            pr_ignore=_NO_ARG, es_dynamic_policy=_NO_ARG):
         global _keyable_counter
         self.set("required", required)
         self.set("desc", desc)
@@ -303,6 +304,7 @@ class Keyable(object):
         self.set("implicit_index", _keyable_counter)
         _keyable_counter += 1
         self.set("pr_ignore", pr_ignore)
+        self.set("es_dynamic_policy", es_dynamic_policy)
 
         if self.DEPRECATED_TYPE:
             e = "WARN: %s is deprecated and will be removed in a "\
