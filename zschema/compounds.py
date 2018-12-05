@@ -390,9 +390,13 @@ class NestedListOf(ListOf):
 class Record(SubRecord):
 
     VALIDATION_POLICY = "error"
+    ES_DYNAMIC_POLICY = None
 
     def to_es(self, name):
-        return {name:SubRecord.to_es(self)}
+        subrecord = SubRecord.to_es(self)
+        if self.es_dynamic_policy != None:
+            subrecord["dynamic"] = self.es_dynamic_policy
+        return {name:subrecord}
 
     def docs_es(self, name, parent_category=None):
         category = self.category or parent_category

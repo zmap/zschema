@@ -617,6 +617,17 @@ class CompileAndValidationTests(unittest.TestCase):
         })
         ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
 
+    def test_es_dynamic_record(self):
+        ipv4_host_with_dynamic_strict = Record()
+        es = ipv4_host_with_dynamic_strict.to_es("strict-record")
+        self.assertFalse("dynamic" in es["strict-record"])
+
+        ipv4_host_with_dynamic_strict = Record(
+            es_dynamic_policy="strict"
+        )
+        es = ipv4_host_with_dynamic_strict.to_es("strict-record")
+        self.assertEqual("strict", es["strict-record"]["dynamic"])
+
     def test_subrecord_types(self):
         SSH = SubRecordType({
             "banner":SubRecord({
