@@ -354,11 +354,20 @@ class Keyable(object):
         cls.set_default("doc", doc)
 
 
+def get_key_path(path=_NO_ARG):
+    path = path or []
+    s = lambda x: isinstance(x, int) and ("[%d]" % x) or "." + x
+    return "root" + ("".join([s(v) for v in path]))
+
+
 class DataValidationException(TypeError):
 
-    def __init__(self, message, force=False):
+    def __init__(self, message, force=False, path=_NO_ARG):
+        if path:
+            message = get_key_path(path) + ": " + message
         self.message = message
         self.force = force
+        self.path = path or []
 
 
 class MergeConflictException(Exception):
