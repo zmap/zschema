@@ -84,27 +84,29 @@ class ListOf(Keyable):
             retv["doc"] = self.doc
         return retv
 
-    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG):
+    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG, path=_NO_ARG):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
+        if not path:
+            path = []
         try:
             if not isinstance(value, list):
                 m = "%s: %s is not a list" % (name, str(value))
-                raise DataValidationException(m)
+                raise DataValidationException(m, path=path)
             if self.max_items > 0 and len(value) > self.max_items:
                 m = "%s: %s has too many values (max: %i)" % (name, str(value),
                         self.max_items)
-                raise DataValidationException(m)
+                raise DataValidationException(m, path=path)
             if self.min_items > 0 and len(value) < self.min_items:
                 m = "%s: %s has too few values (min: %i)" % (name, str(value),
                         self.min_items)
-                raise DataValidationException(m)
+                raise DataValidationException(m, path=path)
         except DataValidationException as e:
             self._handle_validation_exception(calculated_policy, e)
             # we won't be able to iterate
             return
-        for item in value:
+        for i, item in enumerate(value):
             try:
-                self.object_.validate(name, item, policy, calculated_policy)
+                self.object_.validate(name, item, policy, calculated_policy, path=path + [i])
             except DataValidationException as e:
                 self._handle_validation_exception(calculated_policy, e)
 
@@ -312,12 +314,16 @@ class SubRecord(Keyable):
         p = {self.key_to_es(k): v.to_dict() for k, v in source}
         return {"type":"subrecord", "subfields": p, "doc":self.doc, "required":self.required}
 
-    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG):
+
+    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG, path=_NO_ARG):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
+        if not path:
+            path = []
+
         try:
             if not isinstance(value, dict):
                 m = "%s: %s is not a dict" % (name, str(value))
-                raise DataValidationException(m)
+                raise DataValidationException(m, path=path)
         except DataValidationException as e:
             self._handle_validation_exception(calculated_policy, e)
             # cannot iterate over members if this isn't a dictionary
@@ -326,10 +332,10 @@ class SubRecord(Keyable):
             try:
                 if not self.allow_unknown and subkey not in self.definition:
                     raise DataValidationException("%s: %s is not a valid subkey" %
-                                                  (name, subkey))
+                                                  (name, subkey), path=path)
                 if subkey in self.definition:
                     self.definition[subkey].validate(subkey, subvalue,
-                            policy, calculated_policy)
+                            policy, calculated_policy, path=path + [subkey])
             except DataValidationException as e:
                 self._handle_validation_exception(calculated_policy, e)
 
@@ -427,19 +433,21 @@ import "google/protobuf/timestamp.proto";
         for name, field in sorted(self.definition.iteritems()):
             field.print_indent_string(name, 0)
 
-    def validate(self, value, policy=_NO_ARG):
+    def validate(self, value, policy=_NO_ARG, path=_NO_ARG):
         if policy is None:
             policy = _NO_ARG
+        if not path:
+            path = []
         calculated_policy = self._calculate_policy("root", policy, self.validation_policy)
         # ^ note: record explicitly does not take a parent_policy
         if type(value) != dict:
-            raise DataValidationException("record is not a dict:\n{}".format(value))
+            raise DataValidationException("record is not a dict:\n{}".format(value), path=path)
         for subkey, subvalue in sorted(value.iteritems()):
             try:
                 if subkey not in self.definition:
-                    raise DataValidationException("%s is not a valid subkey of root" % subkey)
+                    raise DataValidationException("%s is not a valid subkey of root" % subkey, path=path)
                 self.definition[subkey].validate(subkey, subvalue, policy,
-                        self.validation_policy)
+                        self.validation_policy, path=path + [subkey])
             except DataValidationException as e:
                 self._handle_validation_exception(calculated_policy, e)
 

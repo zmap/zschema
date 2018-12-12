@@ -895,3 +895,179 @@ class ExcludeTests(unittest.TestCase):
         self.assertTrue(d.exclude_elasticsearch)
 
     # TODO: test the rest of the types
+
+
+class PathLogUnitTests(unittest.TestCase):
+    sub_type = SubRecord({
+        "sub1": String(),
+        "sub2": SubRecord({
+            "sub2sub1": Unsigned8BitInteger(),
+            "sub2sub2": NestedListOf(String(), "sub2sub2.subrecord_name"),
+        }),
+        "sub3": Enum(values=["a", "b", "c"])
+    }, validation_policy="error")
+    SCHEMA = Record({
+        "a": SubRecord({
+            "a1": String(),
+            "a2": ListOf(sub_type),
+            "a3": Unsigned8BitInteger(),
+        }),
+        "b": String(),
+    }, validation_policy="error")
+
+    def test_good(self):
+        good = {
+            "a": {
+                "a1": "{a.a1}:good",
+                "a2": [
+                    {
+                        "sub1": "{a.a2[0].sub1}:good",
+                        "sub2": {
+                            "sub2sub1": 1,
+                            "sub2sub2": [
+                                "{a.a2[0].sub2.sub2sub2[0]}:good",
+                                "{a.a2[0].sub2.sub2sub2[1]}:good",
+                            ],
+                        },
+                    },
+                    {
+                        "sub1": "{a.a2[1].sub1}:good",
+                        "sub2": {
+                            "sub2sub1": 1,
+                            "sub2sub2": [],
+                        },
+                    },
+                ],
+                "a3": 1,
+            },
+            "b": "{b}:good",
+        }
+        self.SCHEMA.validate(good, policy="error")
+
+    def test_bad_root(self):
+        bad1 = {
+            "does_not_exist": "{does_not_exist}:bad1",
+            "a": {
+                "a1": "{a.a1}:bad1",
+                "a2": [
+                    {
+                        "sub1": "{a.a2[0].sub1}:bad1",
+                        "sub2": {
+                            "sub2sub1": 1,
+                            "sub2sub2": [
+                                "{a.a2[0].sub2.sub2sub2[0]}:bad1",
+                                "{a.a2[0].sub2.sub2sub2[1]}:bad1",
+                            ],
+                        },
+                    },
+                    {
+                        "sub1": "{a.a2[1].sub1}:bad1",
+                        "sub2": {
+                            "sub2sub1": 1,
+                            "sub2sub2": [],
+                        },
+                    },
+                ],
+                "a3": 1,
+            },
+            "b": "{b}:bad1",
+        }
+        try:
+            self.SCHEMA.validate(bad1, policy="error")
+            self.assertTrue(False, "bad1 failed to fail")
+        except DataValidationException as e:
+            self.assertTrue(not e.path)
+
+        del(bad1["does_not_exist"])
+        bad1["b"] = 23
+
+        try:
+            self.SCHEMA.validate(bad1, policy="error")
+            self.assertTrue(False, "bad1 failed to fail")
+        except DataValidationException as e:
+            self.assertEquals(e.path, ["b"])
+
+
+    def test_bad_a_key(self):
+        bad = {
+            "a": {
+                "does_not_exist": 23,
+                "a1": "{a.a1}:bad1",
+                "a2": [
+                    {
+                        "sub1": "{a.a2[0].sub1}:bad1",
+                        "sub2": {
+                            "sub2sub1": 1,
+                            "sub2sub2": [
+                                "{a.a2[0].sub2.sub2sub2[0]}:bad1",
+                                "{a.a2[0].sub2.sub2sub2[1]}:bad1",
+                            ],
+                        },
+                    },
+                    {
+                        "sub1": "{a.a2[1].sub1}:bad1",
+                        "sub2": {
+                            "sub2sub1": 1,
+                            "sub2sub2": [],
+                        },
+                    },
+                ],
+                "a3": 1,
+            },
+            "b": "{b}:bad1",
+        }
+        try:
+            self.SCHEMA.validate(bad, policy="error")
+            self.assertTrue(False, "bad failed to fail")
+        except DataValidationException as e:
+            self.assertEqual(e.path, ["a"])
+        del(bad["a"]["does_not_exist"])
+        bad["a"]["a3"] = "not an int"
+        try:
+            ret = self.SCHEMA.validate(bad, policy="error")
+            self.assertTrue(False, "bad failed to fail")
+        except DataValidationException as e:
+            self.assertEqual(e.path, ["a", "a3"])
+
+    def test_bad_deep_key(self):
+        bad = {
+            "a": {
+                "a1": "{a.a1}:bad",
+                "a2": [
+                    {
+                        "sub1": "{a.a2[0].sub1}:bad",
+                        "sub2": {
+                            "sub2sub1": 1,
+                            "sub2sub2": [
+                                "{a.a2[0].sub2.sub2sub2[0]}:bad",
+                                "{a.a2[0].sub2.sub2sub2[1]}:bad",
+                            ],
+                            "does_not_exist": "fake",
+                        },
+                    },
+                    {
+                        "sub1": "{a.a2[1].sub1}:bad1",
+                        "sub2": {
+                            "sub2sub1": 1,
+                            "sub2sub2": [],
+                        },
+                    },
+                ],
+                "a3": 1,
+            },
+            "b": "{b}:bad1",
+        }
+        try:
+            self.SCHEMA.validate(bad, policy="error")
+            self.assertTrue(False, "failed to fail")
+        except DataValidationException as e:
+            self.assertEqual(e.path, ["a", "a2", 0, "sub2", ])
+        del(bad["a"]["a2"][0]["sub2"]["does_not_exist"])
+        bad["a"]["a2"][0]["sub2"]["sub2sub2"][1] = {
+            "wrong type": "bad type"
+        }
+        try:
+            self.SCHEMA.validate(bad, policy="error")
+            self.assertTrue(False, "bad failed to fail")
+        except DataValidationException as e:
+            self.assertEqual(e.path, ["a", "a2", 0, "sub2", "sub2sub2", 1])

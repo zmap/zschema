@@ -154,14 +154,14 @@ class Leaf(Keyable):
             val = tabs + val
         print val
 
-    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG):
+    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG, path=_NO_ARG):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
         try:
-            self._raising_validate(name, value)
+            self._raising_validate(name, value, path=path)
         except DataValidationException as e:
             self._handle_validation_exception(calculated_policy, e)
 
-    def _raising_validate(self, name, value):
+    def _raising_validate(self, name, value, path=_NO_ARG):
         # ^ take args and kwargs because compounds have additional
         # arguments that get passed in
         if not self._check_valid_name(name):
@@ -169,16 +169,16 @@ class Leaf(Keyable):
         if value is None:
             if self.required:
                 raise DataValidationException("%s is a required field, but "
-                                              "received None" % name)
+                                              "received None" % name, path=path)
             else:
                 return
         if type(value) not in self.EXPECTED_CLASS:
             m = "class mismatch for %s: expected %s, %s has class %s" % (\
                     self.key_to_string(name), self.EXPECTED_CLASS,
                     str(value), value.__class__.__name__)
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
         if hasattr(self, "_validate"):
-            self._validate(str(name), value)
+            self._validate(str(name), value, path=path)
 
 
 class String(Leaf):
@@ -254,10 +254,10 @@ class HexString(Leaf):
     def _is_hex(self, s):
         return bool(self.HEX_REGEX.match(s))
 
-    def _validate(self, name, value):
+    def _validate(self, name, value, path=_NO_ARG):
         if not self._is_hex(value):
             m = "%s: the value %s is not hex" % (name, value)
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
 
 
 class Enum(Leaf):
@@ -278,10 +278,10 @@ class Enum(Leaf):
         self.values = values
         self.values_s = set(values)
 
-    def _validate(self, name, value):
+    def _validate(self, name, value, path=_NO_ARG):
         if len(self.values_s) and value not in self.values_s:
             m = "%s: the value %s is not a valid enum option" % (name, value)
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
 
     def _docs_common(self, parent_category):
         retv = super(Enum, self)._docs_common(parent_category)
@@ -333,10 +333,10 @@ class IPAddress(Leaf):
         except socket.error:
             return False
 
-    def _validate(self, name, value):
+    def _validate(self, name, value, path=_NO_ARG):
         if not self._is_ipv4_addr(value) and not self._is_ipv6_addr(value):
             m = "%s: the value %s is not a valid IP address" % (name, value)
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
 
 
 class IPv4Address(IPAddress):
@@ -344,10 +344,10 @@ class IPv4Address(IPAddress):
     INVALID = "2a04:9740:8:c010:e228:6dff:fefe:6e53"
     VALID = "141.212.120.0"
 
-    def _validate(self, name, value):
+    def _validate(self, name, value, path=_NO_ARG):
         if not self._is_ipv4_addr(value):
             m = "%s: the value %s is not a valid IPv4 address" % (name, value)
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
 
 
 class IPv6Address(IPAddress):
@@ -355,10 +355,10 @@ class IPv6Address(IPAddress):
     INVALID = "141.212.120.0"
     VALID = "2a04:9740:8:c010:e228:6dff:fefe:6e53"
 
-    def _validate(self, name, value):
+    def _validate(self, name, value, path=_NO_ARG):
         if not self._is_ipv6_addr(value):
             m = "%s: the value %s is not a valid IPv6 address" % (name, value)
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
 
 
 class _Integer(Leaf):
@@ -369,15 +369,15 @@ class _Integer(Leaf):
 
     EXPECTED_CLASS = [int,]
 
-    def _validate(self, name, value):
+    def _validate(self, name, value, path=_NO_ARG):
         max_ = 2**self.BITS - 1
         min_ = -2**self.BITS + 1
         if value > max_:
             raise DataValidationException("%s: %s is larger than max (%s)" % (\
-                    name, str(value), str(max_)))
+                    name, str(value), str(max_)), path=path)
         if value < min_:
             raise DataValidationException("%s: %s is smaller than min (%s)" % (\
-                    name, str(value), str(min_)))
+                    name, str(value), str(min_)), path=path)
 
 
 class Signed32BitInteger(_Integer):
@@ -482,10 +482,10 @@ class Binary(Leaf):
     def _is_base64(self, data):
         return bool(self.B64_REGEX.match(data))
 
-    def _validate(self, name, value):
+    def _validate(self, name, value, path=_NO_ARG):
         if not self._is_base64(value):
             m = "%s: the value %s is not valid Base64" % (name, value)
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
 
     VALID = "03F87824"
     INVALID = "normal"
@@ -527,7 +527,7 @@ class DateTime(Leaf):
         else:
             self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE)
 
-    def _validate(self, name, value):
+    def _validate(self, name, value, path=_NO_ARG):
         try:
             if isinstance(value, datetime.datetime):
                 dt = value
@@ -539,16 +539,16 @@ class DateTime(Leaf):
             # Either `datetime.utcfromtimestamp` or `dateutil.parser.parse` above
             # may raise on invalid input.
             m = "%s: %s is not valid timestamp" % (name, str(value))
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
         dt = DateTime._ensure_tz_aware(dt)
         if dt > self._max_value_dt:
             m = "%s: %s is greater than allowed maximum (%s)" % (name,
                     str(value), str(self._max_value_dt))
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
         if dt < self._min_value_dt:
             m = "%s: %s is less than allowed minimum (%s)" % (name,
                     str(value), str(self._min_value_dt))
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
 
     @staticmethod
     def _ensure_tz_aware(dt):
@@ -574,10 +574,10 @@ class OID(String):
     def _is_oid(self, data):
         return bool(self.OID_REGEX.match(data))
 
-    def _validate(self, name, value):
+    def _validate(self, name, value, path=_NO_ARG):
         if not self._is_oid(value):
             m = "%s: the value %s is not a valid oid" % (name, value)
-            raise DataValidationException(m)
+            raise DataValidationException(m, path=path)
 
 
 class EmailAddress(WhitespaceAnalyzedString):
