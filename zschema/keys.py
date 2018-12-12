@@ -356,8 +356,8 @@ class Keyable(object):
 
 def get_key_path(path=_NO_ARG):
     path = path or []
-    s = lambda x: isinstance(x, int) and ("[%d]" % x) or "." + x
-    return "root" + ("".join([s(v) for v in path]))
+    s = lambda x: "[{}]".format(x) if isinstance(x, int) else x
+    return ".".join(s(v) for v in path)
 
 
 class DataValidationException(TypeError):
