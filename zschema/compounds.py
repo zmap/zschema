@@ -443,7 +443,6 @@ import "google/protobuf/timestamp.proto";
         if type(value) != dict:
             raise DataValidationException("record is not a dict:\n{}".format(value), path=path)
         for subkey, subvalue in sorted(value.iteritems()):
-            print '!', subkey, subvalue
             try:
                 if subkey not in self.definition:
                     raise DataValidationException("%s is not a valid subkey of root" % subkey, path=path)
