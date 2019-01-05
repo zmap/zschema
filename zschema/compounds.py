@@ -1,10 +1,13 @@
+from __future__ import print_function
+from builtins import int, str, dict
+
 import sys
 import copy
 import json
 from collections import OrderedDict
 
-from keys import *
-from keys import _NO_ARG
+from zschema.keys import Keyable, DataValidationException, MergeConflictException
+from zschema.keys import _NO_ARG
 
 
 def _is_valid_object(name, object_):
@@ -49,7 +52,7 @@ class ListOf(Keyable):
 
     def print_indent_string(self, name, indent):
         tabs = "\t" * indent if indent else ""
-        print tabs + name + ":%s:" % self.__class__.__name__,
+        print('{}{}"{:s}"'.format(tabs, name, self.__class__.__name__))
         self.object_.print_indent_string(self.key_to_string(name), indent+1)
 
     def to_bigquery(self, name):
@@ -156,7 +159,7 @@ class SubRecord(Keyable):
             self.set("definition", self.merge(extends).definition)
         # safety check
         if self.definition:
-            for k, v in sorted(self.definition.iteritems()):
+            for k, v in sorted(self.definition.items()):
                 _is_valid_object(k, v)
 
     def __getitem__(self, key):
@@ -189,7 +192,7 @@ class SubRecord(Keyable):
             mode = "nullable"
         this_name = ".".join([parent, self.key_to_es(name)]) if parent else self.key_to_es(name)
         yield {"type":self.__class__.__name__, "name":this_name, "mode":mode}
-        for subname, doc in sorted(self.definition.iteritems()):
+        for subname, doc in sorted(self.definition.items()):
             for item in doc.to_flat(this_name, self.key_to_es(subname)):
                 yield item
 
@@ -206,9 +209,9 @@ class SubRecord(Keyable):
             elif not r_value:
                 newdef[key] = l_value
             elif type(l_value) != type(r_value):
-                raise MergeConflictException("Unable to merge definitions. "
-                                "Differing types: %s vs %s" % (type(l_value),
-                                            type(r_value)))
+                msg = "Unable to merge definitions. Differing types: {} vs {}"
+                msg = msg.format(type(l_value), type(r_value))
+                raise MergeConflictException(msg)
             elif l_value.__class__ == SubRecord:
                 newdef[key] = l_value.merge(r_value)
             else:
@@ -220,7 +223,7 @@ class SubRecord(Keyable):
 
     def to_bigquery(self, name):
         fields = [v.to_bigquery(k) \
-                for (k,v) in sorted(self.definition.iteritems()) \
+                for (k,v) in sorted(self.definition.items()) \
                 if not v.exclude_bigquery
                 ]
         retv = {
@@ -243,16 +246,19 @@ class SubRecord(Keyable):
         global _proto_messages
         if anon or message_type not in _proto_messages:
             # Explicitly indexed values go first, then implicitly indexed values:
-            retvs = [(v.to_proto(k, indent), v.explicit_index) for k,v in \
-                     sorted(self.definition.iteritems(), key=lambda (k,v): v.explicit_index) \
-                     if v.explicit_index is not None and not v.pr_ignore]
-            if len(retvs) > 0 and len(retvs) < len(self.definition):
-                raise Exception("Mixing explicit and explicit field indices is prohibited (%s)." % (name))
-            retvs += [(v.to_proto(k, indent), v.explicit_index) for k,v in \
-                      sorted(self.definition.iteritems(), key=lambda (k,v): v.implicit_index) \
-                      if v.explicit_index is None and not v.pr_ignore]
+            expected = sum([1 for k, v in self.definition.items() if not v.pr_ignore])
+            explicits = [
+                (v.to_proto(k, indent), v.explicit_index)
+                for k, v in self.definition.items()
+                if v.explicit_index is not None and not v.pr_ignore
+            ]
+            explicits = list(sorted(explicits, key=lambda t: t[1]))
+            if len(explicits) != expected:
+                msg = "Explicit field numbers required ({}).".format(name)
+                raise Exception(msg)
             n = 0
             proto = []
+            retvs = explicits
             for (v, i) in retvs:
                 if v["message"]:
                     proto += [v["message"]]
@@ -275,20 +281,20 @@ class SubRecord(Keyable):
         category = self.category or parent_category
         retv = self._docs_common(category)
         fields = { self.key_to_bq(k): v.docs_bq(parent_category=category) \
-                   for (k,v) in sorted(self.definition.iteritems()) \
+                   for (k,v) in sorted(self.definition.items()) \
                    if not v.exclude_bigquery }
         retv["fields"] = fields
         return retv
 
     def print_indent_string(self, name, indent):
         tabs = "\t" * indent if indent else ""
-        print tabs + self.key_to_string(name) + ":subrecord:"
-        for name, value in sorted(self.definition.iteritems()):
+        print("{}{:s}:subrecord:".format(tabs, self.key_to_string(name)))
+        for name, value in sorted(self.definition.items()):
             value.print_indent_string(name, indent+1)
 
     def to_es(self):
         p = {self.key_to_es(k): v.to_es() \
-                for k, v in sorted(self.definition.iteritems()) \
+                for k, v in sorted(self.definition.items()) \
                 if not v.exclude_elasticsearch}
         return {"properties": p}
 
@@ -305,12 +311,12 @@ class SubRecord(Keyable):
         category = self.category or parent_category
         retv = self._docs_common(category)
         retv["fields"] = { self.key_to_es(k): v.docs_es(parent_category=category) \
-                           for k, v in sorted(self.definition.iteritems()) \
+                           for k, v in sorted(self.definition.items()) \
                            if not v.exclude_elasticsearch }
         return retv
 
     def to_dict(self):
-        source = sorted(self.definition.iteritems())
+        source = sorted(self.definition.items())
         p = {self.key_to_es(k): v.to_dict() for k, v in source}
         return {"type":"subrecord", "subfields": p, "doc":self.doc, "required":self.required}
 
@@ -328,7 +334,7 @@ class SubRecord(Keyable):
             self._handle_validation_exception(calculated_policy, e)
             # cannot iterate over members if this isn't a dictionary
             return
-        for subkey, subvalue in sorted(value.iteritems()):
+        for subkey, subvalue in sorted(value.items()):
             try:
                 if not self.allow_unknown and subkey not in self.definition:
                     raise DataValidationException("%s: %s is not a valid subkey" %
@@ -409,7 +415,7 @@ class Record(SubRecord):
         return {name: SubRecord.docs_es(self, parent_category=category)}
 
     def to_bigquery(self):
-        source = sorted(self.definition.iteritems())
+        source = sorted(self.definition.items())
         return [s.to_bigquery(name) \
                 for (name, s) in source \
                 if not s.exclude_bigquery
@@ -430,7 +436,7 @@ import "google/protobuf/timestamp.proto";
         return {name: SubRecord.docs_bq(self, parent_category=category)}
 
     def print_indent_string(self):
-        for name, field in sorted(self.definition.iteritems()):
+        for name, field in sorted(self.definition.items()):
             field.print_indent_string(name, 0)
 
     def validate(self, value, policy=_NO_ARG, path=_NO_ARG):
@@ -440,30 +446,36 @@ import "google/protobuf/timestamp.proto";
             path = []
         calculated_policy = self._calculate_policy("root", policy, self.validation_policy)
         # ^ note: record explicitly does not take a parent_policy
-        if type(value) != dict:
+        if not isinstance(value, dict):
             raise DataValidationException("record is not a dict:\n{}".format(value), path=path)
-        for subkey, subvalue in sorted(value.iteritems()):
+        for subkey, subvalue in sorted(value.items()):
             try:
                 if subkey not in self.definition:
-                    raise DataValidationException("%s is not a valid subkey of root" % subkey, path=path)
-                self.definition[subkey].validate(subkey, subvalue, policy,
-                        self.validation_policy, path=path + [subkey])
+                    msg = "{} is not a valid subkey of root".format(subkey)
+                    raise DataValidationException(msg, path=path)
+                self.definition[subkey].validate(
+                    subkey,
+                    subvalue,
+                    policy,
+                    self.validation_policy,
+                    path=path + [subkey],
+                )
             except DataValidationException as e:
                 self._handle_validation_exception(calculated_policy, e)
 
     def to_dict(self):
-        source = sorted(self.definition.iteritems())
+        source = sorted(self.definition.items())
         return {self.key_to_es(k): v.to_es() for k, v in source}
 
     def to_json(self):
         return json.dumps(self.to_dict(), indent=4)
 
     def to_flat(self):
-        for subname, doc in sorted(self.definition.iteritems()):
+        for subname, doc in sorted(self.definition.items()):
             for item in doc.to_flat(None, self.key_to_es(subname)):
                 yield item
 
     @classmethod
     def from_json(cls, j):
-        return cls({(k, __encode(v)) for k, v in sorted(j.iteritems())})
+        return cls({(k, __encode(v)) for k, v in sorted(j.items())})
 

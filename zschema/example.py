@@ -1,5 +1,6 @@
-from leaves import *
-from compounds import *
+from zschema.keys import Port
+from zschema.compounds import ListOf, Record, SubRecord
+from zschema.leaves import Boolean, DateTime, IPv4Address, String, Unsigned32BitInteger
 
 
 heartbleed = SubRecord({
