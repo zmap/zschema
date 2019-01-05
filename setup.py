@@ -20,8 +20,10 @@ setup(
     keywords = "python json schema bigquery elasticsearch",
 
     install_requires = [
+        "future",
         "python-dateutil",
         "pytz",
+        "six",
     ],
 
     packages = [
