@@ -1,9 +1,14 @@
+from __future__ import print_function
+from builtins import int, str, dict
+from six import string_types
+
 import logging
 
 _keyable_counter = 0
 
 class _NO_ARG(object):
     __nonzero__ = lambda _: False
+    __bool__ = lambda _: False
 
     def __new__(cls):
         if hasattr(cls, "_instance"):
@@ -21,34 +26,42 @@ class Port(object):
         self.port = str(port)
 
     def to_bigquery(self):
-        return "p%s" % self.port
+        return "p{:s}".format(self.port)
 
     def to_es(self):
         return self.port
 
     def to_proto(self):
-        return "p%s" % self.port
+        return "p{:s}".format(self.port)
 
     to_string = to_es
 
     def __eq__(self, other):
-        if type(other) == int:
-            return int(self.port).__eq__(other)
-        elif type(other) in (str, unicode):
-            return self.port.__eq__(str(other))
+        if isinstance(other, int):
+            return int(self.port) == other
+        elif isinstance(other, string_types):
+            return self.port == other
         else:
-            return self.port.__eq__(other.port)
+            return self.port == other.port
 
     def __hash__(self):
         return self.port.__hash__()
 
-    def __cmp__(self, other):
-        if type(other) == int:
-            return cmp(int(self.port), other)
-        elif type(other) in (str, unicode):
-            return cmp(self.port, str(other))
+    def __lt__(self, other):
+        if isinstance(other, int):
+            return self.port < str(other)
+        elif isinstance(other, string_types):
+            return self.port < other
         else:
-            return cmp(int(self.port), int(other.port))
+            self.port < other.port
+
+    def __gt__(self, other):
+        if isinstance(other, int):
+            return self.port > str(other)
+        elif isinstance(other, string_types):
+            return self.port > other
+        else:
+            self.port > other.port
 
 
 class TypeFactoryFactory(object):
@@ -158,21 +171,21 @@ class Keyable(object):
 
     @staticmethod
     def key_to_bq(o):
-        if type(o) in (str, unicode):
+        if isinstance(o, string_types):
             return o
         else:
             return o.to_bigquery()
 
     @staticmethod
     def key_to_proto(o):
-        if type(o) in (str, unicode):
+        if isinstance(o, string_types):
             return o
         else:
             return o.to_proto()
 
     @staticmethod
     def key_to_es(o):
-        if type(o) in (str, unicode):
+        if isinstance(o, string_types):
             if not Keyable._check_valid_name(o):
                 raise Exception("invalid key name: %s" % o)
             return o
@@ -181,7 +194,7 @@ class Keyable(object):
 
     @staticmethod
     def key_to_string(o):
-        if type(o) in (str, unicode):
+        if isinstance(o, string_types):
             if not Keyable._check_valid_name(o):
                 raise Exception("invalid key name: %s" % o)
             return o

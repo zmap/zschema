@@ -1,3 +1,7 @@
+from __future__ import print_function
+from builtins import int, str, dict
+from six import string_types
+
 import sys
 import unittest
 import re
@@ -6,8 +10,8 @@ import datetime
 import socket
 import pytz
 
-from keys import *
-from keys import _NO_ARG
+from zschema.keys import Keyable, DataValidationException
+from zschema.keys import _NO_ARG
 
 
 class Leaf(Keyable):
@@ -152,7 +156,7 @@ class Leaf(Keyable):
         if indent:
             tabs = "\t" * indent
             val = tabs + val
-        print val
+        print(val)
 
     def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG, path=_NO_ARG):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
@@ -168,14 +172,18 @@ class Leaf(Keyable):
             raise Exception("Invalid field name: %s" % name)
         if value is None:
             if self.required:
-                raise DataValidationException("%s is a required field, but "
-                                              "received None" % name, path=path)
+                msg = "{:s} is a required field, but received None".format(
+                        name)
+                raise DataValidationException(msg, path=path)
             else:
                 return
-        if type(value) not in self.EXPECTED_CLASS:
-            m = "class mismatch for %s: expected %s, %s has class %s" % (\
-                    self.key_to_string(name), self.EXPECTED_CLASS,
-                    str(value), value.__class__.__name__)
+        if not isinstance(value, self.EXPECTED_CLASS):
+            m = "class mismatch for {:s}: expected {}, {:s} has class {:s}".format(
+                self.key_to_string(name),
+                self.EXPECTED_CLASS,
+                str(value),
+                value.__class__.__name__,
+            )
             raise DataValidationException(m, path=path)
         if hasattr(self, "_validate"):
             self._validate(str(name), value, path=path)
@@ -187,7 +195,7 @@ class String(Leaf):
     BQ_TYPE = "STRING"
     PR_TYPE = "string"
 
-    EXPECTED_CLASS = [str,unicode]
+    EXPECTED_CLASS = string_types
 
     INVALID = 23
     VALID = "asdf"
@@ -200,7 +208,7 @@ class EnglishString(Leaf):
     PR_TYPE = "string"
 
     ES_ANALYZER = "standard"
-    EXPECTED_CLASS = [str,unicode]
+    EXPECTED_CLASS = string_types
 
     INVALID = 23
     VALID = "asdf"
@@ -213,7 +221,7 @@ class AnalyzedString(Leaf):
     PR_TYPE = "string"
 
     ES_ANALYZER = "simple"
-    EXPECTED_CLASS = [str,unicode]
+    EXPECTED_CLASS = string_types
 
     INVALID = 23
     VALID = "asdf"
@@ -243,7 +251,7 @@ class HexString(Leaf):
     BQ_TYPE = "STRING"
     PR_TYPE = "string"
 
-    EXPECTED_CLASS = [str,unicode]
+    EXPECTED_CLASS = string_types
 
     INVALID = "asdfasdfa"
     VALID = "003a929e3e0bd48a1e7567714a1e0e9d4597fe9087b4ad39deb83ab10c5a0278"
@@ -266,7 +274,7 @@ class Enum(Leaf):
     BQ_TYPE = "STRING"
     PR_TYPE = "string"
 
-    EXPECTED_CLASS = [str,unicode]
+    EXPECTED_CLASS = string_types
 
     INVALID = 23
     VALID = None
@@ -314,7 +322,7 @@ class IPAddress(Leaf):
     BQ_TYPE = "STRING"
     PR_TYPE = "string"
 
-    EXPECTED_CLASS = [str,unicode]
+    EXPECTED_CLASS = string_types
 
     INVALID = "my string"
     VALID = "141.212.120.0"
@@ -367,7 +375,7 @@ class _Integer(Leaf):
     BQ_TYPE = "INTEGER"
     PR_TYPE = "sint64"
 
-    EXPECTED_CLASS = [int,]
+    EXPECTED_CLASS = (int,)
 
     def _validate(self, name, value, path=_NO_ARG):
         max_ = 2**self.BITS - 1
@@ -408,7 +416,7 @@ class Signed16BitInteger(_Integer):
     BITS = 16
     INVALID = 2**16
     VALID = 0xFFFF
-    EXPECTED_CLASS = [int,]
+    EXPECTED_CLASS = (int,)
 
 
 class Unsigned8BitInteger(Signed16BitInteger):
@@ -427,9 +435,9 @@ class Signed64BitInteger(_Integer):
     BQ_TYPE = "INTEGER"
     PR_TYPE = "int64"
 
-    EXPECTED_CLASS = [int,long]
-    INVALID = 2l**68
-    VALID = 10l
+    EXPECTED_CLASS = (int,)
+    INVALID = int(2)**68
+    VALID = int(10)
     BITS = 64
 
 
@@ -444,7 +452,7 @@ class Float(Leaf):
     BQ_TYPE = "FLOAT"
     PR_TYPE = "float"
 
-    EXPECTED_CLASS = [float,]
+    EXPECTED_CLASS = (float,)
     INVALID = "I'm a string!"
     VALID = 10.0
 
@@ -455,7 +463,7 @@ class Double(Float):
     BQ_TYPE = "FLOAT"
     PR_TYPE = "double"
 
-    EXPECTED_CLASS = [float,]
+    EXPECTED_CLASS = (float,)
 
 
 class Boolean(Leaf):
@@ -464,7 +472,7 @@ class Boolean(Leaf):
     BQ_TYPE = "BOOLEAN"
     PR_TYPE = "bool"
 
-    EXPECTED_CLASS = [bool,]
+    EXPECTED_CLASS = (bool,)
     INVALID = 0
     VALID = True
 
@@ -476,7 +484,7 @@ class Binary(Leaf):
     PR_TYPE = "bytes"
 
     ES_INDEX = "no"
-    EXPECTED_CLASS = [str,unicode]
+    EXPECTED_CLASS = string_types
     B64_REGEX = re.compile('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$')
 
     def _is_base64(self, data):
@@ -506,7 +514,7 @@ class DateTime(Leaf):
     PR_TYPE = "Timestamp"
 
     # dateutil.parser.parse(int) throws...? is this intended to be a unix epoch offset?
-    EXPECTED_CLASS = [str, int, unicode, datetime.datetime]
+    EXPECTED_CLASS = string_types + (int, datetime.datetime)
 
     VALID = "Wed Jul  8 08:52:01 EDT 2015"
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
@@ -534,7 +542,7 @@ class DateTime(Leaf):
             elif isinstance(value, int):
                 dt = datetime.datetime.utcfromtimestamp(value)
             else:
-                dt = dateutil.parser.parse(value)   
+                dt = dateutil.parser.parse(value)
         except (ValueError, TypeError):
             # Either `datetime.utcfromtimestamp` or `dateutil.parser.parse` above
             # may raise on invalid input.

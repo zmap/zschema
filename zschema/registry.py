@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import int, str
+
 try:
     __zschema_schemas
 except NameError:

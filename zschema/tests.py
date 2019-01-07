@@ -1,13 +1,14 @@
 import collections
-import itertools
+import datetime
 import json
 import os
-import pprint
-import datetime
+import unittest
 
 from zschema import registry
-from zschema.leaves import *
-from zschema.compounds import *
+from zschema.compounds import ListOf, NestedListOf, Record, SubRecord, SubRecordType
+from zschema.keys import Keyable, Port, MergeConflictException
+from zschema.leaves import Boolean, DateTime, Enum, IPv4Address, String, Unsigned8BitInteger, Unsigned32BitInteger, VALID_LEAVES
+from zschema.leaves import DataValidationException
 
 
 def json_fixture(name):
@@ -324,17 +325,17 @@ message Host {
     string ipstr = 1;
     uint32 ip = 2;
     message P443Struct {
+        string tls = 1;
         message HeartbleedStruct {
             Timestamp timestamp = 10;
             bool heartbeat_support = 11;
-            bool heartbleed_vulnerable = 12;
         }
-        HeartbleedStruct heartbleed = 1;
-        string tls = 2;
+        HeartbleedStruct heartbleed = 77;
     }
     P443Struct p443 = 3;
-    repeated string tags = 4;
+    repeated string tags = 47;
 }"""
+
 
 class CompileAndValidationTests(unittest.TestCase):
 
@@ -353,10 +354,12 @@ class CompileAndValidationTests(unittest.TestCase):
         else:
             self.assertEquals(type(a), type(b))
             if isinstance(a, collections.Sized) \
-                    and isinstance(a, collections.Sized):
+                    and isinstance(b, collections.Sized):
                 self.assertEquals(len(a), len(b))
-            if isinstance(a, list):
-                for x, y in itertools.izip(sorted(a), sorted(b)):
+            if isinstance(a, list) and isinstance(b, list):
+                name_ordered_a = sorted(a, key=lambda x: x['name'])
+                name_ordered_b = sorted(b, key=lambda x: x['name'])
+                for x, y in zip(name_ordered_a, name_ordered_b):
                     self.assertBigQuerySchemaEqual(x, y)
             elif isinstance(a, dict):
                 for k in a:
@@ -370,17 +373,17 @@ class CompileAndValidationTests(unittest.TestCase):
 
         heartbleed = SubRecord({ # with explicit proto field indices
             "heartbeat_support":Boolean(pr_index=11),
-            "heartbleed_vulnerable":Boolean(category="Vulnerabilities", pr_index=12),
+            "heartbleed_vulnerable":Boolean(category="Vulnerabilities", pr_ignore=True),
             "timestamp":DateTime(pr_index=10)
-        })
+        }, pr_index=77)
         self.host = Record({
-                "ipstr":IPv4Address(required=True, examples=["8.8.8.8"]),
-                "ip":Unsigned32BitInteger(doc="The IP Address of the host"),
+                "ipstr":IPv4Address(required=True, examples=["8.8.8.8"], pr_index=1),
+                "ip":Unsigned32BitInteger(doc="The IP Address of the host", pr_index=2),
                 Port(443):SubRecord({
-                    "tls":String(),
+                    "tls":String(pr_index=1),
                     "heartbleed":heartbleed
-                }, category="heartbleed"),
-                "tags":ListOf(String())
+                }, category="heartbleed", pr_index=3),
+                "tags":ListOf(String(), pr_index=47)
         })
 
     def test_bigquery(self):
@@ -392,7 +395,7 @@ class CompileAndValidationTests(unittest.TestCase):
         global VALID_PROTO
         r = self.host.to_proto("host")
         self.assertEqual(r, VALID_PROTO)
-        
+
     def test_elasticsearch(self):
         global VALID_ELASTIC_SEARCH
         r = self.host.to_es("host")
@@ -792,18 +795,18 @@ class WithArgsTests(unittest.TestCase):
 
         # ListOf(...) takes only one positional arg, so StringList(Positional()) should raise.
         StringList = ListOf.with_args(String())
-        self.assertRaises(lambda: StringList(Positional()))
+        self.assertRaises(Exception, lambda: StringList(Positional()))
 
         # ListOf(...) needs exactly one positional arg, so GenericCategorizedList() should also raise.
-        self.assertRaises(lambda: CategorizedCertificateList())
+        self.assertRaises(Exception, lambda: CategorizedCertificateList())
 
         # Confirm that positional args are pulled from the proper location
         MyPositional = Positional.with_args("a", doc="default docs")
         p0 = MyPositional()
         p0doc = MyPositional(doc="some docs")
         # Passing positional args to the factory constructor and the contructor is not allowed
-        self.assertRaises(lambda: MyPositional("b"))
-        self.assertRaises(lambda: MyPositional("x, y"))
+        self.assertRaises(Exception, lambda: MyPositional("b"))
+        self.assertRaises(Exception, lambda: MyPositional("x, y"))
         self.assertEqual(("a",), p0.args)
         self.assertEqual("default docs", p0.doc)
         self.assertEqual(("a",), p0doc.args)
@@ -841,13 +844,13 @@ class ValidationPolicies(unittest.TestCase):
         self.record.validate({"c":{"foo":"string value"}})
 
     def test_policy_setting_error(self):
-        self.assertRaises(lambda: self.record.validate({"c":{"foo":"string value"}}))
+        self.assertRaises(DataValidationException, lambda: self.record.validate({"c":{"bar":"string value"}}))
 
     def test_policy_setting_inherit(self):
-        self.assertRaises(lambda: self.record.validate({"c":{"foo":"string value"}}))
+        self.assertRaises(DataValidationException, lambda: self.record.validate({"a":{"foo":"string value"}}))
 
     def test_policy_setting_multi_level_inherit(self):
-        self.assertRaises(lambda: self.record.validate({"a":{"bar":"string value"}}))
+        self.assertRaises(DataValidationException, lambda: self.record.validate({"a":{"bar":"string value"}}))
 
     def test_explicit_policy(self):
         self.record.validate({"a":{"foo":"string value"}},
