@@ -657,9 +657,9 @@ class CompileAndValidationTests(unittest.TestCase):
 
     def test_subrecord_type_override(self):
         SSH = SubRecordType({
-            "banner":SubRecord({
-                "comment":String(),
-                "timestamp":DateTime()
+            "banner": SubRecord({
+                "comment": String(),
+                "timestamp": DateTime()
                 })
             },
             doc="class doc",
@@ -1074,3 +1074,49 @@ class PathLogUnitTests(unittest.TestCase):
             self.assertTrue(False, "bad failed to fail")
         except DataValidationException as e:
             self.assertEqual(e.path, ["a", "a2", 0, "sub2", "sub2sub2", 1])
+
+
+class TestSubRecordType(unittest.TestCase):
+
+    def test_subrecord_type(self):
+        A = SubRecordType({
+            "string": String(),
+            "boolean": Boolean(),
+        })
+
+        first = A()
+        second = A()
+
+        # The class returned by SubRecordType() should be constructable into
+        # unique objects
+        self.assertIsNot(first, second)
+        self.assertTrue(issubclass(A, SubRecord))
+        self.assertIsInstance(first, A)
+        self.assertIsInstance(second, A)
+
+        # Check the properties aren't shared
+        self.assertIsNone(first.definition['string'].doc)
+        self.assertIsNone(second.definition['string'].doc)
+        first.definition['string'].doc = "hello"
+        self.assertIsNone(second.definition['string'].doc)
+
+    def test_subrecord_type_extends(self):
+        S = SubRecordType({
+            "provided": Boolean(),
+        })
+
+        extended_type = SubRecord({
+            "property": String(),
+            "record": SubRecord({
+                "another": String(),
+            }),
+        }, extends=S())
+
+        base = S()
+        extends = extended_type
+        self.assertNotIsInstance(extends, S)
+        self.assertFalse(base.definition['provided'].exclude)
+        self.assertFalse(extended_type.definition['provided'].exclude)
+        base.definition['provided'].exclude = ['bigquery']
+        self.assertEqual(['bigquery'], base.definition['provided'].exclude)
+        self.assertFalse(extended_type.definition['provided'].exclude)
