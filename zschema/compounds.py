@@ -150,7 +150,7 @@ class SubRecord(Keyable):
 
     def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
             allow_unknown=_NO_ARG, type_name=_NO_ARG, *args, **kwargs):
-        super(SubRecord, self).__init__(**kwargs)
+        super(SubRecord, self).__init__(*args, **kwargs)
         self.set("definition", definition)
         self.set("allow_unknown", allow_unknown)
         self.set("type_name", type_name)
