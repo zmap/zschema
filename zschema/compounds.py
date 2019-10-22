@@ -348,7 +348,7 @@ class SubRecord(Keyable):
 
 class _SubRecordDefaulted(SubRecord):
 
-    _INIT_DEFAULTS = dict()
+    _INIT_DEFAULTS = None
 
     @classmethod
     def _get_copy_default(cls, k):
@@ -375,7 +375,6 @@ class _SubRecordDefaulted(SubRecord):
             **kwargs
         )
 
-
     @classmethod
     def _set_default_at_init(cls, k, v):
         cls._INIT_DEFAULTS[k] = v
@@ -392,8 +391,11 @@ def SubRecordType(definition,
         category=_NO_ARG,
         validation_policy=_NO_ARG,
         pr_ignore=_NO_ARG):
+    #import pdb; pdb.set_trace()
     name = type_name if type_name else "SubRecordType"
-    t = type(name, (_SubRecordDefaulted,), {})
+    t = type(name, (_SubRecordDefaulted,), {
+        "_INIT_DEFAULTS": dict(),
+    })
     t._set_default_at_init("definition", definition)
     t._set_default_at_init("type_name", type_name)
     t._set_default_at_init("required", required)

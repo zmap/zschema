@@ -1151,11 +1151,10 @@ class TestSubRecordType(unittest.TestCase):
     def test_multiple_subrecord_types(self):
         A = SubRecordType({
             "first": String(),
-        })
-
+        }, type_name="A")
         B = SubRecordType({
             "second": Boolean(),
-        })
+        }, type_name="B")
 
         a = A()
         self.assertIn("first", a.definition)
