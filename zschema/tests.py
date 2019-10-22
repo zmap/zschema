@@ -1120,3 +1120,48 @@ class TestSubRecordType(unittest.TestCase):
         base.definition['provided'].exclude = ['bigquery']
         self.assertEqual(['bigquery'], base.definition['provided'].exclude)
         self.assertFalse(extended_type.definition['provided'].exclude)
+
+    def test_indexing_works(self):
+        definition = {
+            "id": Unsigned32BitInteger(doc="int doc"),
+            "name": Enum(values=["a", "b", "c"], doc="enum doc"),
+        }
+        T = SubRecordType(definition)
+        t = T(exclude={"bigquery"})
+        self.assertEqual({"bigquery"}, t.exclude)
+        self.assertEqual("int doc", t["id"].doc)
+        self.assertEqual("enum doc", t["name"].doc)
+        self.assertFalse(t["id"].exclude)
+        t["id"].set("exclude", t["id"].exclude | {"elasticsearch"})
+        self.assertEqual({"bigquery"}, t.exclude)
+        self.assertEqual({"elasticsearch"}, t["id"].exclude)
+        second = T()
+        self.assertFalse(second.exclude)
+        self.assertFalse(second["id"].exclude)
+
+        CertType = SubRecordType({
+            "id": Unsigned32BitInteger(doc="The numerical certificate type value. 1 identifies user certificates, 2 identifies host certificates."),
+            "name": Enum(values=["USER", "HOST", "unknown"], doc="The human-readable name for the certificate type."),
+        })
+        ssh_certkey_public_key_type = CertType(exclude={"bigquery"})
+        ssh_certkey_public_key_type["id"].set("exclude",
+                                      ssh_certkey_public_key_type["id"].exclude |
+                                      {"elasticsearch"})
+
+    def test_multiple_subrecord_types(self):
+        A = SubRecordType({
+            "first": String(),
+        })
+
+        B = SubRecordType({
+            "second": Boolean(),
+        })
+
+        a = A()
+        self.assertIn("first", a.definition)
+        b = B()
+        self.assertIn("second", b.definition)
+        a = A()
+        self.assertIn("first", a.definition)
+
+
