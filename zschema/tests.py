@@ -657,9 +657,9 @@ class CompileAndValidationTests(unittest.TestCase):
 
     def test_subrecord_type_override(self):
         SSH = SubRecordType({
-            "banner":SubRecord({
-                "comment":String(),
-                "timestamp":DateTime()
+            "banner": SubRecord({
+                "comment": String(),
+                "timestamp": DateTime()
                 })
             },
             doc="class doc",
@@ -1074,3 +1074,93 @@ class PathLogUnitTests(unittest.TestCase):
             self.assertTrue(False, "bad failed to fail")
         except DataValidationException as e:
             self.assertEqual(e.path, ["a", "a2", 0, "sub2", "sub2sub2", 1])
+
+
+class TestSubRecordType(unittest.TestCase):
+
+    def test_subrecord_type(self):
+        A = SubRecordType({
+            "string": String(),
+            "boolean": Boolean(),
+        })
+
+        first = A()
+        second = A()
+
+        # The class returned by SubRecordType() should be constructable into
+        # unique objects
+        self.assertIsNot(first, second)
+        self.assertTrue(issubclass(A, SubRecord))
+        self.assertIsInstance(first, A)
+        self.assertIsInstance(second, A)
+
+        # Check the properties aren't shared
+        self.assertIsNone(first.definition['string'].doc)
+        self.assertIsNone(second.definition['string'].doc)
+        first.definition['string'].doc = "hello"
+        self.assertIsNone(second.definition['string'].doc)
+
+    def test_subrecord_type_extends(self):
+        S = SubRecordType({
+            "provided": Boolean(),
+        })
+
+        extended_type = SubRecord({
+            "property": String(),
+            "record": SubRecord({
+                "another": String(),
+            }),
+        }, extends=S())
+
+        base = S()
+        extends = extended_type
+        self.assertNotIsInstance(extends, S)
+        self.assertFalse(base.definition['provided'].exclude)
+        self.assertFalse(extended_type.definition['provided'].exclude)
+        base.definition['provided'].exclude = ['bigquery']
+        self.assertEqual(['bigquery'], base.definition['provided'].exclude)
+        self.assertFalse(extended_type.definition['provided'].exclude)
+
+    def test_indexing_works(self):
+        definition = {
+            "id": Unsigned32BitInteger(doc="int doc"),
+            "name": Enum(values=["a", "b", "c"], doc="enum doc"),
+        }
+        T = SubRecordType(definition)
+        t = T(exclude={"bigquery"})
+        self.assertEqual({"bigquery"}, t.exclude)
+        self.assertEqual("int doc", t["id"].doc)
+        self.assertEqual("enum doc", t["name"].doc)
+        self.assertFalse(t["id"].exclude)
+        t["id"].set("exclude", t["id"].exclude | {"elasticsearch"})
+        self.assertEqual({"bigquery"}, t.exclude)
+        self.assertEqual({"elasticsearch"}, t["id"].exclude)
+        second = T()
+        self.assertFalse(second.exclude)
+        self.assertFalse(second["id"].exclude)
+
+        CertType = SubRecordType({
+            "id": Unsigned32BitInteger(doc="The numerical certificate type value. 1 identifies user certificates, 2 identifies host certificates."),
+            "name": Enum(values=["USER", "HOST", "unknown"], doc="The human-readable name for the certificate type."),
+        })
+        ssh_certkey_public_key_type = CertType(exclude={"bigquery"})
+        ssh_certkey_public_key_type["id"].set("exclude",
+                                      ssh_certkey_public_key_type["id"].exclude |
+                                      {"elasticsearch"})
+
+    def test_multiple_subrecord_types(self):
+        A = SubRecordType({
+            "first": String(),
+        }, type_name="A")
+        B = SubRecordType({
+            "second": Boolean(),
+        }, type_name="B")
+
+        a = A()
+        self.assertIn("first", a.definition)
+        b = B()
+        self.assertIn("second", b.definition)
+        a = A()
+        self.assertIn("first", a.definition)
+
+

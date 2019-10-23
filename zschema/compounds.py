@@ -346,6 +346,41 @@ class SubRecord(Keyable):
                 self._handle_validation_exception(calculated_policy, e)
 
 
+class _SubRecordDefaulted(SubRecord):
+
+    _INIT_DEFAULTS = None
+
+    @classmethod
+    def _get_copy_default(cls, k):
+        v = cls._INIT_DEFAULTS.get(k, _NO_ARG)
+        return copy.deepcopy(v)
+
+    def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
+                 allow_unknown=_NO_ARG, type_name=_NO_ARG, *args, **kwargs):
+        definition = definition or self._get_copy_default('definition')
+        allow_unknown = allow_unknown or self._get_copy_default(
+                'allow_unknown')
+        type_name = type_name or self._get_copy_default('type_name')
+        for k, v in self._INIT_DEFAULTS.items():
+            if k in {"definition", "allow_unknown", "type_name"}:
+                # These keys are managed by the constructor
+                continue
+            self.set(k, copy.deepcopy(v))
+        super(_SubRecordDefaulted, self).__init__(
+            definition=definition,
+            extends=extends,
+            allow_unknown=allow_unknown,
+            type_name=type_name,
+            *args,
+            **kwargs
+        )
+
+    @classmethod
+    def _set_default_at_init(cls, k, v):
+        cls._INIT_DEFAULTS[k] = v
+        cls.set_default(k, v)
+
+
 def SubRecordType(definition,
         required=_NO_ARG,
         type_name=_NO_ARG,
@@ -356,17 +391,21 @@ def SubRecordType(definition,
         category=_NO_ARG,
         validation_policy=_NO_ARG,
         pr_ignore=_NO_ARG):
-    t = type("SubRecord", (SubRecord,), {})
-    t.set_default("definition", definition)
-    t.set_default("type_name", type_name)
-    t.set_default("required", required)
-    t.set_default("doc", doc)
-    t.set_default("desc", desc)
-    t.set_default("allow_unknown", allow_unknown)
-    t.set_default("exclude", exclude)
-    t.set_default("category", category)
-    t.set_default("validation_policy", validation_policy)
-    t.set_default("pr_ignore", pr_ignore)
+    #import pdb; pdb.set_trace()
+    name = type_name if type_name else "SubRecordType"
+    t = type(name, (_SubRecordDefaulted,), {
+        "_INIT_DEFAULTS": dict(),
+    })
+    t._set_default_at_init("definition", definition)
+    t._set_default_at_init("type_name", type_name)
+    t._set_default_at_init("required", required)
+    t._set_default_at_init("doc", doc)
+    t._set_default_at_init("desc", desc)
+    t._set_default_at_init("allow_unknown", allow_unknown)
+    t._set_default_at_init("exclude", exclude)
+    t._set_default_at_init("category", category)
+    t._set_default_at_init("validation_policy", validation_policy)
+    t._set_default_at_init("pr_ignore", pr_ignore)
     return t
 
 
