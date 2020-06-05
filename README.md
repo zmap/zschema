@@ -5,10 +5,10 @@ ZSchema
 
 ZSchema is a generic (meta-)schema language for defining database schemas. It
 facilitates (1) validating JSON documents against a schema definition and (2)
-compilating a schema to multiple database engines. For example, if you wanted to
-maintain a single database schema for both MongoDB and ElasticSearch.
-Properties can also be documented inline and documentation compiled to HTML or a
-console-friendly text document.
+compilating a schema to multiple database engines. For example, if you wanted
+to maintain a single database schema for both MongoDB and ElasticSearch.
+Properties can also be documented inline and documentation compiled to HTML or
+a console-friendly text document.
 
 Schemas are defined in native Python code. Example:
 
@@ -24,11 +24,11 @@ Record({
 ```
 
 While this might initially seem strange, Python provides a lot flexibility that
-you don't in have JSON when you're defining a schema. For example, you can reuse
-components without redefining them or define metaclasses for slighty different
-parts of the schema. Overall, ZSchema has a higher learning curve than the
-languages that ZSchema can compile. However, it makes defining complex schemas
-much easier.
+you don't in have JSON when you're defining a schema. For example, you can
+reuse components without redefining them or define metaclasses for slighty
+different parts of the schema. Overall, ZSchema has a higher learning curve
+than the languages that ZSchema can compile. However, it makes defining complex
+schemas much easier.
 
 Running ZSchema
 ===============
@@ -61,6 +61,27 @@ needed when validating whether a data file matches a schema (i.e., using
 
 Compiling a Schema
 ------------------
+
+ZSchema allows compiling a registered `Record` to a schema file that can be
+read by another service. For example, if you have the following schema in a
+module named `myschema`:
+
+```python
+p = Record({
+    "name":String(required=True),
+    "addresses":ListOf(SubRecord({
+        "street":String(),
+        "zipcode":String()
+    }),
+    "area_code":Integer()
+})
+zschema.registry.register_schema("person", p)
+```
+
+Then you can compile this to Elasticsearch by running the following:
+```
+zschema elasticsearch myschema:person
+```
 
 
 Validating a Schema
