@@ -175,7 +175,7 @@ Address = SubRecordType({
 
 Record({
 	home:Address(doc="Home Address"),
-	work:Address(doc="Home Address"),
+	work:Address(doc="Work Address"),
 })
 
 ```
@@ -183,8 +183,6 @@ Record({
 Similar to `doc`, fields can have a description, examples, units, min/max
 values, etc. A full list of attributes can be found here:
 https://github.com/zmap/zschema/blob/master/zschema/leaves.py#L25.
-
-
 
 
 Running Tests
