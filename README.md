@@ -83,13 +83,93 @@ Then you can compile this to Elasticsearch by running the following:
 zschema elasticsearch myschema:person
 ```
 
-
 Validating a Schema
 -------------------
+
+If you wanted to validate a JSON file containing data, you can pass this in along with the schema:
+
+```
+zschema validate myschema:person people.json
+```
 
 
 Developing a Schema
 ===================
+
+Schemas are created by defining a `Record` object. Records are a set of named
+fields (and their associated types). They can also contain lists of fields and
+subrecords. Below is a very simple record:
+
+```python
+Record({
+    "name":String(required=True),
+    "address":SubRecord({
+        "street":String(),
+        "zipcode":ZipCode()
+    }),
+    "area_code":Integer(),
+	"emails":ListOf(EmailAddress()),
+	"enabled":Boolean(),
+})
+```
+
+You will immediately notice a few things:
+
+ * Fields are instantiated classes and can take initialization options
+
+ * You can have customized fields (e.g., `EmailAddress`). These are useful for both
+   maintaining your sanity as well as adding additional validation logic.
+
+
+These types are known as _leaves_ and you can find the full list here:
+https://github.com/zmap/zschema/blob/master/zschema/leaves.py. You'll likely
+notice that many are Elasticsearch themed (e.g., `EnglishString`,
+`AnalyzedString`), but these will compile down to normal types in other systems
+too.
+
+One of the benefits of ZSchema is that you can define and embed subrecords
+other places:
+
+```python
+address = SubRecord({
+    "street":String(),
+    "zipcode":ZipCode()
+    "country":String()
+})
+
+Record({
+    "name":String(required=True),
+    "business_address":ListOf(address),
+    "home_address":ListOf(address),
+    "area_code":Integer(),
+	"emails":ListOf(EmailAddress()),
+	"enabled":Boolean(),
+})
+```
+
+One thing that needs to be careful of here is that all `address` entries here
+point to the exact same Python object, so you cannot customize one without
+changing all. To support this use case (which comes up frequently because
+different fields will have different documentation), you can create a new `SubRecordType`:
+
+```python
+
+Address = SubRecordType({
+    "street":String(),
+    "zipcode":ZipCode()
+    "country":String()
+})
+
+Record({
+	home:Address(doc="Home Address"),
+	work:Address(doc="Home Address"),
+})
+
+```
+
+Similar to `doc`, fields can have a description, examples, units, min/max
+values, etc. A full list of attributes can be found here:
+https://github.com/zmap/zschema/blob/master/zschema/leaves.py#L25.
 
 
 
