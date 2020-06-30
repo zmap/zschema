@@ -83,6 +83,19 @@ Then you can compile this to Elasticsearch by running the following:
 zschema elasticsearch myschema:person
 ```
 
+You can also register a record by simply calling `.register()` on it:
+
+```python
+Record({
+    "name":String(required=True),
+    "addresses":ListOf(SubRecord({
+        "street":String(),
+        "zipcode":String()
+    }),
+}).register("person")
+```
+
+
 Validating a Schema
 -------------------
 
