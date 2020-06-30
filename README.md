@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.org/zmap/zschema.svg?branch=master)](https://travis-ci.org/zmap/zschema)
-
 ZSchema
 =======
+
+[![Build Status](https://travis-ci.org/zmap/zschema.svg?branch=master)](https://travis-ci.org/zmap/zschema)
 
 ZSchema is a generic (meta-)schema language for defining database schemas. It
 facilitates (1) validating JSON documents against a schema definition and (2)
