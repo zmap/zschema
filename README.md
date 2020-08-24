@@ -24,7 +24,7 @@ Record({
 ```
 
 While this might initially seem strange, Python provides a lot flexibility that
-you don't in have JSON when you're defining a schema. For example, you can
+you don't have in JSON when you're defining a schema. For example, you can
 reuse components without redefining them or define metaclasses for slighty
 different parts of the schema. Overall, ZSchema has a higher learning curve
 than the languages that ZSchema can compile. However, it makes defining complex
