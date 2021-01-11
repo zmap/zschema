@@ -26,6 +26,7 @@ def _proto_indent(string, n):
 # Track protobuf message definitions that have been emitted.
 _proto_messages = OrderedDict()
 
+
 class ListOf(Keyable):
 
     MAX_ITEMS = 0
@@ -148,6 +149,7 @@ class SubRecord(Keyable):
     DEFINITION = {}
     ALLOW_UNKNOWN = False
     TYPE_NAME = None
+    ES_NESTED = False
 
     def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
             allow_unknown=_NO_ARG, type_name=_NO_ARG, es_nested=_NO_ARG,
