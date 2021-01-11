@@ -144,12 +144,14 @@ def ListOfType(object_,
 
 
 class SubRecord(Keyable):
+
     DEFINITION = {}
     ALLOW_UNKNOWN = False
     TYPE_NAME = None
 
     def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
-            allow_unknown=_NO_ARG, type_name=_NO_ARG, *args, **kwargs):
+            allow_unknown=_NO_ARG, type_name=_NO_ARG, es_nested=_NO_ARG,
+            *args, **kwargs):
         super(SubRecord, self).__init__(*args, **kwargs)
         self.set("definition", definition)
         self.set("allow_unknown", allow_unknown)
@@ -157,6 +159,7 @@ class SubRecord(Keyable):
         if extends is not _NO_ARG:
             extends = copy.deepcopy(extends)
             self.set("definition", self.merge(extends).definition)
+        self.set("es_nested", es_nested)
         # safety check
         if self.definition:
             for k, v in sorted(self.definition.items()):
@@ -296,7 +299,10 @@ class SubRecord(Keyable):
         p = {self.key_to_es(k): v.to_es() \
                 for k, v in sorted(self.definition.items()) \
                 if not v.exclude_elasticsearch}
-        return {"properties": p}
+        retv = {"properties": p}
+        if self.es_nested:
+            retv["type"] = "nested"
+        return retv
 
     def _docs_common(self, category):
         retv = {
