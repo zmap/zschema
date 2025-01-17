@@ -189,6 +189,7 @@ Running Tests
 Tests are run with [pytest](https://docs.pytest.org/en/stable/). Run them via:
 ```zsh
 pip3 install ".[tests]"
+pytest
 ```
 
 
