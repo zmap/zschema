@@ -211,7 +211,7 @@ class Keyable(object):
             logging.error(e.message)
             raise e
         elif policy == "warn":
-            logging.warn(e.message)
+            logging.warning(e.message)
         elif policy == "ignore":
             pass
         else:

@@ -1,4 +1,4 @@
-import collections
+from collections.abc import Sized
 import datetime
 import json
 import os
@@ -352,10 +352,10 @@ class CompileAndValidationTests(unittest.TestCase):
         if a == b:
             return
         else:
-            self.assertEquals(type(a), type(b))
-            if isinstance(a, collections.Sized) \
-                    and isinstance(b, collections.Sized):
-                self.assertEquals(len(a), len(b))
+            self.assertEqual(type(a), type(b))
+            if isinstance(a, Sized) \
+                    and isinstance(b, Sized):
+                self.assertEqual(len(a), len(b))
             if isinstance(a, list) and isinstance(b, list):
                 name_ordered_a = sorted(a, key=lambda x: x['name'])
                 name_ordered_b = sorted(b, key=lambda x: x['name'])
@@ -366,7 +366,7 @@ class CompileAndValidationTests(unittest.TestCase):
                     self.assertIn(k, b)
                     self.assertBigQuerySchemaEqual(a[k], b[k])
             else:
-                self.assertEquals(a, b)
+                self.assertEqual(a, b)
 
     def setUp(self):
         self.maxDiff=10000
@@ -514,7 +514,7 @@ class CompileAndValidationTests(unittest.TestCase):
                        "b":String()
                     })
             })
-        self.assertEquals(a.merge(b).to_dict(), c.to_dict())
+        self.assertEqual(a.merge(b).to_dict(), c.to_dict())
 
     def test_extends(self):
         host = Record({
@@ -988,7 +988,7 @@ class PathLogUnitTests(unittest.TestCase):
             self.SCHEMA.validate(bad1, policy="error")
             self.assertTrue(False, "bad1 failed to fail")
         except DataValidationException as e:
-            self.assertEquals(e.path, ["b"])
+            self.assertEqual(e.path, ["b"])
 
 
     def test_bad_a_key(self):

@@ -188,8 +188,11 @@ https://github.com/zmap/zschema/blob/master/zschema/leaves.py#L25.
 Running Tests
 =============
 
-Tests are run with [nose](http://nose.readthedocs.io/en/latest/). Run them via
-`python setup.py test`.
+Tests are run with [pytest](https://docs.pytest.org/en/stable/). Run them via:
+```zsh
+pip3 install setuptools
+python setup.py test
+```
 
 
 License and Copyright
