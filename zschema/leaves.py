@@ -516,6 +516,13 @@ class DateTime(Leaf):
     # dateutil.parser.parse(int) throws...? is this intended to be a unix epoch offset?
     EXPECTED_CLASS = string_types + (int, datetime.datetime)
 
+    TZINFOS = {
+        "EDT": datetime.timezone(datetime.timedelta(hours=-4)),  # Eastern Daylight Time
+        "EST": datetime.timezone(datetime.timedelta(hours=-5)),  # Eastern Standard Time
+        'CDT': datetime.timezone(datetime.timedelta(hours=-5)),  # Central Daylight Time
+        'CST': datetime.timezone(datetime.timedelta(hours=-6)),  # Central Standard Time
+    }
+
     VALID = "Wed Jul  8 08:52:01 EDT 2015"
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
 
@@ -526,14 +533,14 @@ class DateTime(Leaf):
         super(DateTime, self).__init__(*args, **kwargs)
 
         if self.min_value:
-            self._min_value_dt = dateutil.parser.parse(self.min_value)
+            self._min_value_dt = dateutil.parser.parse(self.min_value, tzinfos=self.TZINFOS)
         else:
-            self._min_value_dt = dateutil.parser.parse(self.MIN_VALUE)
+            self._min_value_dt = dateutil.parser.parse(self.MIN_VALUE, tzinfos=self.TZINFOS)
 
         if self.max_value:
-            self._max_value_dt = dateutil.parser.parse(self.max_value)
+            self._max_value_dt = dateutil.parser.parse(self.max_value, tzinfos=self.TZINFOS)
         else:
-            self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE)
+            self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE, tzinfos=self.TZINFOS)
 
     def _validate(self, name, value, path=_NO_ARG):
         try:
@@ -542,7 +549,7 @@ class DateTime(Leaf):
             elif isinstance(value, int):
                 dt = datetime.datetime.fromtimestamp(value, datetime.timezone.utc)
             else:
-                dt = dateutil.parser.parse(value)
+                dt = dateutil.parser.parse(value, tzinfos=self.TZINFOS)
         except (ValueError, TypeError):
             # Either `datetime.utcfromtimestamp` or `dateutil.parser.parse` above
             # may raise on invalid input.
