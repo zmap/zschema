@@ -540,7 +540,7 @@ class DateTime(Leaf):
             if isinstance(value, datetime.datetime):
                 dt = value
             elif isinstance(value, int):
-                dt = datetime.datetime.utcfromtimestamp(value)
+                dt = datetime.datetime.fromtimestamp(value, datetime.timezone.utc)
             else:
                 dt = dateutil.parser.parse(value)
         except (ValueError, TypeError):
@@ -577,7 +577,7 @@ class OID(String):
     VALID = "1.3.6.1.4.868.2.4.1"
     INVALID = "hello"
 
-    OID_REGEX = re.compile("[[0-9]+\\.]*")
+    OID_REGEX = re.compile(r"^(\d+\.)+\d+$")
 
     def _is_oid(self, data):
         return bool(self.OID_REGEX.match(data))
