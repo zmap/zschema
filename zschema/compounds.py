@@ -14,14 +14,17 @@ def _is_valid_object(name, object_):
     if not isinstance(object_, Keyable):
         raise Exception("Invalid schema. %s is not a Keyable." % name)
 
+
 def _proto_message_name(string):
     if string != string.lower():
         return string
     string = "".join(w.capitalize() for w in string.split("_"))
     return string
 
+
 def _proto_indent(string, n):
-    return "\n".join(n*"    " + s for s in string.split("\n"))
+    return "\n".join(n * "    " + s for s in string.split("\n"))
+
 
 # Track protobuf message definitions that have been emitted.
 _proto_messages = OrderedDict()
@@ -43,18 +46,19 @@ class ListOf(Keyable):
     def exclude_bigquery(self):
         # If the child type is excluded, that is the same as excluding this --
         # it's not clear what it would mean otherwise, from a schema perspective
-        return super(ListOf, self).exclude_bigquery \
-               or self.object_.exclude_bigquery
+        return super(ListOf, self).exclude_bigquery or self.object_.exclude_bigquery
 
     @property
     def exclude_elasticsearch(self):
-        return super(ListOf, self).exclude_elasticsearch \
-               or self.object_.exclude_elasticsearch
+        return (
+            super(ListOf, self).exclude_elasticsearch
+            or self.object_.exclude_elasticsearch
+        )
 
     def print_indent_string(self, name, indent):
         tabs = "\t" * indent if indent else ""
         print('{}{}"{:s}"'.format(tabs, name, self.__class__.__name__))
-        self.object_.print_indent_string(self.key_to_string(name), indent+1)
+        self.object_.print_indent_string(self.key_to_string(name), indent + 1)
 
     def to_bigquery(self, name):
         retv = self.object_.to_bigquery(name)
@@ -88,7 +92,9 @@ class ListOf(Keyable):
             retv["doc"] = self.doc
         return retv
 
-    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG, path=_NO_ARG):
+    def validate(
+        self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG, path=_NO_ARG
+    ):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
         if not path:
             path = []
@@ -97,12 +103,18 @@ class ListOf(Keyable):
                 m = "%s: %s is not a list" % (name, str(value))
                 raise DataValidationException(m, path=path)
             if self.max_items > 0 and len(value) > self.max_items:
-                m = "%s: %s has too many values (max: %i)" % (name, str(value),
-                        self.max_items)
+                m = "%s: %s has too many values (max: %i)" % (
+                    name,
+                    str(value),
+                    self.max_items,
+                )
                 raise DataValidationException(m, path=path)
             if self.min_items > 0 and len(value) < self.min_items:
-                m = "%s: %s has too few values (min: %i)" % (name, str(value),
-                        self.min_items)
+                m = "%s: %s has too few values (min: %i)" % (
+                    name,
+                    str(value),
+                    self.min_items,
+                )
                 raise DataValidationException(m, path=path)
         except DataValidationException as e:
             self._handle_validation_exception(calculated_policy, e)
@@ -110,27 +122,31 @@ class ListOf(Keyable):
             return
         for i, item in enumerate(value):
             try:
-                self.object_.validate(name, item, policy, calculated_policy, path=path + [i])
+                self.object_.validate(
+                    name, item, policy, calculated_policy, path=path + [i]
+                )
             except DataValidationException as e:
                 self._handle_validation_exception(calculated_policy, e)
 
     def to_dict(self):
-        return {"type":"list", "list_of":self.object_.to_json()}
+        return {"type": "list", "list_of": self.object_.to_json()}
 
     def to_flat(self, parent, name):
         for rec in self.object_.to_flat(parent, name, repeated=True):
             yield rec
 
 
-def ListOfType(object_,
-        required=_NO_ARG,
-        max_items=_NO_ARG,
-        doc=_NO_ARG,
-        desc=_NO_ARG,
-        examples=_NO_ARG,
-        category=_NO_ARG,
-        validation_policy=_NO_ARG,
-        pr_ignore=_NO_ARG):
+def ListOfType(
+    object_,
+    required=_NO_ARG,
+    max_items=_NO_ARG,
+    doc=_NO_ARG,
+    desc=_NO_ARG,
+    examples=_NO_ARG,
+    category=_NO_ARG,
+    validation_policy=_NO_ARG,
+    pr_ignore=_NO_ARG,
+):
     _is_valid_object("Anonymous ListOf", object_)
     t = type("ListOf", (ListOf,), {})
     t.set_default("object_", object_)
@@ -151,9 +167,16 @@ class SubRecord(Keyable):
     TYPE_NAME = None
     ES_NESTED = False
 
-    def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
-            allow_unknown=_NO_ARG, type_name=_NO_ARG, es_nested=_NO_ARG,
-            *args, **kwargs):
+    def __init__(
+        self,
+        definition=_NO_ARG,
+        extends=_NO_ARG,
+        allow_unknown=_NO_ARG,
+        type_name=_NO_ARG,
+        es_nested=_NO_ARG,
+        *args,
+        **kwargs
+    ):
         super(SubRecord, self).__init__(*args, **kwargs)
         self.set("definition", definition)
         self.set("allow_unknown", allow_unknown)
@@ -183,8 +206,10 @@ class SubRecord(Keyable):
         #   "ca": Certificate.new(doc="The CA certificate."),
         #   "host": Certificate.new(doc="The host certificate.", required=True)
         # })
-        e = "WARN: .new() is deprecated and will be removed in a "\
-                "future release. Schemas should use SubRecordTypes.\n"
+        e = (
+            "WARN: .new() is deprecated and will be removed in a "
+            "future release. Schemas should use SubRecordTypes.\n"
+        )
         sys.stderr.write(e)
         return SubRecord({}, extends=self, **kwargs)
 
@@ -195,8 +220,10 @@ class SubRecord(Keyable):
             mode = "required"
         else:
             mode = "nullable"
-        this_name = ".".join([parent, self.key_to_es(name)]) if parent else self.key_to_es(name)
-        yield {"type":self.__class__.__name__, "name":this_name, "mode":mode}
+        this_name = (
+            ".".join([parent, self.key_to_es(name)]) if parent else self.key_to_es(name)
+        )
+        yield {"type": self.__class__.__name__, "name": this_name, "mode": mode}
         for subname, doc in sorted(self.definition.items()):
             for item in doc.to_flat(this_name, self.key_to_es(subname)):
                 yield item
@@ -206,7 +233,7 @@ class SubRecord(Keyable):
         newdef = {}
         l_keys = set(self.definition.keys())
         r_keys = set(other.definition.keys())
-        for key in (l_keys | r_keys):
+        for key in l_keys | r_keys:
             l_value = self.definition.get(key, None)
             r_value = other.definition.get(key, None)
             if not l_value:
@@ -227,23 +254,26 @@ class SubRecord(Keyable):
         return self
 
     def to_bigquery(self, name):
-        fields = [v.to_bigquery(k) \
-                for (k,v) in sorted(self.definition.items()) \
-                if not v.exclude_bigquery
-                ]
+        fields = [
+            v.to_bigquery(k)
+            for (k, v) in sorted(self.definition.items())
+            if not v.exclude_bigquery
+        ]
         retv = {
-            "name":self.key_to_bq(name),
-            "type":"RECORD",
-            "fields":fields,
-            "mode":"REQUIRED" if self.required else "NULLABLE"
+            "name": self.key_to_bq(name),
+            "type": "RECORD",
+            "fields": fields,
+            "mode": "REQUIRED" if self.required else "NULLABLE",
         }
         return retv
 
     def to_proto(self, name, indent):
-        if self.type_name is not None: # named message type -- produced at top level, once
+        if (
+            self.type_name is not None
+        ):  # named message type -- produced at top level, once
             message_type = _proto_message_name(self.type_name)
             anon = False
-        else: # anonymous message type -- nests within containing message
+        else:  # anonymous message type -- nests within containing message
             message_type = _proto_message_name(self.key_to_proto(name)) + "Struct"
             anon = True
 
@@ -264,7 +294,7 @@ class SubRecord(Keyable):
             n = 0
             proto = []
             retvs = explicits
-            for (v, i) in retvs:
+            for v, i in retvs:
                 if v["message"]:
                     proto += [v["message"]]
                 if i is not None:
@@ -272,22 +302,26 @@ class SubRecord(Keyable):
                 else:
                     n += 1
                 proto += ["%s = %d;" % (v["field"], n)]
-            proto_def = "message %s {\n%s\n}" % \
-                        (message_type, _proto_indent("\n".join(proto), indent+1))
+            proto_def = "message %s {\n%s\n}" % (
+                message_type,
+                _proto_indent("\n".join(proto), indent + 1),
+            )
             if not anon:
                 _proto_messages[message_type] = proto_def
                 proto_def = ""
         return {
             "message": proto_def,
-            "field": "%s %s" % (message_type, self.key_to_proto(name))
+            "field": "%s %s" % (message_type, self.key_to_proto(name)),
         }
 
     def docs_bq(self, parent_category=None):
         category = self.category or parent_category
         retv = self._docs_common(category)
-        fields = { self.key_to_bq(k): v.docs_bq(parent_category=category) \
-                   for (k,v) in sorted(self.definition.items()) \
-                   if not v.exclude_bigquery }
+        fields = {
+            self.key_to_bq(k): v.docs_bq(parent_category=category)
+            for (k, v) in sorted(self.definition.items())
+            if not v.exclude_bigquery
+        }
         retv["fields"] = fields
         return retv
 
@@ -295,12 +329,14 @@ class SubRecord(Keyable):
         tabs = "\t" * indent if indent else ""
         print("{}{:s}:subrecord:".format(tabs, self.key_to_string(name)))
         for name, value in sorted(self.definition.items()):
-            value.print_indent_string(name, indent+1)
+            value.print_indent_string(name, indent + 1)
 
     def to_es(self):
-        p = {self.key_to_es(k): v.to_es() \
-                for k, v in sorted(self.definition.items()) \
-                if not v.exclude_elasticsearch}
+        p = {
+            self.key_to_es(k): v.to_es()
+            for k, v in sorted(self.definition.items())
+            if not v.exclude_elasticsearch
+        }
         retv = {"properties": p}
         if self.es_nested:
             retv["type"] = "nested"
@@ -318,18 +354,26 @@ class SubRecord(Keyable):
     def docs_es(self, parent_category=None):
         category = self.category or parent_category
         retv = self._docs_common(category)
-        retv["fields"] = { self.key_to_es(k): v.docs_es(parent_category=category) \
-                           for k, v in sorted(self.definition.items()) \
-                           if not v.exclude_elasticsearch }
+        retv["fields"] = {
+            self.key_to_es(k): v.docs_es(parent_category=category)
+            for k, v in sorted(self.definition.items())
+            if not v.exclude_elasticsearch
+        }
         return retv
 
     def to_dict(self):
         source = sorted(self.definition.items())
         p = {self.key_to_es(k): v.to_dict() for k, v in source}
-        return {"type":"subrecord", "subfields": p, "doc":self.doc, "required":self.required}
+        return {
+            "type": "subrecord",
+            "subfields": p,
+            "doc": self.doc,
+            "required": self.required,
+        }
 
-
-    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG, path=_NO_ARG):
+    def validate(
+        self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG, path=_NO_ARG
+    ):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
         if not path:
             path = []
@@ -345,11 +389,17 @@ class SubRecord(Keyable):
         for subkey, subvalue in sorted(value.items()):
             try:
                 if not self.allow_unknown and subkey not in self.definition:
-                    raise DataValidationException("%s: %s is not a valid subkey" %
-                                                  (name, subkey), path=path)
+                    raise DataValidationException(
+                        "%s: %s is not a valid subkey" % (name, subkey), path=path
+                    )
                 if subkey in self.definition:
-                    self.definition[subkey].validate(subkey, subvalue,
-                            policy, calculated_policy, path=path + [subkey])
+                    self.definition[subkey].validate(
+                        subkey,
+                        subvalue,
+                        policy,
+                        calculated_policy,
+                        path=path + [subkey],
+                    )
             except DataValidationException as e:
                 self._handle_validation_exception(calculated_policy, e)
 
@@ -363,12 +413,18 @@ class _SubRecordDefaulted(SubRecord):
         v = cls._INIT_DEFAULTS.get(k, _NO_ARG)
         return copy.deepcopy(v)
 
-    def __init__(self, definition=_NO_ARG, extends=_NO_ARG,
-                 allow_unknown=_NO_ARG, type_name=_NO_ARG, *args, **kwargs):
-        definition = definition or self._get_copy_default('definition')
-        allow_unknown = allow_unknown or self._get_copy_default(
-                'allow_unknown')
-        type_name = type_name or self._get_copy_default('type_name')
+    def __init__(
+        self,
+        definition=_NO_ARG,
+        extends=_NO_ARG,
+        allow_unknown=_NO_ARG,
+        type_name=_NO_ARG,
+        *args,
+        **kwargs
+    ):
+        definition = definition or self._get_copy_default("definition")
+        allow_unknown = allow_unknown or self._get_copy_default("allow_unknown")
+        type_name = type_name or self._get_copy_default("type_name")
         for k, v in self._INIT_DEFAULTS.items():
             if k in {"definition", "allow_unknown", "type_name"}:
                 # These keys are managed by the constructor
@@ -389,21 +445,27 @@ class _SubRecordDefaulted(SubRecord):
         cls.set_default(k, v)
 
 
-def SubRecordType(definition,
-        required=_NO_ARG,
-        type_name=_NO_ARG,
-        doc=_NO_ARG,
-        desc=_NO_ARG,
-        allow_unknown=_NO_ARG,
-        exclude=_NO_ARG,
-        category=_NO_ARG,
-        validation_policy=_NO_ARG,
-        pr_ignore=_NO_ARG):
-    #import pdb; pdb.set_trace()
+def SubRecordType(
+    definition,
+    required=_NO_ARG,
+    type_name=_NO_ARG,
+    doc=_NO_ARG,
+    desc=_NO_ARG,
+    allow_unknown=_NO_ARG,
+    exclude=_NO_ARG,
+    category=_NO_ARG,
+    validation_policy=_NO_ARG,
+    pr_ignore=_NO_ARG,
+):
+    # import pdb; pdb.set_trace()
     name = type_name if type_name else "SubRecordType"
-    t = type(name, (_SubRecordDefaulted,), {
-        "_INIT_DEFAULTS": dict(),
-    })
+    t = type(
+        name,
+        (_SubRecordDefaulted,),
+        {
+            "_INIT_DEFAULTS": dict(),
+        },
+    )
     t._set_default_at_init("definition", definition)
     t._set_default_at_init("type_name", type_name)
     t._set_default_at_init("required", required)
@@ -419,15 +481,23 @@ def SubRecordType(definition,
 
 class NestedListOf(ListOf):
 
-    def __init__(self, object_, subrecord_name, max_items=10, doc=None, category=None, *args, **kwargs):
-        super(NestedListOf, self).__init__(object_, max_items=max_items,
-                doc=doc, category=category, *args, **kwargs)
+    def __init__(
+        self,
+        object_,
+        subrecord_name,
+        max_items=10,
+        doc=None,
+        category=None,
+        *args,
+        **kwargs
+    ):
+        super(NestedListOf, self).__init__(
+            object_, max_items=max_items, doc=doc, category=category, *args, **kwargs
+        )
         self.set("subrecord_name", subrecord_name)
 
     def to_bigquery(self, name):
-        subr = SubRecord({
-            self.subrecord_name:ListOf(self.object_)
-        })
+        subr = SubRecord({self.subrecord_name: ListOf(self.object_)})
         retv = subr.to_bigquery(self.key_to_bq(name))
         retv["mode"] = "REPEATED"
         if self.doc:
@@ -435,9 +505,7 @@ class NestedListOf(ListOf):
         return retv
 
     def docs_bq(self, parent_category=None):
-        subr = SubRecord({
-            self.subrecord_name: ListOf(self.object_)
-        })
+        subr = SubRecord({self.subrecord_name: ListOf(self.object_)})
         category = self.category or parent_category
         retv = subr.docs_bq(parent_category=category)
         retv["repeated"] = True
@@ -455,7 +523,7 @@ class Record(SubRecord):
         subrecord = SubRecord.to_es(self)
         if self.es_dynamic_policy != None:
             subrecord["dynamic"] = self.es_dynamic_policy
-        return {name:subrecord}
+        return {name: subrecord}
 
     def docs_es(self, name, parent_category=None):
         category = self.category or parent_category
@@ -463,10 +531,7 @@ class Record(SubRecord):
 
     def to_bigquery(self):
         source = sorted(self.definition.items())
-        return [s.to_bigquery(name) \
-                for (name, s) in source \
-                if not s.exclude_bigquery
-                ]
+        return [s.to_bigquery(name) for (name, s) in source if not s.exclude_bigquery]
 
     def to_proto(self, name):
         self.type_name = name
@@ -476,7 +541,9 @@ package schema;
 
 import "google/protobuf/timestamp.proto";
 
-""" + "\n".join(_proto_messages.values())
+""" + "\n".join(
+            _proto_messages.values()
+        )
 
     def docs_bq(self, name, parent_category=None):
         category = self.category or parent_category
@@ -491,10 +558,14 @@ import "google/protobuf/timestamp.proto";
             policy = _NO_ARG
         if not path:
             path = []
-        calculated_policy = self._calculate_policy("root", policy, self.validation_policy)
+        calculated_policy = self._calculate_policy(
+            "root", policy, self.validation_policy
+        )
         # ^ note: record explicitly does not take a parent_policy
         if not isinstance(value, dict):
-            raise DataValidationException("record is not a dict:\n{}".format(value), path=path)
+            raise DataValidationException(
+                "record is not a dict:\n{}".format(value), path=path
+            )
         for subkey, subvalue in sorted(value.items()):
             try:
                 if subkey not in self.definition:
@@ -525,4 +596,3 @@ import "google/protobuf/timestamp.proto";
     @classmethod
     def from_json(cls, j):
         return cls({(k, __encode(v)) for k, v in sorted(j.items())})
-

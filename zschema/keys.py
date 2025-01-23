@@ -3,8 +3,10 @@ from builtins import int, str, dict
 from six import string_types
 
 import logging
+import sys
 
 _keyable_counter = 0
+
 
 class _NO_ARG(object):
     __nonzero__ = lambda _: False
@@ -16,6 +18,7 @@ class _NO_ARG(object):
         retv = super(_NO_ARG, cls).__new__(cls)
         cls._instance = retv
         return retv
+
 
 _NO_ARG = _NO_ARG()
 
@@ -116,7 +119,9 @@ class TypeFactoryFactory(object):
         values for any keyword arguments.
         """
         if args and self.args:
-            raise Exception("Positional arguments already bound during TypeFactory creation.")
+            raise Exception(
+                "Positional arguments already bound during TypeFactory creation."
+            )
         if self.args and not args:
             args = self.args
         return self.cls(*args, **TypeFactoryFactory._left_merge(kwargs, self.kwargs))
@@ -125,19 +130,19 @@ class TypeFactoryFactory(object):
 class Keyable(object):
 
     VALID_ES_INDEXES = [
-        "analyzed", # full-text
-        "not_analyzed", # searchable, not full-text,
-        "no", # field is not searchable
+        "analyzed",  # full-text
+        "not_analyzed",  # searchable, not full-text,
+        "no",  # field is not searchable
     ]
 
     VALID_ES_ANALYZERS = [
-        "standard",   # The standard analyzer is the default analyzer that Elasticsearch uses.
-                      # It is the best general choice for analyzing text that may be in any language.
-                      # It splits the text on word boundaries, as defined by the Unicode Consortium,
-                      # and removes most punctuation.
-        "simple",     # The simple analyzer splits the text on anything that isn't a letter,
-                      # and lowercases the terms. It would produce
-        "whitespace", # The whitespace analyzer splits the text on whitespace. It doesn't lowercase.
+        "standard",  # The standard analyzer is the default analyzer that Elasticsearch uses.
+        # It is the best general choice for analyzing text that may be in any language.
+        # It splits the text on word boundaries, as defined by the Unicode Consortium,
+        # and removes most punctuation.
+        "simple",  # The simple analyzer splits the text on anything that isn't a letter,
+        # and lowercases the terms. It would produce
+        "whitespace",  # The whitespace analyzer splits the text on whitespace. It doesn't lowercase.
     ]
 
     # defaults
@@ -215,7 +220,9 @@ class Keyable(object):
         elif policy == "ignore":
             pass
         else:
-            raise Exception("Invalid validation policy. Must be one of: error, warn, ignore")
+            raise Exception(
+                "Invalid validation policy. Must be one of: error, warn, ignore"
+            )
 
     @staticmethod
     def _validate_policy(name, policy):
@@ -281,6 +288,7 @@ class Keyable(object):
     def _populate_types_by_name(cls):
         if cls._types_by_name:
             return
+
         def __iter_classes(kls):
             try:
                 for klass in kls.__subclasses__():
@@ -294,14 +302,26 @@ class Keyable(object):
                 except:
                     pass
             yield kls
+
         for klass in __iter_classes(Keyable):
             Keyable._types_by_name[klass.__name__] = klass
 
-
-    def __init__(self, required=_NO_ARG, desc=_NO_ARG, doc=_NO_ARG, category=_NO_ARG,
-            exclude=_NO_ARG, deprecated=_NO_ARG, ignore=_NO_ARG,
-            examples=_NO_ARG, metadata=_NO_ARG, validation_policy=_NO_ARG, pr_index=_NO_ARG,
-            pr_ignore=_NO_ARG, es_dynamic_policy=_NO_ARG):
+    def __init__(
+        self,
+        required=_NO_ARG,
+        desc=_NO_ARG,
+        doc=_NO_ARG,
+        category=_NO_ARG,
+        exclude=_NO_ARG,
+        deprecated=_NO_ARG,
+        ignore=_NO_ARG,
+        examples=_NO_ARG,
+        metadata=_NO_ARG,
+        validation_policy=_NO_ARG,
+        pr_index=_NO_ARG,
+        pr_ignore=_NO_ARG,
+        es_dynamic_policy=_NO_ARG,
+    ):
         global _keyable_counter
         self.set("required", required)
         self.set("desc", desc)
@@ -320,16 +340,18 @@ class Keyable(object):
         self.set("es_dynamic_policy", es_dynamic_policy)
 
         if self.DEPRECATED_TYPE:
-            e = "WARN: %s is deprecated and will be removed in a "\
-                    "future release\n" % self.__class__.__name__
+            e = (
+                "WARN: %s is deprecated and will be removed in a "
+                "future release\n" % self.__class__.__name__
+            )
             sys.stderr.write(e)
 
     def to_dict(self):
         retv = {
-            "required":self.required,
-            "doc":self.doc,
-            "type":self.__class__.__name__,
-            "metadata":self.metadata,
+            "required": self.required,
+            "doc": self.doc,
+            "type": self.__class__.__name__,
+            "metadata": self.metadata,
             "examples": self.examples,
         }
         return retv
