@@ -1,8 +1,6 @@
 ZSchema
 =======
 
-[![Build Status](https://travis-ci.org/zmap/zschema.svg?branch=master)](https://travis-ci.org/zmap/zschema)
-
 ZSchema is a generic (meta-)schema language for defining database schemas. It
 facilitates (1) validating JSON documents against a schema definition and (2)
 compilating a schema to multiple database engines. For example, if you wanted
@@ -188,8 +186,11 @@ https://github.com/zmap/zschema/blob/master/zschema/leaves.py#L25.
 Running Tests
 =============
 
-Tests are run with [nose](http://nose.readthedocs.io/en/latest/). Run them via
-`python setup.py test`.
+Tests are run with [pytest](https://docs.pytest.org/en/stable/). Run them via:
+```zsh
+pip3 install ".[tests]"
+pytest
+```
 
 
 License and Copyright

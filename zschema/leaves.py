@@ -22,37 +22,41 @@ class Leaf(Keyable):
     ES_INDEX = None
     ES_ANALYZER = None
 
-    def __init__(self,
-            required=_NO_ARG,
-            es_index=_NO_ARG,
-            es_analyzer=_NO_ARG,
-            desc=_NO_ARG,
-            doc=_NO_ARG,
-            examples=_NO_ARG,
-            es_include_raw=_NO_ARG,
-            deprecated=_NO_ARG,
-            ignore=_NO_ARG,
-            category=_NO_ARG,
-            exclude=_NO_ARG,
-            metadata=_NO_ARG,
-            units=_NO_ARG,
-            min_value=_NO_ARG,
-            max_value=_NO_ARG,
-            validation_policy=_NO_ARG,
-            pr_index=_NO_ARG,
-            pr_ignore=_NO_ARG):
-        Keyable.__init__(self,
-                required=required,
-                desc=desc,
-                doc=doc,
-                category=category,
-                exclude=exclude,
-                deprecated=deprecated,
-                ignore=ignore,
-                examples=examples,
-                validation_policy=validation_policy,
-                pr_index=pr_index,
-                pr_ignore=pr_ignore)
+    def __init__(
+        self,
+        required=_NO_ARG,
+        es_index=_NO_ARG,
+        es_analyzer=_NO_ARG,
+        desc=_NO_ARG,
+        doc=_NO_ARG,
+        examples=_NO_ARG,
+        es_include_raw=_NO_ARG,
+        deprecated=_NO_ARG,
+        ignore=_NO_ARG,
+        category=_NO_ARG,
+        exclude=_NO_ARG,
+        metadata=_NO_ARG,
+        units=_NO_ARG,
+        min_value=_NO_ARG,
+        max_value=_NO_ARG,
+        validation_policy=_NO_ARG,
+        pr_index=_NO_ARG,
+        pr_ignore=_NO_ARG,
+    ):
+        Keyable.__init__(
+            self,
+            required=required,
+            desc=desc,
+            doc=doc,
+            category=category,
+            exclude=exclude,
+            deprecated=deprecated,
+            ignore=ignore,
+            examples=examples,
+            validation_policy=validation_policy,
+            pr_index=pr_index,
+            pr_ignore=pr_ignore,
+        )
         self.set("es_index", es_index)
         self.set("es_analyzer", es_analyzer)
         self.set("units", units)
@@ -72,14 +76,12 @@ class Leaf(Keyable):
         return retv
 
     def to_es(self):
-        retv = {"type":self.ES_TYPE}
+        retv = {"type": self.ES_TYPE}
         self.add_not_empty(retv, "index", "es_index")
         self.add_not_empty(retv, "analyzer", "es_analyzer")
         self.add_not_empty(retv, "search_analyzer", "es_search_analyzer")
         if self.es_include_raw:
-            retv["fields"] = {
-                    "raw":{"type":"keyword"}
-            }
+            retv["fields"] = {"raw": {"type": "keyword"}}
         return retv
 
     def _docs_common(self, parent_category):
@@ -108,7 +110,7 @@ class Leaf(Keyable):
         if not self._check_valid_name(name):
             raise Exception("Invalid field name: %s" % name)
         mode = "REQUIRED" if self.required else "NULLABLE"
-        retv = {"name":self.key_to_bq(name), "type":self.BQ_TYPE, "mode":mode}
+        retv = {"name": self.key_to_bq(name), "type": self.BQ_TYPE, "mode": mode}
         if self.doc:
             retv["doc"] = self.doc
         return retv
@@ -118,12 +120,11 @@ class Leaf(Keyable):
             raise Exception("Invalid field name: %s" % name)
         return {
             "message": "",
-            "field": "%s %s" % (self.PR_TYPE, self.key_to_proto(name))
+            "field": "%s %s" % (self.PR_TYPE, self.key_to_proto(name)),
         }
 
     def to_string(self, name):
-        return "%s: %s" % (self.key_to_string(name),
-                           self.__class__.__name__.lower())
+        return "%s: %s" % (self.key_to_string(name), self.__class__.__name__.lower())
 
     def to_flat(self, parent, name, repeated=False):
         if not self._check_valid_name(name):
@@ -136,19 +137,19 @@ class Leaf(Keyable):
             mode = "nullable"
         full_name = ".".join([parent, name]) if parent else name
         yield {
-            "name":full_name,
-            "type":self.__class__.__name__,
+            "name": full_name,
+            "type": self.__class__.__name__,
             "es_type": self.ES_TYPE,
-            "documentation":self.doc,
-            "mode":mode
+            "documentation": self.doc,
+            "mode": mode,
         }
         if self.es_include_raw:
             yield {
-                "name":full_name + ".raw",
-                "type":self.__class__.__name__,
-                "documentation":self.doc,
+                "name": full_name + ".raw",
+                "type": self.__class__.__name__,
+                "documentation": self.doc,
                 "es_type": self.ES_TYPE,
-                "mode":mode
+                "mode": mode,
             }
 
     def print_indent_string(self, name, indent):
@@ -158,7 +159,9 @@ class Leaf(Keyable):
             val = tabs + val
         print(val)
 
-    def validate(self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG, path=_NO_ARG):
+    def validate(
+        self, name, value, policy=_NO_ARG, parent_policy=_NO_ARG, path=_NO_ARG
+    ):
         calculated_policy = self._calculate_policy(name, policy, parent_policy)
         try:
             self._raising_validate(name, value, path=path)
@@ -172,8 +175,7 @@ class Leaf(Keyable):
             raise Exception("Invalid field name: %s" % name)
         if value is None:
             if self.required:
-                msg = "{:s} is a required field, but received None".format(
-                        name)
+                msg = "{:s} is a required field, but received None".format(name)
                 raise DataValidationException(msg, path=path)
             else:
                 return
@@ -241,7 +243,8 @@ class WhitespaceAnalyzedString(AnalyzedString):
       }
     }'
     """
-    ES_ANALYZER="lower_whitespace"
+
+    ES_ANALYZER = "lower_whitespace"
     ES_INCLUDE_RAW = True
 
 
@@ -256,8 +259,8 @@ class HexString(Leaf):
     INVALID = "asdfasdfa"
     VALID = "003a929e3e0bd48a1e7567714a1e0e9d4597fe9087b4ad39deb83ab10c5a0278"
 
-    #ES_SEARCH_ANALYZER = "lower_whitespace"
-    HEX_REGEX = re.compile('(?:[A-Fa-f0-9][A-Fa-f0-9])+')
+    # ES_SEARCH_ANALYZER = "lower_whitespace"
+    HEX_REGEX = re.compile("(?:[A-Fa-f0-9][A-Fa-f0-9])+")
 
     def _is_hex(self, s):
         return bool(self.HEX_REGEX.match(s))
@@ -298,8 +301,8 @@ class Enum(Leaf):
             del retv["examples"]
         return retv
 
-class HTML(AnalyzedString):
 
+class HTML(AnalyzedString):
     """
     curl -XPUT 'localhost:9200/ipv4/_settings' -d '{
       "analysis" : {
@@ -313,6 +316,7 @@ class HTML(AnalyzedString):
       }
     }'
     """
+
     ES_ANALYZER = "html"
 
 
@@ -379,13 +383,17 @@ class _Integer(Leaf):
 
     def _validate(self, name, value, path=_NO_ARG):
         max_ = 2**self.BITS - 1
-        min_ = -2**self.BITS + 1
+        min_ = -(2**self.BITS) + 1
         if value > max_:
-            raise DataValidationException("%s: %s is larger than max (%s)" % (\
-                    name, str(value), str(max_)), path=path)
+            raise DataValidationException(
+                "%s: %s is larger than max (%s)" % (name, str(value), str(max_)),
+                path=path,
+            )
         if value < min_:
-            raise DataValidationException("%s: %s is smaller than min (%s)" % (\
-                    name, str(value), str(min_)), path=path)
+            raise DataValidationException(
+                "%s: %s is smaller than min (%s)" % (name, str(value), str(min_)),
+                path=path,
+            )
 
 
 class Signed32BitInteger(_Integer):
@@ -404,7 +412,7 @@ class Signed8BitInteger(_Integer):
     PR_TYPE = "int32"
 
     BITS = 8
-    INVALID = 2**8+5
+    INVALID = 2**8 + 5
     VALID = 34
 
 
@@ -436,7 +444,7 @@ class Signed64BitInteger(_Integer):
     PR_TYPE = "int64"
 
     EXPECTED_CLASS = (int,)
-    INVALID = int(2)**68
+    INVALID = int(2) ** 68
     VALID = int(10)
     BITS = 64
 
@@ -485,7 +493,9 @@ class Binary(Leaf):
 
     ES_INDEX = "no"
     EXPECTED_CLASS = string_types
-    B64_REGEX = re.compile('^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$')
+    B64_REGEX = re.compile(
+        "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$"
+    )
 
     def _is_base64(self, data):
         return bool(self.B64_REGEX.match(data))
@@ -516,6 +526,13 @@ class DateTime(Leaf):
     # dateutil.parser.parse(int) throws...? is this intended to be a unix epoch offset?
     EXPECTED_CLASS = string_types + (int, datetime.datetime)
 
+    TZINFOS = {
+        "EDT": datetime.timezone(datetime.timedelta(hours=-4)),  # Eastern Daylight Time
+        "EST": datetime.timezone(datetime.timedelta(hours=-5)),  # Eastern Standard Time
+        "CDT": datetime.timezone(datetime.timedelta(hours=-5)),  # Central Daylight Time
+        "CST": datetime.timezone(datetime.timedelta(hours=-6)),  # Central Standard Time
+    }
+
     VALID = "Wed Jul  8 08:52:01 EDT 2015"
     INVALID = "Wed DNE  35 08:52:01 EDT 2015"
 
@@ -526,23 +543,31 @@ class DateTime(Leaf):
         super(DateTime, self).__init__(*args, **kwargs)
 
         if self.min_value:
-            self._min_value_dt = dateutil.parser.parse(self.min_value)
+            self._min_value_dt = dateutil.parser.parse(
+                self.min_value, tzinfos=self.TZINFOS
+            )
         else:
-            self._min_value_dt = dateutil.parser.parse(self.MIN_VALUE)
+            self._min_value_dt = dateutil.parser.parse(
+                self.MIN_VALUE, tzinfos=self.TZINFOS
+            )
 
         if self.max_value:
-            self._max_value_dt = dateutil.parser.parse(self.max_value)
+            self._max_value_dt = dateutil.parser.parse(
+                self.max_value, tzinfos=self.TZINFOS
+            )
         else:
-            self._max_value_dt = dateutil.parser.parse(self.MAX_VALUE)
+            self._max_value_dt = dateutil.parser.parse(
+                self.MAX_VALUE, tzinfos=self.TZINFOS
+            )
 
     def _validate(self, name, value, path=_NO_ARG):
         try:
             if isinstance(value, datetime.datetime):
                 dt = value
             elif isinstance(value, int):
-                dt = datetime.datetime.utcfromtimestamp(value)
+                dt = datetime.datetime.fromtimestamp(value, datetime.timezone.utc)
             else:
-                dt = dateutil.parser.parse(value)
+                dt = dateutil.parser.parse(value, tzinfos=self.TZINFOS)
         except (ValueError, TypeError):
             # Either `datetime.utcfromtimestamp` or `dateutil.parser.parse` above
             # may raise on invalid input.
@@ -550,18 +575,25 @@ class DateTime(Leaf):
             raise DataValidationException(m, path=path)
         dt = DateTime._ensure_tz_aware(dt)
         if dt > self._max_value_dt:
-            m = "%s: %s is greater than allowed maximum (%s)" % (name,
-                    str(value), str(self._max_value_dt))
+            m = "%s: %s is greater than allowed maximum (%s)" % (
+                name,
+                str(value),
+                str(self._max_value_dt),
+            )
             raise DataValidationException(m, path=path)
         if dt < self._min_value_dt:
-            m = "%s: %s is less than allowed minimum (%s)" % (name,
-                    str(value), str(self._min_value_dt))
+            m = "%s: %s is less than allowed minimum (%s)" % (
+                name,
+                str(value),
+                str(self._min_value_dt),
+            )
             raise DataValidationException(m, path=path)
 
     @staticmethod
     def _ensure_tz_aware(dt):
         """Ensures that the given datetime is timezone-aware. If it is not timezone-aware as
-        given, this function localizes it to UTC. Returns a timezone-aware datetime instance."""
+        given, this function localizes it to UTC. Returns a timezone-aware datetime instance.
+        """
         if dt.tzinfo:
             return dt
         return pytz.utc.localize(dt)
@@ -577,7 +609,7 @@ class OID(String):
     VALID = "1.3.6.1.4.868.2.4.1"
     INVALID = "hello"
 
-    OID_REGEX = re.compile("[[0-9]+\\.]*")
+    OID_REGEX = re.compile(r"^(\d+\.)+\d+$")
 
     def _is_oid(self, data):
         return bool(self.OID_REGEX.match(data))
@@ -658,4 +690,3 @@ VALID_LEAVES = [
     URI,
     EmailAddress,
 ]
-

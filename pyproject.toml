@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zschema"
+description = "A schema language for JSON documents that allows validation and compilation into various database engines"
+version = "0.11.0"
+authors = [ { name = "ZMap Team"} ]
+license = { text = "Apache License, Version 2.0" }  # Replace with the actual license
+keywords = ["python", "json", "schema", "bigquery", "elasticsearch"]
+
+dependencies = [
+    "future",
+    "python-dateutil",
+    "pytz",
+    "six"
+]
+
+[project.optional-dependencies]
+tests = [
+    "pytest"
+]
+
+[project.scripts]
+zschema = "zschema.__main__:main"

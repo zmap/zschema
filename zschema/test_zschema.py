@@ -1,4 +1,4 @@
-import collections
+from collections.abc import Sized
 import datetime
 import json
 import os
@@ -7,13 +7,24 @@ import unittest
 from zschema import registry
 from zschema.compounds import ListOf, NestedListOf, Record, SubRecord, SubRecordType
 from zschema.keys import Keyable, Port, MergeConflictException
-from zschema.leaves import Boolean, DateTime, Enum, IPv4Address, String, Unsigned8BitInteger, Unsigned32BitInteger, VALID_LEAVES
+from zschema.leaves import (
+    Boolean,
+    DateTime,
+    Enum,
+    IPv4Address,
+    String,
+    Unsigned8BitInteger,
+    Unsigned32BitInteger,
+    VALID_LEAVES,
+)
 from zschema.leaves import DataValidationException
 
 
 def json_fixture(name):
     filename = name + ".json"
-    fixture_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fixtures', filename)
+    fixture_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "fixtures", filename
+    )
     with open(fixture_path) as fixture_file:
         fixture = json.load(fixture_file)
     return fixture
@@ -29,8 +40,7 @@ class LeafUnitTests(unittest.TestCase):
         for leaf in VALID_LEAVES:
             try:
                 leaf(validation_policy="error").validate(leaf.__name__, leaf.INVALID)
-                raise Exception("invalid value did not fail for %s",
-                                leaf.__name__)
+                raise Exception("invalid value did not fail for %s", leaf.__name__)
             except DataValidationException:
                 continue
 
@@ -60,33 +70,19 @@ VALID_ELASTIC_SEARCH = {
         "properties": {
             "443": {
                 "properties": {
-                    "tls": {
-                        "type": "keyword"
-                    },
+                    "tls": {"type": "keyword"},
                     "heartbleed": {
                         "properties": {
-                            "heartbeat_support": {
-                                "type": "boolean"
-                            },
-                            "heartbleed_vulnerable": {
-                                "type": "boolean"
-                            },
-                            "timestamp": {
-                                "type": "date"
-                            }
+                            "heartbeat_support": {"type": "boolean"},
+                            "heartbleed_vulnerable": {"type": "boolean"},
+                            "timestamp": {"type": "date"},
                         }
-                    }
+                    },
                 }
             },
-            "ipstr": {
-                "type": "ip"
-            },
-            "ip": {
-                "type": "long"
-            },
-            "tags": {
-                "type": "keyword"
-            }
+            "ipstr": {"type": "ip"},
+            "ip": {"type": "long"},
+            "tags": {"type": "keyword"},
         }
     }
 }
@@ -110,7 +106,7 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
                                 "doc": None,
                                 "examples": [],
                                 "required": False,
-                                "type": "boolean"
+                                "type": "boolean",
                             },
                             "heartbleed_vulnerable": {
                                 "category": "Vulnerabilities",
@@ -118,7 +114,7 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
                                 "doc": None,
                                 "examples": [],
                                 "required": False,
-                                "type": "boolean"
+                                "type": "boolean",
                             },
                             "timestamp": {
                                 "category": "heartbleed",
@@ -126,11 +122,11 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
                                 "doc": None,
                                 "examples": [],
                                 "required": False,
-                                "type": "date"
-                            }
+                                "type": "date",
+                            },
                         },
                         "required": False,
-                        "type": "SubRecord"
+                        "type": "SubRecord",
                     },
                     "tls": {
                         "category": "heartbleed",
@@ -138,11 +134,11 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
                         "doc": None,
                         "examples": [],
                         "required": False,
-                        "type": "keyword"
-                    }
+                        "type": "keyword",
+                    },
                 },
                 "required": False,
-                "type": "SubRecord"
+                "type": "SubRecord",
             },
             "ip": {
                 "category": None,
@@ -150,17 +146,15 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
                 "doc": "The IP Address of the host",
                 "examples": [],
                 "required": False,
-                "type": "long"
+                "type": "long",
             },
             "ipstr": {
                 "category": None,
                 "detail_type": "IPv4Address",
                 "doc": None,
-                "examples": [
-                    "8.8.8.8"
-                ],
+                "examples": ["8.8.8.8"],
                 "required": True,
-                "type": "ip"
+                "type": "ip",
             },
             "tags": {
                 "category": None,
@@ -169,11 +163,11 @@ VALID_DOCS_OUTPUT_FOR_ES_FIELDS = {
                 "examples": [],
                 "repeated": True,
                 "required": False,
-                "type": "keyword"
-            }
+                "type": "keyword",
+            },
         },
         "required": False,
-        "type": "Record"
+        "type": "Record",
     }
 }
 
@@ -188,17 +182,15 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
                 "doc": "The IP Address of the host",
                 "examples": [],
                 "required": False,
-                "type": "INTEGER"
+                "type": "INTEGER",
             },
             "ipstr": {
                 "category": None,
                 "detail_type": "IPv4Address",
                 "doc": None,
-                "examples": [
-                    "8.8.8.8"
-                ],
+                "examples": ["8.8.8.8"],
                 "required": True,
-                "type": "STRING"
+                "type": "STRING",
             },
             "p443": {
                 "category": "heartbleed",
@@ -214,7 +206,7 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
                                 "doc": None,
                                 "examples": [],
                                 "required": False,
-                                "type": "BOOLEAN"
+                                "type": "BOOLEAN",
                             },
                             "heartbleed_vulnerable": {
                                 "category": "Vulnerabilities",
@@ -222,7 +214,7 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
                                 "doc": None,
                                 "examples": [],
                                 "required": False,
-                                "type": "BOOLEAN"
+                                "type": "BOOLEAN",
                             },
                             "timestamp": {
                                 "category": "heartbleed",
@@ -230,11 +222,11 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
                                 "doc": None,
                                 "examples": [],
                                 "required": False,
-                                "type": "DATETIME"
-                            }
+                                "type": "DATETIME",
+                            },
                         },
                         "required": False,
-                        "type": "SubRecord"
+                        "type": "SubRecord",
                     },
                     "tls": {
                         "category": "heartbleed",
@@ -242,11 +234,11 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
                         "doc": None,
                         "examples": [],
                         "required": False,
-                        "type": "STRING"
-                    }
+                        "type": "STRING",
+                    },
                 },
                 "required": False,
-                "type": "SubRecord"
+                "type": "SubRecord",
             },
             "tags": {
                 "category": None,
@@ -255,64 +247,48 @@ VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS = {
                 "examples": [],
                 "repeated": True,
                 "required": False,
-                "type": "STRING"
-            }
+                "type": "STRING",
+            },
         },
         "required": False,
-        "type": "Record"
+        "type": "Record",
     }
 }
 
 VALID_BIG_QUERY = [
     {
         "fields": [
-            {
-                "type": "STRING",
-                "name": "tls",
-                "mode": "NULLABLE"
-            },
+            {"type": "STRING", "name": "tls", "mode": "NULLABLE"},
             {
                 "fields": [
                     {
                         "type": "BOOLEAN",
                         "name": "heartbeat_support",
-                        "mode": "NULLABLE"
+                        "mode": "NULLABLE",
                     },
                     {
                         "type": "BOOLEAN",
                         "name": "heartbleed_vulnerable",
-                        "mode": "NULLABLE"
+                        "mode": "NULLABLE",
                     },
-                    {
-                        "type": "DATETIME",
-                        "name": "timestamp",
-                        "mode": "NULLABLE"
-                    }
+                    {"type": "DATETIME", "name": "timestamp", "mode": "NULLABLE"},
                 ],
                 "type": "RECORD",
                 "name": "heartbleed",
-                "mode": "NULLABLE"
-            }
+                "mode": "NULLABLE",
+            },
         ],
         "type": "RECORD",
         "name": "p443",
-        "mode": "NULLABLE"
+        "mode": "NULLABLE",
     },
-    {
-        "type": "STRING",
-        "name": "ipstr",
-        "mode": "REQUIRED"
-    },
-    {
-        "type": "STRING",
-        "name": "tags",
-        "mode": "REPEATED"
-    },
+    {"type": "STRING", "name": "ipstr", "mode": "REQUIRED"},
+    {"type": "STRING", "name": "tags", "mode": "REPEATED"},
     {
         "type": "INTEGER",
         "name": "ip",
         "doc": "The IP Address of the host",
-        "mode": "NULLABLE"
+        "mode": "NULLABLE",
     },
 ]
 
@@ -352,13 +328,12 @@ class CompileAndValidationTests(unittest.TestCase):
         if a == b:
             return
         else:
-            self.assertEquals(type(a), type(b))
-            if isinstance(a, collections.Sized) \
-                    and isinstance(b, collections.Sized):
-                self.assertEquals(len(a), len(b))
+            self.assertEqual(type(a), type(b))
+            if isinstance(a, Sized) and isinstance(b, Sized):
+                self.assertEqual(len(a), len(b))
             if isinstance(a, list) and isinstance(b, list):
-                name_ordered_a = sorted(a, key=lambda x: x['name'])
-                name_ordered_b = sorted(b, key=lambda x: x['name'])
+                name_ordered_a = sorted(a, key=lambda x: x["name"])
+                name_ordered_b = sorted(b, key=lambda x: x["name"])
                 for x, y in zip(name_ordered_a, name_ordered_b):
                     self.assertBigQuerySchemaEqual(x, y)
             elif isinstance(a, dict):
@@ -366,25 +341,35 @@ class CompileAndValidationTests(unittest.TestCase):
                     self.assertIn(k, b)
                     self.assertBigQuerySchemaEqual(a[k], b[k])
             else:
-                self.assertEquals(a, b)
+                self.assertEqual(a, b)
 
     def setUp(self):
-        self.maxDiff=10000
+        self.maxDiff = 10000
 
-        heartbleed = SubRecord({ # with explicit proto field indices
-            "heartbeat_support":Boolean(pr_index=11),
-            "heartbleed_vulnerable":Boolean(category="Vulnerabilities", pr_ignore=True),
-            "timestamp":DateTime(pr_index=10)
-        }, pr_index=77)
-        self.host = Record({
-                "ipstr":IPv4Address(required=True, examples=["8.8.8.8"], pr_index=1),
-                "ip":Unsigned32BitInteger(doc="The IP Address of the host", pr_index=2),
-                Port(443):SubRecord({
-                    "tls":String(pr_index=1),
-                    "heartbleed":heartbleed
-                }, category="heartbleed", pr_index=3),
-                "tags":ListOf(String(), pr_index=47)
-        })
+        heartbleed = SubRecord(
+            {  # with explicit proto field indices
+                "heartbeat_support": Boolean(pr_index=11),
+                "heartbleed_vulnerable": Boolean(
+                    category="Vulnerabilities", pr_ignore=True
+                ),
+                "timestamp": DateTime(pr_index=10),
+            },
+            pr_index=77,
+        )
+        self.host = Record(
+            {
+                "ipstr": IPv4Address(required=True, examples=["8.8.8.8"], pr_index=1),
+                "ip": Unsigned32BitInteger(
+                    doc="The IP Address of the host", pr_index=2
+                ),
+                Port(443): SubRecord(
+                    {"tls": String(pr_index=1), "heartbleed": heartbleed},
+                    category="heartbleed",
+                    pr_index=3,
+                ),
+                "tags": ListOf(String(), pr_index=47),
+            }
+        )
 
     def test_bigquery(self):
         global VALID_BIG_QUERY
@@ -411,23 +396,11 @@ class CompileAndValidationTests(unittest.TestCase):
         self.assertEqual(r, VALID_DOCS_OUTPUT_FOR_BIG_QUERY_FIELDS)
 
     def test_validation_known_good(self):
-        test = {
-            "ipstr":"141.212.120.1",
-            "ip":2379511809,
-            "443":{
-                "tls":"test"
-            }
-        }
+        test = {"ipstr": "141.212.120.1", "ip": 2379511809, "443": {"tls": "test"}}
         self.host.validate(test)
 
     def test_validation_bad_key(self):
-        test = {
-            "keydne":"141.212.120.1asdf",
-            "ip":2379511809,
-            "443":{
-                "tls":"test"
-            }
-        }
+        test = {"keydne": "141.212.120.1asdf", "ip": 2379511809, "443": {"tls": "test"}}
         try:
             self.host.validate(test)
             raise Exception("validation did not fail")
@@ -435,13 +408,7 @@ class CompileAndValidationTests(unittest.TestCase):
             pass
 
     def test_validation_bad_value(self):
-        test = {
-            "ipstr":10,
-            "ip":2379511809,
-            "443":{
-                "tls":"test"
-            }
-        }
+        test = {"ipstr": 10, "ip": 2379511809, "443": {"tls": "test"}}
         try:
             self.host.validate(test)
             raise Exception("validation did not fail")
@@ -449,32 +416,28 @@ class CompileAndValidationTests(unittest.TestCase):
             pass
 
     def test_merge_no_conflict(self):
-        a = SubRecord({
-                "a":String(),
-                "b":SubRecord({
-                    "c":String()
-                    })
-            })
-        b = SubRecord({
-                "d":String(),
-            })
-        valid = SubRecord({
-                "a":String(),
-                "b":SubRecord({
-                    "c":String()
-                    }),
-                "d":String(),
-
-        })
+        a = SubRecord({"a": String(), "b": SubRecord({"c": String()})})
+        b = SubRecord(
+            {
+                "d": String(),
+            }
+        )
+        valid = SubRecord(
+            {
+                "a": String(),
+                "b": SubRecord({"c": String()}),
+                "d": String(),
+            }
+        )
         self.assertEqual(a.merge(b).to_dict(), valid.to_dict())
 
     def test_merge_different_types(self):
-        a = SubRecord({
-                "a":String(),
-            })
-        b = SubRecord({
-                "a":SubRecord({})
-            })
+        a = SubRecord(
+            {
+                "a": String(),
+            }
+        )
+        b = SubRecord({"a": SubRecord({})})
         try:
             a.merge(b)
             raise Exception("validation did not fail")
@@ -482,12 +445,16 @@ class CompileAndValidationTests(unittest.TestCase):
             pass
 
     def test_merge_unmergable_types(self):
-        a = SubRecord({
-                "a":String(),
-            })
-        b = SubRecord({
-                "a":String(),
-            })
+        a = SubRecord(
+            {
+                "a": String(),
+            }
+        )
+        b = SubRecord(
+            {
+                "a": String(),
+            }
+        )
         try:
             a.merge(b)
             raise Exception("validation did not fail")
@@ -495,65 +462,43 @@ class CompileAndValidationTests(unittest.TestCase):
             pass
 
     def test_merge_recursive(self):
-        a = SubRecord({
-                "m":SubRecord({
-                       "a":String()
-                })
-            })
-        b = SubRecord({
-                "a":String(),
-                "m":SubRecord({
-                       "b":String()
-                 })
-
-            })
-        c = SubRecord({
-                "a":String(),
-                "m":SubRecord({
-                       "a":String(),
-                       "b":String()
-                    })
-            })
-        self.assertEquals(a.merge(b).to_dict(), c.to_dict())
+        a = SubRecord({"m": SubRecord({"a": String()})})
+        b = SubRecord({"a": String(), "m": SubRecord({"b": String()})})
+        c = SubRecord({"a": String(), "m": SubRecord({"a": String(), "b": String()})})
+        self.assertEqual(a.merge(b).to_dict(), c.to_dict())
 
     def test_extends(self):
-        host = Record({
-                 "host":IPv4Address(required=True),
-                 "time":DateTime(required=True),
-                 "data":SubRecord({}),
-                 "error":String()
-               })
-        banner_grab = Record({
-                        "data":SubRecord({
-                                   "banner":String()
-                               })
-                      }, extends=host)
-        tls_banner_grab = Record({
-                            "data":SubRecord({
-                                       "tls":SubRecord({})
-                                   })
-                          }, extends=banner_grab)
-        smtp_starttls = Record({
-                            "data":SubRecord({
-                                       "ehlo":String()
-                                   })
-                        }, extends=tls_banner_grab)
+        host = Record(
+            {
+                "host": IPv4Address(required=True),
+                "time": DateTime(required=True),
+                "data": SubRecord({}),
+                "error": String(),
+            }
+        )
+        banner_grab = Record({"data": SubRecord({"banner": String()})}, extends=host)
+        tls_banner_grab = Record(
+            {"data": SubRecord({"tls": SubRecord({})})}, extends=banner_grab
+        )
+        smtp_starttls = Record(
+            {"data": SubRecord({"ehlo": String()})}, extends=tls_banner_grab
+        )
 
-        valid = Record({
-                  "host":IPv4Address(required=True),
-                  "time":DateTime(required=True),
-                  "data":SubRecord({
-                            "banner":String(),
-                            "tls":SubRecord({}),
-                            "ehlo":String()
-                         }),
-                  "error":String()
-                })
+        valid = Record(
+            {
+                "host": IPv4Address(required=True),
+                "time": DateTime(required=True),
+                "data": SubRecord(
+                    {"banner": String(), "tls": SubRecord({}), "ehlo": String()}
+                ),
+                "error": String(),
+            }
+        )
         self.assertEqual(smtp_starttls.to_dict(), valid.to_dict())
 
     def test_null_required(self):
         test = {
-            "ipstr":None,
+            "ipstr": None,
         }
         try:
             self.host.validate(test)
@@ -561,7 +506,7 @@ class CompileAndValidationTests(unittest.TestCase):
         except DataValidationException:
             pass
 
-    #def test_missing_required(self):
+    # def test_missing_required(self):
     #     # ipstr is not set
     #     test = {
     #         "443":{
@@ -579,7 +524,7 @@ class CompileAndValidationTests(unittest.TestCase):
             "ipstr": "1.2.3.4",
             "443": {
                 "heartbleed": None,
-            }
+            },
         }
         try:
             self.host.validate(test)
@@ -599,82 +544,66 @@ class CompileAndValidationTests(unittest.TestCase):
             pass
 
     def test_null_notrequired(self):
-        test = {
-            "ip":None,
-            "443":{
-                "tls":"None"
-            }
-        }
+        test = {"ip": None, "443": {"tls": "None"}}
         self.host.validate(test)
 
     def test_parses_ipv4_records(self):
-        ipv4_host_ssh = Record({
-            Port(22):SubRecord({
-                "ssh":SubRecord({
-                    "banner": SubRecord({
-                        "comment":String(),
-                        "timestamp":DateTime()
-                    })
-                })
-            })
-        })
-        ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
+        ipv4_host_ssh = Record(
+            {
+                Port(22): SubRecord(
+                    {
+                        "ssh": SubRecord(
+                            {
+                                "banner": SubRecord(
+                                    {"comment": String(), "timestamp": DateTime()}
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+        ipv4_host_ssh.validate(json_fixture("ipv4-ssh-record"))
 
     def test_es_dynamic_record(self):
         ipv4_host_with_dynamic_strict = Record()
         es = ipv4_host_with_dynamic_strict.to_es("strict-record")
         self.assertFalse("dynamic" in es["strict-record"])
 
-        ipv4_host_with_dynamic_strict = Record(
-            es_dynamic_policy="strict"
-        )
+        ipv4_host_with_dynamic_strict = Record(es_dynamic_policy="strict")
         es = ipv4_host_with_dynamic_strict.to_es("strict-record")
         self.assertEqual("strict", es["strict-record"]["dynamic"])
 
     def test_subrecord_types(self):
-        SSH = SubRecordType({
-            "banner":SubRecord({
-                "comment":String(),
-                "timestamp":DateTime()
-                })
-            },
+        SSH = SubRecordType(
+            {"banner": SubRecord({"comment": String(), "timestamp": DateTime()})},
             doc="class doc",
-            required=False)
+            required=False,
+        )
         self.assertEqual(SSH.DOC, "class doc")
         self.assertEqual(SSH.REQUIRED, False)
         ssh = SSH(doc="instance doc")
-        ipv4_host_ssh = Record({
-            Port(22):SubRecord({
-                "ssh":ssh
-            })
-        })
+        ipv4_host_ssh = Record({Port(22): SubRecord({"ssh": ssh})})
         self.assertEqual(ssh.doc, "instance doc")
         self.assertEqual(ssh.required, False)
-        ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
+        ipv4_host_ssh.validate(json_fixture("ipv4-ssh-record"))
         # class unchanged
         self.assertEqual(SSH.DOC, "class doc")
         self.assertEqual(SSH.REQUIRED, False)
 
     def test_subrecord_type_override(self):
-        SSH = SubRecordType({
-            "banner": SubRecord({
-                "comment": String(),
-                "timestamp": DateTime()
-                })
-            },
+        SSH = SubRecordType(
+            {"banner": SubRecord({"comment": String(), "timestamp": DateTime()})},
             doc="class doc",
-            required=False)
+            required=False,
+        )
         self.assertEqual(SSH.DOC, "class doc")
         self.assertEqual(SSH.REQUIRED, False)
         ssh = SSH(doc="instance doc", required=True)
-        ipv4_host_ssh = Record({
-            Port(22):SubRecord({
-                "ssh":ssh
-            })
-        })
+        ipv4_host_ssh = Record({Port(22): SubRecord({"ssh": ssh})})
         self.assertEqual(ssh.doc, "instance doc")
         self.assertEqual(ssh.required, True)
-        ipv4_host_ssh.validate(json_fixture('ipv4-ssh-record'))
+        ipv4_host_ssh.validate(json_fixture("ipv4-ssh-record"))
         # class unchanged
         self.assertEqual(SSH.DOC, "class doc")
         self.assertEqual(SSH.REQUIRED, False)
@@ -683,13 +612,17 @@ class CompileAndValidationTests(unittest.TestCase):
 class RegistryTests(unittest.TestCase):
 
     def setUp(self):
-        self.host = Record({
-                "ipstr":IPv4Address(required=True),
-                "ip":Unsigned32BitInteger(),
-        })
-        self.domain = Record({
-                "domain":String(required=True),
-        })
+        self.host = Record(
+            {
+                "ipstr": IPv4Address(required=True),
+                "ip": Unsigned32BitInteger(),
+            }
+        )
+        self.domain = Record(
+            {
+                "domain": String(required=True),
+            }
+        )
 
     def test_get_registered(self):
         try:
@@ -707,7 +640,7 @@ class RegistryTests(unittest.TestCase):
             self.fail("registered schema should not throw")
         all_schemas = registry.all_schemas()
         self.assertEqual(1, len(all_schemas))
-        all_schemas['domain'] = self.domain
+        all_schemas["domain"] = self.domain
 
         all_schemas = registry.all_schemas()
         self.assertEqual(1, len(all_schemas))
@@ -727,11 +660,14 @@ class SubRecordTests(unittest.TestCase):
     def test_subrecord_child_types_can_override_parent_attributes(self):
         Certificate = SubRecordType({}, doc="A parsed certificate.")
         c = Certificate(doc="The CA certificate.")
-        OtherType = SubRecord({
-            "ca": c,
-            "host": Certificate(doc="The host certificate."),
-        }, doc="hello")
-        self.assertEqual("A parsed certificate." , Certificate().doc)
+        OtherType = SubRecord(
+            {
+                "ca": c,
+                "host": Certificate(doc="The host certificate."),
+            },
+            doc="hello",
+        )
+        self.assertEqual("A parsed certificate.", Certificate().doc)
         self.assertEqual("The CA certificate.", OtherType.definition["ca"].doc)
         self.assertEqual("The host certificate.", OtherType.definition["host"].doc)
 
@@ -744,15 +680,21 @@ class WithArgsTests(unittest.TestCase):
     def test_with_args(self):
         Certificate = SubRecord.with_args({}, doc="A parsed certificate.")
         CertificateChain = ListOf.with_args(Certificate())
-        AlgorithmType = String.with_args(doc="An algorithm identifier", examples=["a", "b", "c"])
-        OtherType = SubRecord({
-            "ca": Certificate(doc="The CA certificate."),
-            "host": Certificate(doc="The host certificate."),
-            "chain": CertificateChain(doc="The certificate chain."),
-            "host_alg": AlgorithmType(doc="The host algorithm", examples=["x", "y"]),
-            "client_alg": AlgorithmType(doc="The client algorithm"),
-            "sig_alg": AlgorithmType(examples=["p", "q"]),
-        })
+        AlgorithmType = String.with_args(
+            doc="An algorithm identifier", examples=["a", "b", "c"]
+        )
+        OtherType = SubRecord(
+            {
+                "ca": Certificate(doc="The CA certificate."),
+                "host": Certificate(doc="The host certificate."),
+                "chain": CertificateChain(doc="The certificate chain."),
+                "host_alg": AlgorithmType(
+                    doc="The host algorithm", examples=["x", "y"]
+                ),
+                "client_alg": AlgorithmType(doc="The client algorithm"),
+                "sig_alg": AlgorithmType(examples=["p", "q"]),
+            }
+        )
         # Check default
         self.assertEqual("A parsed certificate.", Certificate().doc)
 
@@ -764,7 +706,9 @@ class WithArgsTests(unittest.TestCase):
         self.assertEqual("The certificate chain.", OtherType.definition["chain"].doc)
 
         # Check that instance default is used in child
-        self.assertEqual("A parsed certificate.", OtherType.definition["chain"].object_.doc)
+        self.assertEqual(
+            "A parsed certificate.", OtherType.definition["chain"].object_.doc
+        )
 
         # Check Leaf type doc overrides
         self.assertEqual("The host algorithm", OtherType.definition["host_alg"].doc)
@@ -812,6 +756,7 @@ class WithArgsTests(unittest.TestCase):
         self.assertEqual(("a",), p0doc.args)
         self.assertEqual("some docs", p0doc.doc)
 
+
 class DatetimeTest(unittest.TestCase):
 
     def test_datetime_DateTime(self):
@@ -824,48 +769,65 @@ class DatetimeTest(unittest.TestCase):
 class ValidationPolicies(unittest.TestCase):
 
     def setUp(self):
-        self.maxDiff=10000
+        self.maxDiff = 10000
 
-        Child = SubRecordType({
-            "foo":Boolean(),
-            "bar":Boolean(validation_policy="error"),
-        }, validation_policy="error")
-        self.record = Record({
-            "a":Child(validation_policy="error"),
-            "b":Child(validation_policy="warn"),
-            "c":Child(validation_policy="ignore"),
-            "d":Child(validation_policy="inherit"),
-        })
+        Child = SubRecordType(
+            {
+                "foo": Boolean(),
+                "bar": Boolean(validation_policy="error"),
+            },
+            validation_policy="error",
+        )
+        self.record = Record(
+            {
+                "a": Child(validation_policy="error"),
+                "b": Child(validation_policy="warn"),
+                "c": Child(validation_policy="ignore"),
+                "d": Child(validation_policy="inherit"),
+            }
+        )
 
     def test_policy_setting_warn(self):
-        self.record.validate({"b":{"foo":"string value"}})
+        self.record.validate({"b": {"foo": "string value"}})
 
     def test_policy_setting_ignore(self):
-        self.record.validate({"c":{"foo":"string value"}})
+        self.record.validate({"c": {"foo": "string value"}})
 
     def test_policy_setting_error(self):
-        self.assertRaises(DataValidationException, lambda: self.record.validate({"c":{"bar":"string value"}}))
+        self.assertRaises(
+            DataValidationException,
+            lambda: self.record.validate({"c": {"bar": "string value"}}),
+        )
 
     def test_policy_setting_inherit(self):
-        self.assertRaises(DataValidationException, lambda: self.record.validate({"a":{"foo":"string value"}}))
+        self.assertRaises(
+            DataValidationException,
+            lambda: self.record.validate({"a": {"foo": "string value"}}),
+        )
 
     def test_policy_setting_multi_level_inherit(self):
-        self.assertRaises(DataValidationException, lambda: self.record.validate({"a":{"bar":"string value"}}))
+        self.assertRaises(
+            DataValidationException,
+            lambda: self.record.validate({"a": {"bar": "string value"}}),
+        )
 
     def test_explicit_policy(self):
-        self.record.validate({"a":{"foo":"string value"}},
-                policy="ignore")
+        self.record.validate({"a": {"foo": "string value"}}, policy="ignore")
 
     def test_child_subtree_overrides_and_inherits(self):
-        schema = Record({
-            Port(445): SubRecord({
-                "smb": SubRecord({
-                    "banner": SubRecord({
-                        "smb_v1": Boolean()
-                    })
-                }, validation_policy="error")
-            })
-        }, validation_policy="warn")
+        schema = Record(
+            {
+                Port(445): SubRecord(
+                    {
+                        "smb": SubRecord(
+                            {"banner": SubRecord({"smb_v1": Boolean()})},
+                            validation_policy="error",
+                        )
+                    }
+                )
+            },
+            validation_policy="warn",
+        )
 
         doc = {
             "445": {
@@ -878,6 +840,7 @@ class ValidationPolicies(unittest.TestCase):
             }
         }
         self.assertRaises(DataValidationException, lambda: schema.validate(doc))
+
 
 class ExcludeTests(unittest.TestCase):
     def test_ListOf_exclude(self):
@@ -901,22 +864,32 @@ class ExcludeTests(unittest.TestCase):
 
 
 class PathLogUnitTests(unittest.TestCase):
-    sub_type = SubRecord({
-        "sub1": String(),
-        "sub2": SubRecord({
-            "sub2sub1": Unsigned8BitInteger(),
-            "sub2sub2": NestedListOf(String(), "sub2sub2.subrecord_name"),
-        }),
-        "sub3": Enum(values=["a", "b", "c"])
-    }, validation_policy="error")
-    SCHEMA = Record({
-        "a": SubRecord({
-            "a1": String(),
-            "a2": ListOf(sub_type),
-            "a3": Unsigned8BitInteger(),
-        }),
-        "b": String(),
-    }, validation_policy="error")
+    sub_type = SubRecord(
+        {
+            "sub1": String(),
+            "sub2": SubRecord(
+                {
+                    "sub2sub1": Unsigned8BitInteger(),
+                    "sub2sub2": NestedListOf(String(), "sub2sub2.subrecord_name"),
+                }
+            ),
+            "sub3": Enum(values=["a", "b", "c"]),
+        },
+        validation_policy="error",
+    )
+    SCHEMA = Record(
+        {
+            "a": SubRecord(
+                {
+                    "a1": String(),
+                    "a2": ListOf(sub_type),
+                    "a3": Unsigned8BitInteger(),
+                }
+            ),
+            "b": String(),
+        },
+        validation_policy="error",
+    )
 
     def test_good(self):
         good = {
@@ -981,15 +954,14 @@ class PathLogUnitTests(unittest.TestCase):
         except DataValidationException as e:
             self.assertTrue(not e.path)
 
-        del(bad1["does_not_exist"])
+        del bad1["does_not_exist"]
         bad1["b"] = 23
 
         try:
             self.SCHEMA.validate(bad1, policy="error")
             self.assertTrue(False, "bad1 failed to fail")
         except DataValidationException as e:
-            self.assertEquals(e.path, ["b"])
-
+            self.assertEqual(e.path, ["b"])
 
     def test_bad_a_key(self):
         bad = {
@@ -1024,7 +996,7 @@ class PathLogUnitTests(unittest.TestCase):
             self.assertTrue(False, "bad failed to fail")
         except DataValidationException as e:
             self.assertEqual(e.path, ["a"])
-        del(bad["a"]["does_not_exist"])
+        del bad["a"]["does_not_exist"]
         bad["a"]["a3"] = "not an int"
         try:
             ret = self.SCHEMA.validate(bad, policy="error")
@@ -1064,11 +1036,17 @@ class PathLogUnitTests(unittest.TestCase):
             self.SCHEMA.validate(bad, policy="error")
             self.assertTrue(False, "failed to fail")
         except DataValidationException as e:
-            self.assertEqual(e.path, ["a", "a2", 0, "sub2", ])
-        del(bad["a"]["a2"][0]["sub2"]["does_not_exist"])
-        bad["a"]["a2"][0]["sub2"]["sub2sub2"][1] = {
-            "wrong type": "bad type"
-        }
+            self.assertEqual(
+                e.path,
+                [
+                    "a",
+                    "a2",
+                    0,
+                    "sub2",
+                ],
+            )
+        del bad["a"]["a2"][0]["sub2"]["does_not_exist"]
+        bad["a"]["a2"][0]["sub2"]["sub2sub2"][1] = {"wrong type": "bad type"}
         try:
             self.SCHEMA.validate(bad, policy="error")
             self.assertTrue(False, "bad failed to fail")
@@ -1079,10 +1057,12 @@ class PathLogUnitTests(unittest.TestCase):
 class TestSubRecordType(unittest.TestCase):
 
     def test_subrecord_type(self):
-        A = SubRecordType({
-            "string": String(),
-            "boolean": Boolean(),
-        })
+        A = SubRecordType(
+            {
+                "string": String(),
+                "boolean": Boolean(),
+            }
+        )
 
         first = A()
         second = A()
@@ -1095,31 +1075,38 @@ class TestSubRecordType(unittest.TestCase):
         self.assertIsInstance(second, A)
 
         # Check the properties aren't shared
-        self.assertIsNone(first.definition['string'].doc)
-        self.assertIsNone(second.definition['string'].doc)
-        first.definition['string'].doc = "hello"
-        self.assertIsNone(second.definition['string'].doc)
+        self.assertIsNone(first.definition["string"].doc)
+        self.assertIsNone(second.definition["string"].doc)
+        first.definition["string"].doc = "hello"
+        self.assertIsNone(second.definition["string"].doc)
 
     def test_subrecord_type_extends(self):
-        S = SubRecordType({
-            "provided": Boolean(),
-        })
+        S = SubRecordType(
+            {
+                "provided": Boolean(),
+            }
+        )
 
-        extended_type = SubRecord({
-            "property": String(),
-            "record": SubRecord({
-                "another": String(),
-            }),
-        }, extends=S())
+        extended_type = SubRecord(
+            {
+                "property": String(),
+                "record": SubRecord(
+                    {
+                        "another": String(),
+                    }
+                ),
+            },
+            extends=S(),
+        )
 
         base = S()
         extends = extended_type
         self.assertNotIsInstance(extends, S)
-        self.assertFalse(base.definition['provided'].exclude)
-        self.assertFalse(extended_type.definition['provided'].exclude)
-        base.definition['provided'].exclude = ['bigquery']
-        self.assertEqual(['bigquery'], base.definition['provided'].exclude)
-        self.assertFalse(extended_type.definition['provided'].exclude)
+        self.assertFalse(base.definition["provided"].exclude)
+        self.assertFalse(extended_type.definition["provided"].exclude)
+        base.definition["provided"].exclude = ["bigquery"]
+        self.assertEqual(["bigquery"], base.definition["provided"].exclude)
+        self.assertFalse(extended_type.definition["provided"].exclude)
 
     def test_indexing_works(self):
         definition = {
@@ -1139,22 +1126,35 @@ class TestSubRecordType(unittest.TestCase):
         self.assertFalse(second.exclude)
         self.assertFalse(second["id"].exclude)
 
-        CertType = SubRecordType({
-            "id": Unsigned32BitInteger(doc="The numerical certificate type value. 1 identifies user certificates, 2 identifies host certificates."),
-            "name": Enum(values=["USER", "HOST", "unknown"], doc="The human-readable name for the certificate type."),
-        })
+        CertType = SubRecordType(
+            {
+                "id": Unsigned32BitInteger(
+                    doc="The numerical certificate type value. 1 identifies user certificates, 2 identifies host certificates."
+                ),
+                "name": Enum(
+                    values=["USER", "HOST", "unknown"],
+                    doc="The human-readable name for the certificate type.",
+                ),
+            }
+        )
         ssh_certkey_public_key_type = CertType(exclude={"bigquery"})
-        ssh_certkey_public_key_type["id"].set("exclude",
-                                      ssh_certkey_public_key_type["id"].exclude |
-                                      {"elasticsearch"})
+        ssh_certkey_public_key_type["id"].set(
+            "exclude", ssh_certkey_public_key_type["id"].exclude | {"elasticsearch"}
+        )
 
     def test_multiple_subrecord_types(self):
-        A = SubRecordType({
-            "first": String(),
-        }, type_name="A")
-        B = SubRecordType({
-            "second": Boolean(),
-        }, type_name="B")
+        A = SubRecordType(
+            {
+                "first": String(),
+            },
+            type_name="A",
+        )
+        B = SubRecordType(
+            {
+                "second": Boolean(),
+            },
+            type_name="B",
+        )
 
         a = A()
         self.assertIn("first", a.definition)
@@ -1162,5 +1162,3 @@ class TestSubRecordType(unittest.TestCase):
         self.assertIn("second", b.definition)
         a = A()
         self.assertIn("first", a.definition)
-
-
