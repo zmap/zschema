@@ -182,6 +182,11 @@ Similar to `doc`, fields can have a description, examples, units, min/max
 values, etc. A full list of attributes can be found here:
 https://github.com/zmap/zschema/blob/master/zschema/leaves.py#L25.
 
+When writing schemas, Python typing support is the minimal required to allow
+schema definitions to pass Python type checkers without requiring the file to
+have the relevant `ignore` annotations. It does not statically validate every
+option. Use `validate()` for document validation and to test schema compilation
+and validity.
 
 Running Tests
 =============
@@ -191,7 +196,6 @@ Tests are run with [pytest](https://docs.pytest.org/en/stable/). Run them via:
 pip3 install ".[tests]"
 pytest
 ```
-
 
 License and Copyright
 =====================

@@ -5,6 +5,7 @@ import sys
 import copy
 import json
 from collections import OrderedDict
+from typing import Any, Dict, Optional
 
 from zschema.keys import Keyable, DataValidationException, MergeConflictException
 from zschema.keys import _NO_ARG
@@ -27,7 +28,7 @@ def _proto_indent(string, n):
 
 
 # Track protobuf message definitions that have been emitted.
-_proto_messages = OrderedDict()
+_proto_messages: Dict[str, str] = OrderedDict()
 
 
 class ListOf(Keyable):
@@ -162,9 +163,9 @@ def ListOfType(
 
 class SubRecord(Keyable):
 
-    DEFINITION = {}
+    DEFINITION: Dict[Any, Keyable] = {}
     ALLOW_UNKNOWN = False
-    TYPE_NAME = None
+    TYPE_NAME: Optional[str] = None
     ES_NESTED = False
 
     def __init__(
@@ -517,7 +518,7 @@ class NestedListOf(ListOf):
 class Record(SubRecord):
 
     VALIDATION_POLICY = "error"
-    ES_DYNAMIC_POLICY = None
+    ES_DYNAMIC_POLICY: Optional[str] = None
 
     def to_es(self, name):
         subrecord = SubRecord.to_es(self)

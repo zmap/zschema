@@ -9,6 +9,7 @@ import dateutil.parser
 import datetime
 import socket
 import pytz
+from typing import Any, Optional
 
 from zschema.keys import Keyable, DataValidationException
 from zschema.keys import _NO_ARG
@@ -19,8 +20,8 @@ class Leaf(Keyable):
     # defaults
     REQUIRED = False
     ES_INCLUDE_RAW = False
-    ES_INDEX = None
-    ES_ANALYZER = None
+    ES_INDEX: Optional[str] = None
+    ES_ANALYZER: Optional[str] = None
 
     def __init__(
         self,
@@ -199,7 +200,7 @@ class String(Leaf):
 
     EXPECTED_CLASS = string_types
 
-    INVALID = 23
+    INVALID: Any = 23
     VALID = "asdf"
 
 

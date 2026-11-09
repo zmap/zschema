@@ -19,8 +19,16 @@ dependencies = [
 
 [project.optional-dependencies]
 tests = [
-    "pytest"
+    "pytest",
+    "mypy",
+    "pyright",
+    "types-six",
+    "types-python-dateutil",
+    "types-pytz"
 ]
 
 [project.scripts]
 zschema = "zschema.__main__:main"
+
+[tool.setuptools.package-data]
+zschema = ["py.typed"]
