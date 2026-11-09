@@ -4,23 +4,27 @@ from six import string_types
 
 import logging
 import sys
+from typing import Any, Dict, List, Optional, Set
 
 _keyable_counter = 0
 
 
-class _NO_ARG(object):
+class _NoArg(object):
     __nonzero__ = lambda _: False
     __bool__ = lambda _: False
 
     def __new__(cls):
         if hasattr(cls, "_instance"):
             return cls._instance
-        retv = super(_NO_ARG, cls).__new__(cls)
+        retv = super(_NoArg, cls).__new__(cls)
         cls._instance = retv
         return retv
 
 
-_NO_ARG = _NO_ARG()
+# This sentinel means "use the class default", which is distinct from None.
+# Keep it dynamically typed: otherwise typecheckers infer that unannotated
+# parameters defaulting to it accept only the sentinel, not schema values.
+_NO_ARG: Any = _NoArg()
 
 
 class Port(object):
@@ -149,21 +153,21 @@ class Keyable(object):
     REQUIRED = False
     DEPRECATED = False
     DEPRECATED_TYPE = False
-    DOC = None
-    DESC = None
-    CATEGORY = None
-    EXAMPLES = []
-    EXCLUDE = set([])
-    METADATA = {}
+    DOC: Optional[str] = None
+    DESC: Optional[str] = None
+    CATEGORY: Optional[str] = None
+    EXAMPLES: List[Any] = []
+    EXCLUDE: Set[str] = set([])
+    METADATA: Dict[str, Any] = {}
     ALLOW_UNKNOWN = False
     VALIDATION_POLICY = "inherit"
-    EXPLICIT_INDEX = None
+    EXPLICIT_INDEX: Optional[int] = None
     PR_IGNORE = False
 
     # create a map from name of type to class. We can use this
     # in order to create the Python definition from JSON. We need
     # this in the web interface. We define this in keyable because
-    _types_by_name = {}
+    _types_by_name: Dict[str, Any] = {}
 
     def __or__(self, f):
         return f(self)
@@ -409,4 +413,4 @@ class MergeConflictException(Exception):
     pass
 
 
-_zschema_types_by_name = {}
+_zschema_types_by_name: Dict[str, Any] = {}
